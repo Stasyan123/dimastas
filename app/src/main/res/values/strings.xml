@@ -1,0 +1,68 @@
+<resources>
+    <string name="app_name">Stas Version</string>
+    <string name="save_image">save</string>
+    <string name="max_filter">100</string>
+
+    <string-array name="photo_editor_emoji">
+        <!-- Smiles -->
+        <item>u+1f604</item>
+    </string-array>
+
+    <string name="label_text">Text</string>
+    <string name="label_brush">Brush</string>
+    <string name="label_emoji">Emoji</string>
+    <string name="label_sticker">Sticker</string>
+    <string name="label_eraser">Eraser</string>
+    <string name="label_filter">Filter</string>
+    <string name="label_adjust">Adjust</string>
+    <string name="molli">Molli</string>
+
+    <string name="imagepicker_action_ok">OK</string>
+    <string name="imagepicker_action_done">DONE</string>
+    <string name="all">All</string>
+
+    <string name="imagepicker_title_folder">Albums</string>
+    <string name="imagepicker_title_image">Galleries</string>
+
+    <string name="imagepicker_text_gif">GIF</string>
+    <string name="imagepicker_photo_count_multiple">%d images</string>
+    <string name="imagepicker_photo_count_single">%d image</string>
+
+    <string name="imagepicker_error_no_camera">No camera found</string>
+    <string name="imagepicker_error_create_image_file">Failed to create image file</string>
+    <string name="imagepicker_error_images_not_exist">Images not exist</string>
+    <string name="imagepicker_error_unknown">Unknown error</string>
+
+    <string name="imagepicker_msg_no_images">No images</string>
+    <string name="imagepicker_msg_no_write_external_storage_permission">To continue, please give access to your photos</string>
+    <string name="imagepicker_msg_no_camera_permission">To continue, please give access to take pictures</string>
+    <string name="imagepicker_msg_no_write_external_storage_camera_permission">To continue, please give access to take pictures</string>
+    <string name="imagepicker_msg_limit_images">Limit selection to %d images</string>
+
+    <string name="intensity">Intensity</string>
+    <string name="intensity_angl">Intensity</string>
+    <string name="crop">Crop</string>
+    <string name="custom">ALL</string>
+    <string name="threefour">3 : 4</string>
+    <string name="one">1 : 1</string>
+    <string name="fourthree">4 : 3</string>
+    <string name="close">Close</string>
+
+    <string name="crop_image_menu_rotate_left">Rotate counter clockwise</string>
+    <string name="crop_image_menu_rotate_right">Rotate</string>
+    <string name="crop_image_menu_crop">Crop</string>
+    <string name="crop_image_menu_flip">Flip</string>
+    <string name="crop_image_menu_flip_horizontally">Flip horizontally</string>
+    <string name="crop_image_menu_flip_vertically">Flip vertically</string>
+
+    <string name="crop_image_activity_title"></string>
+
+    <string name="pick_image_intent_chooser_title">Select source</string>
+    <string name="crop_image_activity_no_permissions">Cancelling, required permissions are not granted</string>
+
+    <string name="main_action_crop">CROP</string>
+    <string name="main_action_rotate">Rotate 90 degrees clockwise</string>
+    <string name="main_action_flip">Flip</string>
+    <string name="main_action_flip_horizontally">Flip horizontally</string>
+    <string name="main_action_flip_vertically">Flip vertically</string>
+</resources>

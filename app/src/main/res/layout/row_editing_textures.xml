@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/dark"
+    android:layout_marginStart="3dp"
+    android:layout_marginEnd="3dp">
+
+
+    <ImageView
+        android:id="@+id/imgToolIcon"
+        android:layout_width="@dimen/editor_width"
+        android:layout_height="@dimen/editor_height"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/txtTool"
+        android:layout_width="@dimen/editor_width"
+        android:layout_height="wrap_content"
+        android:paddingTop="1dp"
+        android:paddingBottom="1dp"
+        android:paddingStart="3dp"
+        android:paddingEnd="3dp"
+        android:layout_alignBottom="@id/imgToolIcon"
+        android:background="@color/ldark"
+        android:textColor="@color/white"
+        android:textSize="10sp"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="@+id/imgToolIcon"
+        app:layout_constraintStart_toStartOf="@+id/imgToolIcon"
+        tools:text="@string/label_brush" />
+
+    <View
+        android:id="@+id/viewEmpty"
+        android:layout_width="@dimen/empty_width"
+        android:layout_height="3dp"
+        android:background="@color/white"
+        android:layout_alignBottom="@id/imgToolIcon"
+        android:layout_marginBottom="4dp"
+        android:layout_marginStart="17dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/imgToolIcon"
+        app:layout_constraintStart_toStartOf="@+id/imgToolIcon" />
+
+</RelativeLayout>

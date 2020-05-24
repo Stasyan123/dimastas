@@ -1,0 +1,128 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="EditText">
+        <item name="android:singleLine">true</item>
+        <item name="colorControlNormal">#FFFFFF</item>
+        <item name="colorControlActivated">#FFFFFF</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="molli">
+        <item name="android:textSize">
+            80sp
+        </item>
+        <item name="android:textColor">
+            #5CC0BB
+        </item>
+    </style>
+
+    <style name="crop_rect">
+        <item name="android:textSize">
+            14sp
+        </item>
+        <item name="android:textColor">#9C9C9C</item>
+        <item name="android:fontFamily">
+            @font/masiva
+        </item>
+    </style>
+
+    <style name="intensity">
+        <item name="android:textSize">
+            18sp
+        </item>
+        <item name="android:textColor">
+            #BCBCBC
+        </item>
+        <item name="android:fontFamily">
+            @font/masiva
+        </item>
+    </style>
+
+    <style name="ServiceTextShadow">
+        <item name="android:shadowColor">#55000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0</item>
+        <item name="android:shadowRadius">10.0</item>
+    </style>
+
+    <style name="scroll_view">
+        <item name="android:layout_marginTop">
+            15dp
+        </item>
+        <item name="android:layout_marginStart">
+            15dp
+        </item>
+        <item name="android:layout_width">
+            200dp
+        </item>
+        <item name="android:layout_height">
+            450dp
+        </item>
+    </style>
+
+    <style name="MySeekBar" parent="Widget.AppCompat.SeekBar">
+        <item name="android:progressBackgroundTint">#ffffff</item>
+        <item name="android:progressTint">#ffffff</item>
+    </style>
+
+    <style name="top_bar">
+        <item name="android:textSize">
+            28sp
+        </item>
+        <item name="android:textColor">
+            #ffffff
+        </item>
+    </style>
+
+    <style name="imagepicker_BaseTheme" parent="Theme.AppCompat.Light.NoActionBar"></style>
+
+    <style name="imagepicker_ImagePickerTheme" parent="imagepicker_BaseTheme"></style>
+
+    <style name="imagepicker_CameraTheme" parent="imagepicker_BaseTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
+    <style name="imagepicker_ToolbarTitleText" parent="@android:style/TextAppearance.DeviceDefault.Widget.ActionBar.Title">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="imagepicker_ToolbarMenuText" parent="@android:style/TextAppearance.DeviceDefault.Widget.ActionBar.Menu">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="imagepicker_TextSmall" parent="TextAppearance.AppCompat.Small">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="imagepicker_TextMedium" parent="TextAppearance.AppCompat.Medium">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="imagepicker_TextLarge" parent="TextAppearance.AppCompat.Large">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+</resources>
+

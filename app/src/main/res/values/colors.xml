@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="blue_color_picker">#0066FF</color>
+    <color name="brown_color_picker">#AF593E</color>
+    <color name="green_color_picker">#01A368</color>
+    <color name="orange_color_picker">#FF861F</color>
+    <color name="red_color_picker">#ED0A3F</color>
+    <color name="red_orange_color_picker">#FF3F34</color>
+    <color name="sky_blue_color_picker">#76D7EA</color>
+    <color name="violet_color_picker">#8359A3</color>
+    <color name="yellow_color_picker">#FBE870</color>
+    <color name="yellow_green_color_picker">#C5E17A</color>
+    <color name="tool_bg">#151414</color>
+
+    <color name="dark">#000000</color>
+    <color name="ldark">#2E2E2E</color>
+    <color name="eGray">#FFCFCFCF</color>
+    <color name="seekGray">#909090</color>
+
+    <color name="filter1">#F16868</color>
+    <color name="filter2">#731616</color>
+    <color name="filter3">#004643</color>
+    <color name="filter4">#D7612A</color>
+    <color name="filter5">#B97705</color>
+
+    <color name="imagepicker_white">#FFFFFF</color>
+    <color name="imagepicker_black">#000000</color>
+    <color name="imagepicker_black_alpha_50">#80000000</color>
+    <color name="imagepicker_grey">#9E9E9E</color>
+    <color name="imagepicker_dark">#323232</color>
+    <color name="imagepicker_teal">#009688</color>
+    <color name="imagepicker_teal_dark">#00796B</color>
+    <color name="imagepicker_pink">#E91E63</color>
+</resources>
