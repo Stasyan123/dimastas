@@ -1,6 +1,7 @@
 package com.sm.stasversion.utils;
 
 public enum EffectType {
+    Lut,
     Exposition,
     Crop,
     Brightness,

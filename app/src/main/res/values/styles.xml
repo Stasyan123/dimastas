@@ -39,6 +39,19 @@
         </item>
     </style>
 
+
+    <style name="filter_param">
+        <item name="android:textSize">
+            13sp
+        </item>
+        <item name="android:textColor">
+            #BCBCBC
+        </item>
+        <item name="android:fontFamily">
+            @font/masiva
+        </item>
+    </style>
+
     <style name="intensity">
         <item name="android:textSize">
             18sp

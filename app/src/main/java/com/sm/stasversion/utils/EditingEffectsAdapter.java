@@ -25,11 +25,11 @@ public class EditingEffectsAdapter extends RecyclerView.Adapter<EditingEffectsAd
     public EditingEffectsAdapter(OnItemSelected onItemSelected) {
         mOnItemSelected = onItemSelected;
 
-        mToolList.add(new EffectModel("Exposure", EffectType.Exposition, R.drawable.ic_exposure, 0));
+        mToolList.add(new EffectModel("Exposure", EffectType.Exposition, R.drawable.ic_exposure, 1));
         mToolList.add(new EffectModel("Crop", EffectType.Crop, R.drawable.ic_crop, -1));
-        mToolList.add(new EffectModel("Brightness", EffectType.Brightness, R.drawable.ic_brightness, 1));
-        mToolList.add(new EffectModel("Contrast", EffectType.Contrast, R.drawable.ic_contrast, 2));
-        mToolList.add(new EffectModel("Shadows", EffectType.Shadow, R.drawable.ic_shadow, 3));
+        mToolList.add(new EffectModel("Brightness", EffectType.Brightness, R.drawable.ic_brightness, 2));
+        mToolList.add(new EffectModel("Contrast", EffectType.Contrast, R.drawable.ic_contrast, 3));
+        mToolList.add(new EffectModel("Shadows", EffectType.Shadow, R.drawable.ic_shadow, 4));
         mToolList.add(new EffectModel("Highlights", EffectType.Highlight, R.drawable.ic_highlights, 4));
         mToolList.add(new EffectModel("Saturation", EffectType.Saturation, R.drawable.ic_saturation, 5));
         mToolList.add(new EffectModel("Temperature", EffectType.Temperature, R.drawable.ic_temperature, 6));
@@ -86,7 +86,7 @@ public class EditingEffectsAdapter extends RecyclerView.Adapter<EditingEffectsAd
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mOnItemSelected.onEffectSelected(mToolList.get(getLayoutPosition()).mToolType, getLayoutPosition());
+                    mOnItemSelected.onEffectSelected(mToolList.get(getLayoutPosition()).mToolType, mToolList.get(getLayoutPosition()).mIndex);
                 }
             });
         }
