@@ -40,12 +40,21 @@
     </style>
 
 
+    <style name="color_item">
+        <item name="android:layout_height">
+            32.3dp
+        </item>
+        <item name="android:layout_width">
+            32.3dp
+        </item>
+    </style>
+
     <style name="filter_param">
         <item name="android:textSize">
-            13sp
+            10sp
         </item>
         <item name="android:textColor">
-            #BCBCBC
+            #FFFFFF
         </item>
         <item name="android:fontFamily">
             @font/masiva
@@ -54,10 +63,10 @@
 
     <style name="intensity">
         <item name="android:textSize">
-            18sp
+            12sp
         </item>
         <item name="android:textColor">
-            #BCBCBC
+            #FFFFFF
         </item>
         <item name="android:fontFamily">
             @font/masiva
@@ -86,9 +95,30 @@
         </item>
     </style>
 
-    <style name="MySeekBar" parent="Widget.AppCompat.SeekBar">
+    <style name="MySeekBar" parent="seek_dimens">
         <item name="android:progressBackgroundTint">#ffffff</item>
         <item name="android:progressTint">#ffffff</item>
+    </style>
+
+    <style name="seek_dimens">
+        <item name="android:layout_width">
+            match_parent
+        </item>
+        <item name="android:layout_height">
+            wrap_content
+        </item>
+        <item name="android:max">
+            100
+        </item>
+        <item name="android:progress">
+            50
+        </item>
+        <item name="android:minHeight">
+            1dp
+        </item>
+        <item name="android:maxHeight">
+            1dp
+        </item>
     </style>
 
     <style name="top_bar">

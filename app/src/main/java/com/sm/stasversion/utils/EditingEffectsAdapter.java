@@ -35,6 +35,7 @@ public class EditingEffectsAdapter extends RecyclerView.Adapter<EditingEffectsAd
         mToolList.add(new EffectModel("Temperature", EffectType.Temperature, R.drawable.ic_temperature, 6));
         mToolList.add(new EffectModel("Grain", EffectType.Grain, R.drawable.ic_grain, 7));
         mToolList.add(new EffectModel("Sharpen", EffectType.Sharpness, R.drawable.ic_sharpen, 8));
+        mToolList.add(new EffectModel("HSL", EffectType.HSL, R.drawable.ic_hsl, 9));
     }
 
     public interface OnItemSelected {

@@ -132,7 +132,7 @@
                 android:id="@+id/cancel_effect_button"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
-                android:background="@drawable/ic_cancel"
+                android:background="@drawable/ic_cross_bottom"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -155,7 +155,7 @@
                 android:id="@+id/apply_effect_button"
                 android:layout_width="15dp"
                 android:layout_height="15dp"
-                android:background="@drawable/ic_accept"
+                android:background="@drawable/ic_done_bottom"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
@@ -203,7 +203,7 @@
                 android:id="@+id/cancel_button"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
-                android:background="@drawable/ic_cancel"
+                android:background="@drawable/ic_cross_bottom"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -226,7 +226,7 @@
                 android:id="@+id/apply_button"
                 android:layout_width="15dp"
                 android:layout_height="15dp"
-                android:background="@drawable/ic_accept"
+                android:background="@drawable/ic_done_bottom"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
@@ -547,7 +547,7 @@
             android:id="@+id/cancel"
             android:layout_width="16dp"
             android:layout_height="16dp"
-            android:background="@drawable/ic_cancel"
+            android:background="@drawable/ic_cross_bottom"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
@@ -571,7 +571,7 @@
             android:id="@+id/accept"
             android:layout_width="15dp"
             android:layout_height="15dp"
-            android:background="@drawable/ic_accept"
+            android:background="@drawable/ic_done_bottom"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />

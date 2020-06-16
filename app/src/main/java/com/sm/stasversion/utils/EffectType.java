@@ -12,5 +12,6 @@ public enum EffectType {
     Saturation,
     Temperature,
     Grain,
-    Sharpness
+    Sharpness,
+    HSL
 }

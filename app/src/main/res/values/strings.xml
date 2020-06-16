@@ -42,6 +42,10 @@
     <string name="temperature">Temperature</string>
     <string name="tint">Tint</string>
 
+    <string name="luminance">Luminance</string>
+    <string name="saturation">Saturation</string>
+    <string name="hue">Hue</string>
+
     <string name="intensity">Intensity</string>
     <string name="intensity_angl">Intensity</string>
     <string name="crop">Crop</string>

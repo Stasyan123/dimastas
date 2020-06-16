@@ -215,66 +215,194 @@
             android:id="@+id/intensityLayout_effect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="17dp"
+            android:layout_marginBottom="35.15dp"
             android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintBottom_toTopOf="@+id/intensity_buttons">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/container_temperature"
+            <LinearLayout
+                android:id="@+id/hsl_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible"
-                android:layout_marginBottom="11dp"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toTopOf="@+id/container_tint"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent">
+                android:layout_marginBottom="23dp"
+                android:orientation="vertical" >
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/colors"
+                    android:layout_width="match_parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginStart="4.75dp"
+                    android:layout_marginEnd="4.75dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24.5dp">
+
+                    <View
+                        android:id="@+id/all"
+                        style="@style/color_item"
+                        android:background="@drawable/ic_all"
+                        app:layout_constraintHorizontal_chainStyle="spread_inside"
+                        app:layout_constraintEnd_toStartOf="@+id/red"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                    <View
+                        android:id="@+id/all_empty"
+                        android:layout_height="26dp"
+                        android:layout_width="26dp"
+                        android:layout_marginBottom="3.45dp"
+                        android:layout_marginStart="3dp"
+                        android:background="@drawable/ic_all_empty"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                    <View
+                        android:id="@+id/red"
+                        style="@style/color_item"
+                        android:background="@drawable/red"
+                        app:layout_constraintHorizontal_chainStyle="spread_inside"
+                        app:layout_constraintEnd_toStartOf="@+id/orange"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/all" />
+
+                    <View
+                        android:id="@+id/orange"
+                        style="@style/color_item"
+                        android:background="@drawable/orange"
+                        app:layout_constraintHorizontal_chainStyle="spread_inside"
+                        app:layout_constraintEnd_toStartOf="@+id/yellow"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/red"
+                        />
+
+                    <View
+                        android:id="@+id/yellow"
+                        style="@style/color_item"
+                        android:background="@drawable/yellow"
+                        app:layout_constraintHorizontal_chainStyle="spread_inside"
+                        app:layout_constraintEnd_toStartOf="@+id/green"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/orange"
+                         />
+
+                    <View
+                        android:id="@+id/green"
+                        style="@style/color_item"
+                        android:background="@drawable/green"
+                        app:layout_constraintHorizontal_chainStyle="spread_inside"
+                        app:layout_constraintEnd_toStartOf="@+id/blue"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/yellow"
+                         />
+
+                    <View
+                        android:id="@+id/blue"
+                        style="@style/color_item"
+                        android:background="@drawable/blue"
+                        app:layout_constraintHorizontal_chainStyle="spread_inside"
+                        app:layout_constraintEnd_toStartOf="@+id/violet"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/green"/>
+
+                    <View
+                        android:id="@+id/violet"
+                        style="@style/color_item"
+                        android:background="@drawable/violet"
+                        app:layout_constraintHorizontal_chainStyle="spread_inside"
+                        app:layout_constraintLeft_toRightOf="@id/blue"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
                 <TextView
-                    android:id="@+id/temperature"
+                    android:id="@+id/hue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="22dp"
+                    android:text="@string/hue"
+                    android:textAppearance="@style/filter_param"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <SeekBar
+                    android:id="@+id/seekBar_hue"
+                    android:layout_marginTop="0.95dp"
+                    android:layout_marginBottom="27dp"
+                    style="@style/seek_dimens"
+                    android:progressDrawable="@drawable/progress_white"
+                    android:thumb="@drawable/scrubber_control"
+                    app:layout_constraintTop_toBottomOf="@+id/hue"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent" />
+
+
+                <TextView
+                    android:id="@+id/saturation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/saturation"
+                    android:textAppearance="@style/filter_param"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <SeekBar
+                    android:id="@+id/seekBar_saturation"
+                    android:layout_marginTop="0.95dp"
+                    android:layout_marginBottom="27dp"
+                    style="@style/seek_dimens"
+                    android:progressDrawable="@drawable/sb_progress_drawable"
+                    android:thumb="@drawable/scrubber_control" />
+
+
+                <TextView
+                    android:id="@+id/luminance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/luminance"
+                    android:textAppearance="@style/filter_param"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <SeekBar
+                    android:id="@+id/seekBar_luminance"
+                    style="@style/seek_dimens"
+                    android:progressDrawable="@drawable/sb_progress_drawable"
+                    android:thumb="@drawable/scrubber_control"
+                    app:layout_constraintLeft_toLeftOf="parent" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/temperature_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="@string/temperature"
                     android:textAppearance="@style/filter_param"
-                    app:layout_constraintBottom_toTopOf="@+id/seekBar_temperature"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <SeekBar
                     android:id="@+id/seekBar_temperature"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginStart="10dp"
-                    android:minHeight="2dp"
-                    android:maxHeight="2dp"
-                    android:max="100"
-                    android:progress="100"
+                    android:layout_marginTop="0.95dp"
+                    android:layout_marginBottom="28dp"
+                    style="@style/seek_dimens"
                     android:progressDrawable="@drawable/sb_progress_drawable"
-                    android:thumb="@drawable/scrubber_control"
-                    app:layout_constraintTop_toBottomOf="@+id/temperature"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:thumb="@drawable/scrubber_control" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/container_tint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="visible"
-                android:layout_marginBottom="26dp"
-                app:layout_constraintBottom_toTopOf="@+id/intensity_effect_buttons"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent">
+
                 <TextView
-                    android:id="@+id/tint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="22dp"
                     android:text="@string/tint"
                     android:textAppearance="@style/filter_param"
                     app:layout_constraintStart_toStartOf="parent"
@@ -282,186 +410,38 @@
 
                 <SeekBar
                     android:id="@+id/seekBar_tint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginTop="2dp"
-                    android:minHeight="2dp"
-                    android:maxHeight="2dp"
-                    android:max="100"
-                    android:progress="100"
+                    style="@style/seek_dimens"
+                    android:layout_marginBottom="7dp"
                     android:progressDrawable="@drawable/sb_progress_drawable"
                     android:thumb="@drawable/scrubber_control"
-                    app:layout_constraintTop_toBottomOf="@+id/tint"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintLeft_toLeftOf="parent"
-                    app:layout_constraintRight_toRightOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <SeekBar
-                android:id="@+id/seekBar_effect"
-                android:visibility="gone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="32dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginStart="10dp"
-                android:minHeight="2dp"
-                android:maxHeight="2dp"
-                android:max="100"
-                android:progress="100"
-                android:progressDrawable="@drawable/sb_progress_drawable"
-                android:thumb="@drawable/scrubber_control"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintBottom_toTopOf="@+id/intensity_effect_buttons"/>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/intensity_effect_buttons"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
-                android:visibility="visible"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/cancel_effect_button"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:visibility="visible"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent">
-                <View
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:background="@drawable/ic_cancel"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="1dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:text="@string/intensity"
-                    android:textAppearance="@style/intensity"
-                    android:layout_gravity="center_vertical">
-
-                </TextView>
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/apply_effect_button"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:visibility="visible"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent">
-                    <View
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:background="@drawable/ic_accept"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    app:layout_constraintLeft_toLeftOf="parent" />
+            </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/intensityLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
+            android:layout_marginBottom="62.7dp"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="17dp"
             android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintBottom_toTopOf="@+id/intensity_buttons">
 
             <SeekBar
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:id="@+id/seekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="32dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginStart="10dp"
                 android:max="100"
-                android:progress="100"
-                style="@style/MySeekBar"
                 android:thumb="@drawable/scrubber_control"
-                app:layout_constraintLeft_toLeftOf="parent"
+                android:progressDrawable="@drawable/seekbar"
+                android:maxHeight="9dp"
+                android:minHeight="9dp"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintBottom_toTopOf="@+id/intensity_buttons"/>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/intensity_buttons"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
-                android:visibility="visible"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
+                />
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/cancel_button"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:visibility="visible"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent">
-                    <View
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:background="@drawable/ic_cancel"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="1dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:text="@string/intensity"
-                    android:textAppearance="@style/intensity"
-                    android:layout_gravity="center_vertical">
-
-                </TextView>
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/apply_button"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:visibility="visible"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent">
-                    <View
-                        android:layout_width="15dp"
-                        android:layout_height="15dp"
-                        android:background="@drawable/ic_accept"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -600,6 +580,67 @@
                     app:layout_constraintStart_toEndOf="@+id/effect" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/intensity_buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="21dp"
+            android:visibility="gone"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="17dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cancel_effect_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+                <View
+                    android:layout_width="10.45dp"
+                    android:layout_height="11.4dp"
+                    android:background="@drawable/ic_cross_bottom"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/action_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="1dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:text="@string/intensity"
+                android:textAppearance="@style/intensity"
+                android:layout_gravity="center_vertical">
+
+            </TextView>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/apply_effect_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+                <View
+                    android:layout_width="15.2dp"
+                    android:layout_height="11.4dp"
+                    android:background="@drawable/ic_done_bottom"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -720,7 +761,7 @@
                 android:id="@+id/cancel_crop"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
-                android:background="@drawable/ic_cancel"
+                android:background="@drawable/ic_cross_bottom"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -743,7 +784,7 @@
                 android:id="@+id/apply_crop"
                 android:layout_width="15dp"
                 android:layout_height="15dp"
-                android:background="@drawable/ic_accept"
+                android:background="@drawable/ic_done_bottom"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
@@ -766,7 +807,7 @@
             android:id="@+id/cancel"
             android:layout_width="18dp"
             android:layout_height="23dp"
-            android:background="@drawable/ic_cancel"
+            android:background="@drawable/ic_cross_bottom"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
@@ -788,7 +829,7 @@
             android:id="@+id/accept"
             android:layout_width="18dp"
             android:layout_height="23dp"
-            android:background="@drawable/ic_accept"
+            android:background="@drawable/ic_done_bottom"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
