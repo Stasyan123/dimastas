@@ -15,8 +15,16 @@ public class AdjustConfig {
     public EffectType type;
     public AdjustConfig additionaItem;
     public float[][] hsl = null;
+    public float[][] tempHsl = null;
     public int hslPos = 0;
     public Boolean startEditing = false;
+    public Boolean active = true;
+
+    //texture settings
+    public int rotate = 0;
+    public Boolean horizontal = false;
+    public Boolean vertical = false;
+    public Boolean diff = false;
 
     public AdjustConfig(int _index, float _minValue, float _originValue, float _maxValue,
                         String rule, float _slierIntensity, boolean _additional, EffectType _type) {
@@ -100,6 +108,12 @@ public class AdjustConfig {
     }
 
     public void setTempIntensityWithParam(int config, float _intensity, float _intensity2, float _intensity3, ImageGLSurfaceView mImageView) {
+        if(type == EffectType.HSL) {
+            tempHsl[hslPos][0] = calcIntensity(_intensity);
+            tempHsl[hslPos][1] = _intensity2;
+            tempHsl[hslPos][2] = _intensity3;
+        }
+
         if (mImageView != null) {
             mImageView.setParamAtIndex(config, calcIntensity(_intensity), _intensity2, _intensity3, index);
         }
@@ -109,8 +123,12 @@ public class AdjustConfig {
         return intensity;
     }
 
-    public float[] getHslConfig() {
-        return hsl[hslPos];
+    public float[] getHslConfig(boolean temp) {
+        if(temp) {
+            return tempHsl[hslPos];
+        } else {
+            return hsl[hslPos];
+        }
     }
 
     public String getRule() {

@@ -13,5 +13,6 @@ public enum EffectType {
     Temperature,
     Grain,
     Sharpness,
-    HSL
+    HSL,
+    Texture
 }

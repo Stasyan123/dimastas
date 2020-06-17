@@ -51,7 +51,7 @@ import org.wysaid.view.ImageGLSurfaceView
 import java.io.InputStream
 
 class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToolsAdapter.OnItemSelected, EditingEffectsAdapter.OnItemSelected,
-    EditingTextureAdapter.OnItemSelected, EditingTexturesAdapter.OnItemSelected, MainFragment.OnBitmapReady, SeekBar.OnSeekBarChangeListener {
+    EditingTextureAdapter.OnItemSelected, MainFragment.OnBitmapReady, SeekBar.OnSeekBarChangeListener {
 
     protected var BASIC_FILTER_CONFIG: String = "@adjust lut edgy_amber.png";
     protected var CONFIG_RULES: String = "";
@@ -91,8 +91,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     var effectsList: MutableList<GPUImageFilter>? = null
     var intensity: Float = 1.0f
-
-    var addedViews: MutableList<View>? = null
     val tag: String = "DimaStas"
 
 
@@ -293,10 +291,22 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun initSavebutton() {
+        var t: Bitmap? = null
+        var test = true
         val v = findViewById<View>(R.id.topSave)
 
         v.setOnClickListener{
-            glImageView!!.setFilterWithConfig("@adjust hsl 0.02 -0.31 -0.17 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 -1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
+            if(test) {
+                glImageView!!.getResultBitmap(object :
+                    ImageGLSurfaceView.QueryResultBitmapCallback {
+                    override fun get(bmp: Bitmap?) {
+                        t = bmp
+                        test = false
+                    }
+                })
+            } else {
+                glImageView!!.setImageBitmap(t)
+            }
         }
     }
 
@@ -308,7 +318,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val view = findViewById<View>(R.id.topClose)
 
         view.setOnClickListener{
-            glImageView!!.setFilterWithConfig("@adjust hsl 0.02 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.02 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
+            glImageView!!.setFilterWithConfig("@adjust hsl 0.02 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
         }
     }
 
@@ -401,10 +411,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
             glImageView!!.setSurfaceCreatedCallback(ImageGLSurfaceView.OnSurfaceCreatedCallback {
                 glImageView!!.setImageBitmap(res)
-                Log.d(
-                    "Stas1",
-                    calculateRules()
-                )
                 glImageView!!.setFilterWithConfig(calculateRules());
             })
 
@@ -432,7 +438,9 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 (view.background as LayerDrawable).findDrawableByLayerId(R.id.border).alpha = 255
             }
 
-            initHslSeek()
+            mActiveConfig!!.startEditing = false
+            initHslSeek(true)
+            mActiveConfig!!.startEditing = true
         }
     }
 
@@ -506,111 +514,30 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         mSeekSat!!.setOnSeekBarChangeListener(this)
         mSeekLum!!.setOnSeekBarChangeListener(this)
 
-        val seek_temp = findViewById<SeekBar>(R.id.seekBar_temperature)
-        val seek_tint = findViewById<SeekBar>(R.id.seekBar_tint)
-        seek_temp.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
-                pr = progress.toFloat() / 100.0f
-                if(mActiveConfig!!.startEditing) {
-                    mActiveConfig!!.setTempIntensityWithParam(
-                        1,
-                        pr,
-                        mActiveConfig!!.additionaItem.calcIntensity(seek_tint.progress / 100.0f),
-                        0.0f,
-                        glImageView
-                    )
-                }
-            }
-
-            override fun onStartTrackingTouch(p0: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(p0: SeekBar?) {
-            }
-        })
-        seek_tint.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
-                pr = progress.toFloat() / 100.0f
-                mActiveConfig!!.setTempIntensityWithParam(1,
-                    seek_temp.progress / 100.0f,
-                    mActiveConfig!!.additionaItem.calcIntensity(pr),
-                    0.0f, glImageView)
-            }
-
-            override fun onStartTrackingTouch(p0: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(p0: SeekBar?) {
-            }
-        })
-
-
-
-        val seek_hue = findViewById<SeekBar>(R.id.seekBar_hue)
-        val seek_sat = findViewById<SeekBar>(R.id.seekBar_saturation)
-        val seek_lum = findViewById<SeekBar>(R.id.seekBar_luminance)
-
-        val hsl_seek = fun () {
-            if(mActiveConfig!!.startEditing) {
-                mActiveConfig!!.setTempIntensityWithParam(
-                    1,
-                    mActiveConfig!!.calcIntensity(seek_hue.progress / 100.0f),
-                    mActiveConfig!!.calcIntensity(seek_sat.progress / 100.0f),
-                    mActiveConfig!!.calcIntensity(seek_lum.progress / 100.0f),
-                    glImageView
-                )
-            }
-        }
-
-        seek_sat.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
-                pr = progress.toFloat() / 100.0f
-                hsl_seek();
-            }
-
-            override fun onStartTrackingTouch(p0: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(p0: SeekBar?) {
-            }
-        })
-
-        seek_hue.setOnSeekBarChangeListener(hsl_seek)
-
-        seek_lum.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
-                //pr = progress.toFloat() / 100.0f
-                //mActiveConfig!!.setTempIntensityWithParam(1, seek_temp.progress / 100.0f, pr, glImageView)
-            }
-
-            override fun onStartTrackingTouch(p0: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(p0: SeekBar?) {
-            }
-        })
-
         apply_effect.setOnClickListener {
             if(mActiveConfig != null) {
                 if (mActiveConfig!!.type == EffectType.Temperature) {
                     mActiveConfig!!.setIntensityWithParam(
-                        1,
-                        seek_temp.progress / 100.0f,
-                        seek_tint.progress / 100.0f,
+                        7,
+                        mSeekTemp!!.progress / 100.0f,
+                        mSeekTint!!.progress / 100.0f,
                         glImageView,
                         false
                     )
                 } else if (mActiveConfig!!.type == EffectType.Shadow) {
                     mActiveConfig!!.setIntensityWithParam(
-                        2,
+                        8,
                         pr,
                         mActiveConfig!!.additionaItem.slierIntensity,
                         glImageView,
                         false
                     )
+                } else if (mActiveConfig!!.type == EffectType.HSL) {
+                    copyArray(mActiveConfig!!.tempHsl, mActiveConfig!!.hsl)
+                    glImageView!!.setFilterWithConfig(calculateRules())
                 } else if (mActiveConfig!!.type == EffectType.Highlight) {
                     mActiveConfig!!.setIntensityWithParam(
-                        2,
+                        8,
                         mActiveConfig!!.slierIntensity,
                         pr,
                         glImageView,
@@ -635,7 +562,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             if(mActiveConfig != null) {
                 if (mActiveConfig!!.type == EffectType.Temperature) {
                     mActiveConfig!!.setIntensityWithParam(
-                        1,
+                        7,
                         mActiveConfig!!.slierIntensity,
                         mActiveConfig!!.additionaItem.slierIntensity,
                         glImageView,
@@ -643,12 +570,15 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                     )
                 } else if (mActiveConfig!!.type == EffectType.Shadow || mActiveConfig!!.type == EffectType.Highlight) {
                     mActiveConfig!!.setIntensityWithParam(
-                        2,
+                        8,
                         mActiveConfig!!.slierIntensity,
                         mActiveConfig!!.additionaItem.slierIntensity,
                         glImageView,
                         true
                     )
+                } else if (mActiveConfig!!.type == EffectType.HSL) {
+                    copyArray(mActiveConfig!!.hsl, mActiveConfig!!.tempHsl)
+                    glImageView!!.setFilterWithConfig(calculateRules())
                 } else {
                     mActiveConfig!!.setIntensity(mActiveConfig!!.slierIntensity, true, glImageView)
                 }
@@ -666,21 +596,23 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
-        val pr = progress.toFloat() / 100.0f
-
-
-
         if(mActiveConfig!!.startEditing) {
             if (mActiveConfig!!.type == EffectType.Temperature) {
                 mActiveConfig!!.setTempIntensityWithParam(
-                    1,
+                    7,
                     mSeekTemp!!.progress / 100.0f,
                     mActiveConfig!!.additionaItem.calcIntensity(mSeekTint!!.progress / 100.0f),
                     0.0f,
                     glImageView
                 )
             } else {
-
+                mActiveConfig!!.setTempIntensityWithParam(
+                    mActiveConfig!!.hslPos,
+                    mSeekHue!!.progress / 100.0f,
+                    mActiveConfig!!.calcIntensity(mSeekSat!!.progress / 100.0f),
+                    mActiveConfig!!.calcIntensity(mSeekLum!!.progress / 100.0f),
+                    glImageView
+                )
             }
         }
     }
@@ -727,7 +659,8 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         showEffects(eType)
 
         if(eType == EffectType.HSL) {
-            initHslSeek()
+            initHslSeek(false)
+            mActiveConfig!!.startEditing = true
 
             changeMargin(false)
             return;
@@ -949,36 +882,24 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         var rule = "";
 
         mAdjustConfigs!!.forEachIndexed() { index, config ->
-            rule += " " + config.getRule()
+            if(config.active) {
+                rule += " " + config.getRule()
+            }
         }
 
         return rule
     }
 
     private fun initEffectsArray() {
-        addedViews = java.util.ArrayList<View>();
-
-        //AdjustConfig(4, -200.0f, 0.0f, 100.0f, "@adjust shadowhighlight", 0.5f, true),
-//            AdjustConfig(5, -100.0f, 0.0f, 200.0f, "@adjust shadowhighlight", 0.5f, true),
-
         val temperature = AdjustConfig(6, -1.0f, 0.0f, 1.0f, "@adjust whitebalance", 0.5f, true, EffectType.Temperature)
         temperature.setAdditional(AdjustConfig(5, 0.0f, 1.0f, 2.0f, "", 0.5f, true, EffectType.Temperature))
 
         val sh = AdjustConfig(4, -100.0f, 0.0f, 100.0f, "@adjust shadowhighlight", 0.5f, true, EffectType.Shadow)
         sh.setAdditional(AdjustConfig(4, -100.0f, 0.0f, 100.0f, "", 0.5f, true, EffectType.Highlight))
 
-        val all: FloatArray = floatArrayOf(0.95f, 0.5f, -0.8f)
-        val red: FloatArray = floatArrayOf(0f, 0f, 0f)
-        val orange: FloatArray = floatArrayOf(0f, 0f, 0f)
-        val yellow: FloatArray = floatArrayOf(0f, 0f, 0f)
-        val green: FloatArray = floatArrayOf(0f, 0f, 0f)
-        val blue: FloatArray = floatArrayOf(0f, 0f, 0f)
-        val violet: FloatArray = floatArrayOf(0f, 0f, 0f)
-
-        val hsl = arrayOf(all, red, orange, yellow, green, blue, violet)
-
-        val hslConfig = AdjustConfig(9, -1f, 0.0f, 1f, "@adjust hsl", 0.5f, false, EffectType.HSL)
-        hslConfig.hsl = hsl
+        val hslConfig = AdjustConfig(9, -1.0f, 0.0f, 1.0f, "@adjust hsl", 0.5f, false, EffectType.HSL)
+        hslConfig.hsl = arrayOf(floatArrayOf(0.0f, 0.0f, 0.0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f))
+        hslConfig.tempHsl = arrayOf(floatArrayOf(0.0f, 0.0f, 0.0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f))
 
         mAdjustConfigs = mutableListOf(
             AdjustConfig(0, -1.0f, 0.0f, 1.0f, "@adjust lut empty.png", 0.5f, false, EffectType.Lut),
@@ -990,49 +911,40 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             temperature,
             AdjustConfig(7, .0f, 0.0f, 1.0f, "@blend sl oise_light.png", 0f, false, EffectType.Grain),
             AdjustConfig(8, 0f, 0.0f, 2.5f, "@adjust sharpen", 0f, false, EffectType.Sharpness),
-            hslConfig
+            hslConfig,
+            AdjustConfig(10, 0f, 0.0f, 1.0f, "@adjust sharpen", 0f, false, EffectType.Texture)
         )
+
+        mAdjustConfigs!!.get(10).active = false
+    }
+
+    private fun copyArray(ar1: Array<FloatArray>, ar2: Array<FloatArray>) {
+        for (i in 0..ar1.size - 1) {
+            ar2[i] = Arrays.copyOf(ar1[i], ar1[i].size);
+        }
     }
 
     override fun onTextureSelected(textureType: TextureType?, position: Int?) {
         if(textureType != TextureType.DEFAULT) {
-            val toolsRV = findViewById<RecyclerView>(R.id.rvTools)
-            val effectsRV = findViewById<RecyclerView>(R.id.rvEffect)
-            val texturesRV = findViewById<RecyclerView>(R.id.rvTexture)
-            val texturesKindRV = findViewById<RecyclerView>(R.id.rvTextures)
+            /*gpu!!.setImage(image)
 
-            hideRV(effectsRV, toolsRV, texturesRV, texturesKindRV)
+            val temp_list = effectsList!!.toMutableList()
+            if(isLookup != false) {
+                temp_list[0] = gpuLookupFilter
+            } else {
+                temp_list[0] =  gpuFilter
+            }
 
-            val llmTools = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-            val mTexturesKind = findViewById<RecyclerView>(R.id.rvTextures)
-            val adapter = EditingTexturesAdapter(this, textureType)
+            val filter: GPUImageFilter
 
-            mTexturesKind.layoutManager = llmTools
-            mTexturesKind.setAdapter(adapter)
-
-            texturesKindRV.visibility = View.VISIBLE
+            if(pos == 0) {
+                filter = GPUImageFilter()
+            } else {
+                filter = GPUImageScreenBlendFilter()
+                filter.bitmap = BitmapFactory.decodeResource(this.getResources(), texture!!)
+            }*/
         } else {
 
-        }
-    }
-
-    override fun onTexturesSelected(tType: TextureType?, texture: Int?, pos: Int?) {
-        gpu!!.setImage(image)
-
-        val temp_list = effectsList!!.toMutableList()
-        if(isLookup != false) {
-            temp_list[0] = gpuLookupFilter
-        } else {
-            temp_list[0] =  gpuFilter
-        }
-
-        val filter: GPUImageFilter
-
-        if(pos == 0) {
-            filter = GPUImageFilter()
-        } else {
-            filter = GPUImageScreenBlendFilter()
-            filter.bitmap = BitmapFactory.decodeResource(this.getResources(), texture!!)
         }
     }
 
@@ -1051,16 +963,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     fun editText(view: View, inputText: String) {
-        val inputTextView = view.findViewById<TextView>(R.id.tvPhotoEditorText)
-        val parentView = findViewById<RelativeLayout>(R.id.parentView)
 
-        if (inputTextView != null && addedViews!!.contains(view) && !TextUtils.isEmpty(inputText)) {
-            inputTextView.setText(inputText);
-
-            parentView.updateViewLayout(view, view.getLayoutParams())
-            val i = addedViews!!.indexOf(view)
-            if (i > -1) addedViews!!.set(i, view)
-        }
     }
 
     private fun getLayout(viewType: ViewType): View {
@@ -1109,7 +1012,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val toolsRV = findViewById<RecyclerView>(R.id.rvTools)
         val effectsRV = findViewById<RecyclerView>(R.id.rvEffect)
         val texturesRV = findViewById<RecyclerView>(R.id.rvTexture)
-        val texturesKindRV = findViewById<RecyclerView>(R.id.rvTextures)
 
         val filter = findViewById<View>(R.id.filter)
         val effect = findViewById<View>(R.id.effect)
@@ -1117,7 +1019,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         filter.setOnClickListener{
             hideButtons(filter, effect, textures)
-            hideRV(effectsRV, toolsRV, texturesRV, texturesKindRV)
+            hideRV(effectsRV, toolsRV, texturesRV)
             toolsRV.visibility = View.VISIBLE
 
             filter.background = getResources().getDrawable(R.drawable.ic_filters_check)
@@ -1125,7 +1027,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         effect.setOnClickListener{
             hideButtons(filter, effect, textures)
-            hideRV(effectsRV, toolsRV, texturesRV, texturesKindRV);
+            hideRV(effectsRV, toolsRV, texturesRV);
             effectsRV.visibility = View.VISIBLE
 
             effect.background = getResources().getDrawable(R.drawable.ic_effects_check)
@@ -1133,7 +1035,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         textures.setOnClickListener{
             hideButtons(filter, effect, textures)
-            hideRV(effectsRV, toolsRV, texturesRV, texturesKindRV);
+            hideRV(effectsRV, toolsRV, texturesRV);
             texturesRV.visibility = View.VISIBLE
 
             textures.background = getResources().getDrawable(R.drawable.ic_textures_check)
@@ -1146,11 +1048,10 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         textures.background = getResources().getDrawable(R.drawable.ic_textures)
     }
 
-    private fun hideRV(effectsRV: RecyclerView, toolsRV: RecyclerView, texturesRV: RecyclerView, texturesKindRV: RecyclerView) {
+    private fun hideRV(effectsRV: RecyclerView, toolsRV: RecyclerView, texturesRV: RecyclerView) {
         effectsRV.visibility = View.GONE
         toolsRV.visibility = View.GONE
         texturesRV.visibility = View.GONE
-        texturesKindRV.visibility = View.GONE
     }
 
     private fun changeMargin(grow: Boolean) {
@@ -1166,8 +1067,9 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         intensity_block.layoutParams = newLayoutParams
     }
 
-    private fun initHslSeek() {
-        val config = mActiveConfig!!.getHslConfig()
+    private fun initHslSeek(temp: Boolean) {
+        val config = mActiveConfig!!.getHslConfig(temp)
+
         val seek_h = findViewById<SeekBar>(R.id.seekBar_hue)
         val seek_s = findViewById<SeekBar>(R.id.seekBar_saturation)
         val seek_l = findViewById<SeekBar>(R.id.seekBar_luminance)

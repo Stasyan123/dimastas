@@ -24,11 +24,11 @@ public class EditingTextureAdapter extends RecyclerView.Adapter<EditingTextureAd
         mOnItemSelected = onItemSelected;
 
         mToolList.add(new TextureModel("", TextureType.DEFAULT, null));
-        mToolList.add(new TextureModel("Dust", TextureType.SCUFFED, R.drawable.ic_dust));
-        mToolList.add(new TextureModel("Light leak", TextureType.GLARE, R.drawable.ic_leak));
-        mToolList.add(new TextureModel("Bokeh", TextureType.RAINBOW, R.drawable.ic_bokeh));
-        mToolList.add(new TextureModel("Tatto", TextureType.DUST, R.drawable.ic_tatto));
-        mToolList.add(new TextureModel("Snow", TextureType.DUST, R.drawable.ic_snow));
+        mToolList.add(new TextureModel("Dust 001", TextureType.SCUFFED, R.drawable.d1));
+        mToolList.add(new TextureModel("Dust 002", TextureType.GLARE, R.drawable.d2));
+        mToolList.add(new TextureModel("Dust 003", TextureType.RAINBOW, R.drawable.d3));
+        mToolList.add(new TextureModel("Dust 004", TextureType.DUST, R.drawable.d4));
+        mToolList.add(new TextureModel("Dust 005", TextureType.DUST, R.drawable.d5));
     }
 
     public interface OnItemSelected {

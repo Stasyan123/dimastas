@@ -32,6 +32,10 @@ public class EditingTexturesAdapter extends RecyclerView.Adapter<EditingTextures
                 mToolList.add(new TexturesModel("Dust 1", type, R.drawable.d1, R.drawable.grain_1));
                 mToolList.add(new TexturesModel("Dust 2", type, R.drawable.d2, R.drawable.grain_2));
                 mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
+                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
+                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
+                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
+                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
                 mToolList.add(new TexturesModel("Dust 4", type, R.drawable.d4, R.drawable.grain_4));
                 break;
             case RAINBOW:
