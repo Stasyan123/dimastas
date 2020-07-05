@@ -48,7 +48,8 @@ public final class MainFragment extends Fragment
 
   private CropDemoPreset mDemoPreset;
   private OnBitmapReady mBitmapReady;
-  private CropImageView mCropImageView;
+  public CropImageView mCropImageView;
+  public Boolean instaMode = false;
   // endregion
 
   /** Returns a new instance of this fragment for the given section number. */

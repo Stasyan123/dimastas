@@ -39,6 +39,17 @@
         </item>
     </style>
 
+    <style name="bottom_bar">
+        <item name="android:layout_height">
+            31.3dp
+        </item>
+        <item name="android:layout_width">
+            25.6dp
+        </item>
+        <item name="android:layout_marginStart">
+            47.5dp
+        </item>
+    </style>
 
     <style name="color_item">
         <item name="android:layout_height">
@@ -46,6 +57,71 @@
         </item>
         <item name="android:layout_width">
             32.3dp
+        </item>
+    </style>
+
+    <style name="action_button_cancel">
+        <item name="android:layout_height">
+            11.4dp
+        </item>
+        <item name="android:layout_width">
+            10.45dp
+        </item>
+    </style>
+
+    <style name="action_button_accept">
+        <item name="android:layout_height">
+            11.4dp
+        </item>
+        <item name="android:layout_width">
+            15.2dp
+        </item>
+    </style>
+
+    <style name="action_area_cancel">
+        <item name="android:layout_height">
+            11.4dp
+        </item>
+        <item name="android:layout_width">
+            20dp
+        </item>
+    </style>
+
+    <style name="action_button_crop">
+        <item name="android:layout_height">
+            25.6dp
+        </item>
+        <item name="android:layout_width">
+            25.6dp
+        </item>
+    </style>
+
+    <style name="action_button_standart">
+        <item name="android:layout_height">
+            25.6dp
+        </item>
+        <item name="android:layout_width">
+            22.7dp
+        </item>
+    </style>
+
+    <style name="action_area_accept">
+        <item name="android:layout_height">
+            11.4dp
+        </item>
+        <item name="android:layout_width">
+            15dp
+        </item>
+    </style>
+    <style name="rv_margin">
+        <item name="android:layout_marginStart">
+            17dp
+        </item>
+        <item name="android:layout_marginEnd">
+            17dp
+        </item>
+        <item name="android:layout_marginBottom">
+            12.35dp
         </item>
     </style>
 

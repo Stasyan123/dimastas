@@ -186,9 +186,17 @@ JNIEXPORT jboolean JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetP
         filter->setAll(1.0, intensity, intensity2, intensity3);
     } else if (config == 1) {
         filter->setRed(1.0, intensity, intensity2, intensity3);
+    } else if (config == 2) {
+        filter->setOrange(1.0, intensity, intensity2, intensity3);
+    } else if (config == 3) {
+        filter->setYellow(1.0, intensity, intensity2, intensity3);
     } else if (config == 4) {
         filter->setGreen(1.0, intensity, intensity2, intensity3);
-    }
+    } else if (config == 5) {
+        filter->setBlue(1.0, intensity, intensity2, intensity3);
+    } else if (config == 6) {
+        filter->setViolet(1.0, intensity, intensity2, intensity3);
+    } 
 
 	if(handler->getTargetTextureID() != 0)
 	{

@@ -12,7 +12,7 @@ const static char* const s_fshSaturation = CGE_SHADER_STRING_PRECISION_M
 
 const float GREEN_HUE = 0.26;
 const float RED_HUE = 0.014;
-const float OLIVE_HUE = 0.166;
+const float YELLOW_HUE = 0.166;
 const float BLUE_HUE = 0.66;
 const float VIOLET_HUE = 0.83;
 const float ORANGE_HUE = 0.036;
@@ -23,9 +23,14 @@ const float MAX_SATURATION_SHIFT = 0.25;
 
 varying vec2 textureCoordinate;
 uniform sampler2D inputImageTexture;
-uniform vec4 green;
-uniform vec4 red;
+
 uniform vec4 all;
+uniform vec4 red;
+uniform vec4 orange;
+uniform vec4 yellow;
+uniform vec4 green;
+uniform vec4 blue;
+uniform vec4 violet;
 
 vec3 RGB2HSL(vec3 src)
 {
@@ -148,28 +153,13 @@ vec3 HSL2RGB(vec3 src) // H, S, L
 	return dst;
 }
 
-vec3 adjustColor(vec3 src, vec4 all, vec4 green, vec4 red) //hue should be positive
+vec3 adjustColor(vec3 src, vec4 all, vec4 red, vec4 orange, vec4 yellow, vec4 green, vec4 blue, vec4 violet) //hue should be positive
 {
 	src = RGB2HSL(src);
 	
 	float hue = src.x;
 
-	if(green.w != 0.0) {
-		// check how far from skin hue
-		float dist = hue - GREEN_HUE;
-		if (dist > 0.5)
-			dist -= 1.0;
-		if (dist < -0.5)
-			dist += 1.0;
-		dist = abs(dist)/0.5;
-
-		float weight = exp(-dist*dist*50.0);
-		weight = clamp(weight, 0.0, 1.0);
-
-		src.x += (green.x * weight * MAX_HUE_SHIFT);
-		src.y += (green.y * weight * MAX_SATURATION_SHIFT);
-		src.z += (green.z * weight * MAX_LUM_SHIFT);
-	}
+	
 	if(red.w != 0.0) {
 		// check how far from skin hue
 		float dist = hue - RED_HUE;
@@ -186,6 +176,86 @@ vec3 adjustColor(vec3 src, vec4 all, vec4 green, vec4 red) //hue should be posit
 		src.y += (red.y * weight * MAX_SATURATION_SHIFT);
 		src.z += (red.z * weight * MAX_LUM_SHIFT);
 	}
+	if(orange.w != 0.0) {
+		// check how far from skin hue
+		float dist = hue - ORANGE_HUE;
+		if (dist > 0.5)
+			dist -= 1.0;
+		if (dist < -0.5)
+			dist += 1.0;
+		dist = abs(dist)/0.5;
+
+		float weight = exp(-dist*dist*50.0);
+		weight = clamp(weight, 0.0, 1.0);
+
+		src.x += (orange.x * weight * MAX_HUE_SHIFT);
+		src.y += (orange.y * weight * MAX_SATURATION_SHIFT);
+		src.z += (orange.z * weight * MAX_LUM_SHIFT);
+	}
+	if(yellow.w != 0.0) {
+		// check how far from skin hue
+		float dist = hue - YELLOW_HUE;
+		if (dist > 0.5)
+			dist -= 1.0;
+		if (dist < -0.5)
+			dist += 1.0;
+		dist = abs(dist)/0.5;
+
+		float weight = exp(-dist*dist*50.0);
+		weight = clamp(weight, 0.0, 1.0);
+
+		src.x += (yellow.x * weight * MAX_HUE_SHIFT);
+		src.y += (yellow.y * weight * MAX_SATURATION_SHIFT);
+		src.z += (yellow.z * weight * MAX_LUM_SHIFT);
+	}
+	if(green.w != 0.0) {
+		// check how far from skin hue
+		float dist = hue - GREEN_HUE;
+		if (dist > 0.5)
+			dist -= 1.0;
+		if (dist < -0.5)
+			dist += 1.0;
+		dist = abs(dist)/0.5;
+
+		float weight = exp(-dist*dist*50.0);
+		weight = clamp(weight, 0.0, 1.0);
+
+		src.x += (green.x * weight * MAX_HUE_SHIFT);
+		src.y += (green.y * weight * MAX_SATURATION_SHIFT);
+		src.z += (green.z * weight * MAX_LUM_SHIFT);
+	}
+	if(blue.w != 0.0) {
+		// check how far from skin hue
+		float dist = hue - BLUE_HUE;
+		if (dist > 0.5)
+			dist -= 1.0;
+		if (dist < -0.5)
+			dist += 1.0;
+		dist = abs(dist)/0.5;
+
+		float weight = exp(-dist*dist*50.0);
+		weight = clamp(weight, 0.0, 1.0);
+
+		src.x += (blue.x * weight * MAX_HUE_SHIFT);
+		src.y += (blue.y * weight * MAX_SATURATION_SHIFT);
+		src.z += (blue.z * weight * MAX_LUM_SHIFT);
+	}
+	if(violet.w != 0.0) {
+		// check how far from skin hue
+		float dist = hue - VIOLET_HUE;
+		if (dist > 0.5)
+			dist -= 1.0;
+		if (dist < -0.5)
+			dist += 1.0;
+		dist = abs(dist)/0.5;
+
+		float weight = exp(-dist*dist*50.0);
+		weight = clamp(weight, 0.0, 1.0);
+
+		src.x += (violet.x * weight * MAX_HUE_SHIFT);
+		src.y += (violet.y * weight * MAX_SATURATION_SHIFT);
+		src.z += (violet.z * weight * MAX_LUM_SHIFT);
+	}
 	if(all.w != 0.0) {
 		src.x += (all.x * MAX_HUE_SHIFT);
 		src.y += (all.y * MAX_SATURATION_SHIFT);
@@ -201,7 +271,7 @@ vec3 adjustColor(vec3 src, vec4 all, vec4 green, vec4 red) //hue should be posit
 void main()
 {
 	vec4 src = texture2D(inputImageTexture, textureCoordinate);
-	src.rgb = adjustColor(src.rgb, all, green, red);
+	src.rgb = adjustColor(src.rgb, all, red, orange, yellow, green, blue, violet);
 	gl_FragColor = src;
 }
 );
@@ -351,9 +421,13 @@ namespace CGE
 	{
 		if(initShadersFromString(g_vshDefaultWithoutTexCoord, s_fshSaturation))
 		{
-			setGreen(0.0f, 0.0f, 0.0f, 0.0f);
-			setRed(0.0f, 0.0f, 0.0f, 0.0f);
 			setAll(0.0f, 0.0f, 0.0f, 0.0f);
+			setRed(0.0f, 0.0f, 0.0f, 0.0f);
+			setOrange(0.0f, 0.0f, 0.0f, 0.0f);
+			setYellow(0.0f, 0.0f, 0.0f, 0.0f);
+			setGreen(0.0f, 0.0f, 0.0f, 0.0f);
+			setBlue(0.0f, 0.0f, 0.0f, 0.0f);
+			setViolet(0.0f, 0.0f, 0.0f, 0.0f);
 			return true;
 		}
 		return false;
@@ -365,16 +439,40 @@ namespace CGE
         m_program.sendUniformf("all", h, s, l, isSet);
     }
 
+	void CGESaturationHSLFilter::setRed(float isSet, float h, float s, float l)
+    {
+        m_program.bind();
+        m_program.sendUniformf("red", h, s, l, isSet);
+    }
+	
+	void CGESaturationHSLFilter::setOrange(float isSet, float h, float s, float l)
+    {
+        m_program.bind();
+        m_program.sendUniformf("orange", h, s, l, isSet);
+    }
+	
+	void CGESaturationHSLFilter::setYellow(float isSet, float h, float s, float l)
+    {
+        m_program.bind();
+        m_program.sendUniformf("yellow", h, s, l, isSet);
+    }
+	
 	void CGESaturationHSLFilter::setGreen(float isSet, float h, float s, float l)
     {
         m_program.bind();
         m_program.sendUniformf("green", h, s, l, isSet);
     }
-
-    void CGESaturationHSLFilter::setRed(float isSet, float h, float s, float l)
+	
+	void CGESaturationHSLFilter::setBlue(float isSet, float h, float s, float l)
     {
         m_program.bind();
-        m_program.sendUniformf("red", h, s, l, isSet);
+        m_program.sendUniformf("blue", h, s, l, isSet);
+    }
+	
+	void CGESaturationHSLFilter::setViolet(float isSet, float h, float s, float l)
+    {
+        m_program.bind();
+        m_program.sendUniformf("violet", h, s, l, isSet);
     }
 	
 	void CGESaturationHSLFilter::setSaturation(float value)

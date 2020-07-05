@@ -5,18 +5,18 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.*
 import android.media.MediaMetadataRetriever
+import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.util.Size
-import android.view.Gravity
-import android.view.View
+import android.view.*
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.view.ViewGroup
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,6 +28,9 @@ import com.daasuu.gpuv.composer.Rotation
 import com.daasuu.gpuv.egl.filter.*
 import com.daasuu.gpuv.player.GPUPlayerView
 import com.daasuu.gpuv.player.PlayerScaleType
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.Player
@@ -37,6 +40,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import com.sm.stasversion.classes.AdjustConfig
 import com.sm.stasversion.crop.BitmapUtils
 import com.sm.stasversion.crop.CropImageOptions
 import com.sm.stasversion.crop.CropImageView
@@ -51,14 +55,22 @@ import com.sm.stasversion.videoUtils.GlBitmapOverlaySample
 import com.sm.stasversion.widget.MovieWrapperView
 import jp.co.cyberagent.android.gpuimage.filter.*
 import kotlinx.android.synthetic.main.activity_edit_image.view.*
+import org.wysaid.common.Common
+import org.wysaid.myUtils.FileUtil
+import org.wysaid.nativePort.CGEFFmpegNativeLibrary
+import org.wysaid.nativePort.CGENativeLibrary
+import org.wysaid.view.VideoPlayerGLSurfaceView
+import org.wysaid.view.VideoPlayerGlTextureView
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
 
 class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItemSelected, EditingEffectsAdapter.OnItemSelected,
-    EditingTextureAdapter.OnItemSelected, EditingTexturesAdapter.OnItemSelected {
+    EditingTextureAdapter.OnItemSelected, EditingTexturesAdapter.OnItemSelected, TextureView.SurfaceTextureListener, MediaPlayer.OnVideoSizeChangedListener {
 
     private val TAG = "VideoOverview"
 
@@ -66,8 +78,11 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     private var calculatedH: Float = 0.0f
     private var scale: Float = 1.0f
 
-    private var gpuPlayerView: GPUPlayerViewO? = null;
-    private var gpuWrapper: MovieWrapperView? = null;
+    private var gpuPlayerView: GPUPlayerViewO? = null
+    private var gpuWrapper: MovieWrapperView? = null
+
+    private var mPlayerView: VideoPlayerGLSurfaceView? = null
+    private var videoView: VideoPlayerGLSurfaceView? = null
 
     private val mImagePoints = FloatArray(8)
     private val mScaleImagePoints = FloatArray(8)
@@ -91,6 +106,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     var intensity: Float = 1.0f
     var position: Int = 0
 
+    private var mActiveConfig: AdjustConfig? = null
     var effectsList: MutableList<GlFilter>? = null
     var eArray: MutableMap<EffectType, SeekInfo>? = null
 
@@ -98,7 +114,8 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
     var addedViews: MutableList<View>? = null
 
-    var sepia: GPUImageSepiaToneFilter = GPUImageSepiaToneFilter()
+    protected var mThread: Thread? = null
+    protected var mShouldStopThread = false
 
     var isLookup: Boolean = false
 
@@ -110,14 +127,112 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
     private var uri: Uri? = null;
 
+
+    public var textureView: VideoPlayerGlTextureView? = null;
+    private var mediaPlayer: MediaPlayer? = null;
+
+    val playCompletionCallback: VideoPlayerGLSurfaceView.PlayCompletionCallback =
+        object: VideoPlayerGLSurfaceView.PlayCompletionCallback {
+            override fun playComplete(player: MediaPlayer) {
+                player.start();
+            }
+
+            override fun playFailed(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
+                return true;
+            }
+        }
+
+    var mLoadImageCallback: CGENativeLibrary.LoadImageCallback =
+        object : CGENativeLibrary.LoadImageCallback {
+
+            //Notice: the 'name' passed in is just what you write in the rule, e.g: 1.jpg
+            override fun loadImage(name: String, arg: Any?): Bitmap? {
+
+                Log.i(Common.LOG_TAG, "Loading file: $name")
+                val am = assets
+                val `is`: InputStream
+                try {
+                    `is` = am.open(name)
+                } catch (e: IOException) {
+                    Log.e(Common.LOG_TAG, "Can not open file $name")
+                    return null
+                }
+
+                if(mActiveConfig != null && name.equals(mActiveConfig!!.name)) {
+                    return BitmapFactory.decodeStream(`is`).changeBmp(mActiveConfig!!.horizontal[1], mActiveConfig!!.vertical[1], mActiveConfig!!.rotate[1])
+                } else {
+                    return BitmapFactory.decodeStream(`is`)
+                }
+
+            }
+
+            override fun loadImageOK(bmp: Bitmap, arg: Any) {
+                Log.i(Common.LOG_TAG, "Loading bitmap over, you can choose to recycle or cache")
+                bmp.recycle()
+            }
+        }
+
+    override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
+        val surface = Surface(surfaceTexture)
+      try {
+         mediaPlayer!!.setSurface(surface);
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            mediaPlayer!!.setDataSource(uri!!.path);
+            mediaPlayer!!.prepareAsync();
+            mediaPlayer!!.setOnPreparedListener(object: MediaPlayer.OnPreparedListener {
+                override fun onPrepared(mp: MediaPlayer?) {
+                    mediaPlayer!!.start();
+                }
+            });
+         }
+      }
+      catch (e: IOException) {
+         e.printStackTrace();
+      }
+    }
+
+    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+
+    }
+
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+      return false;
+    }
+
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+
+    }
+
+    override fun onVideoSizeChanged(mp: MediaPlayer, width: Int, height: Int) {
+
+    }
+
+    private fun Bitmap.changeBmp(x: Float, y: Float, degrees: Float): Bitmap {
+
+        val matrix = Matrix().apply { postScale(x, y, width / 2f, height / 2f) }
+        matrix.apply { postRotate(degrees) }
+        return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_video_overview)
 
+        mPlayerView = findViewById(R.id.videoGLSurfaceView)
+        mPlayerView!!.setZOrderOnTop(false);
+        mPlayerView!!.setZOrderMediaOverlay(true);
+
+        textureView = findViewById(R.id.textureView)
+        textureView!!.setSurfaceTextureListener(this);
+        mediaPlayer = MediaPlayer()
+
         uri = intent.getParcelableExtra<Uri>("file");
 
+        val tr = FileUtil.getPath() + "/blendVideo4.mp4"
         val t = getVideoResolution(uri!!.path);
 
+        CGENativeLibrary.setLoadImageCallback(mLoadImageCallback, 1);
         grainImage = BitmapFactory.decodeResource(this.getResources(), R.drawable.oise_light)
 
         initEffectsArray()
@@ -125,6 +240,19 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         setUpViews()
         initSavebutton()
         initClosebutton()
+
+        mPlayerView!!.setPlayerInitializeCallback(object: VideoPlayerGLSurfaceView.PlayerInitializeCallback {
+            override fun initPlayer(player: MediaPlayer) {
+                player.setOnBufferingUpdateListener(object: MediaPlayer.OnBufferingUpdateListener {
+                    override fun onBufferingUpdate(mp: MediaPlayer?, percent: Int) {
+                        if (percent == 100) {
+                            Log.i(Common.LOG_TAG, "缓冲完毕!");
+                            player.setOnBufferingUpdateListener(null);
+                        }
+                    }
+                })
+            }
+        });
     }
 
     private fun initEffectsArray() {
@@ -354,8 +482,30 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         }
     }
 
-    override fun onFilterSelected(fType: FilterType, pos: Int, rule: String) {
-        if(pos != position) {
+    override fun onFilterSelected(fType: FilterType, pos: Int, rule: String, color: Int) {
+
+
+        if(pos == 0) {
+            mPlayerView!!.settest(true)
+        }
+
+        if(pos == 2) {
+            mPlayerView!!.settest(false)
+        }
+
+
+        if(pos == 1) {
+            val t = findViewById<ConstraintLayout>(R.id.video_container)
+            val lp = t.layoutParams
+            lp.width = 528
+            t.layoutParams = lp
+        }
+
+
+
+
+
+        /*if(pos != position) {
             intensity = 1.0f
         }
 
@@ -396,11 +546,11 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             }
 
             position = pos
-        }
+        }*/
     }
 
-    override fun onTextureSelected(textureType: TextureType?, position: Int?) {
-        if(textureType != TextureType.DEFAULT) {
+    override fun onTextureSelected(textureType: String?, position: Int?) {
+        /*if(textureType != TextureType.DEFAULT) {
             val toolsRV = findViewById<RecyclerView>(R.id.rvTools)
             val effectsRV = findViewById<RecyclerView>(R.id.rvEffect)
             val texturesRV = findViewById<RecyclerView>(R.id.rvTexture)
@@ -429,7 +579,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             temp_list.add(dust)
 
             gpuPlayerView!!.setGlFilter(GlFilterGroup(temp_list))
-        }
+        }*/
     }
 
     override fun onTexturesSelected(tType: TextureType?, texture: Int, position: Int?) {
@@ -494,11 +644,11 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         }
 
         effect.setOnClickListener{
-            hideButtons(filter, effect, textures)
+            /*hideButtons(filter, effect, textures)
             hideRV(effectsRV, toolsRV, texturesRV, texturesKindRV);
             effectsRV.visibility = View.VISIBLE
 
-            effect.background = getResources().getDrawable(R.drawable.ic_effects_check)
+            effect.background = getResources().getDrawable(R.drawable.ic_effects_check)*/
         }
 
         textures.setOnClickListener{
@@ -822,25 +972,136 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         gpuPlayerView!!.onResume();
     }
 
+    protected fun threadSync() {
+
+        if (mThread != null && mThread!!.isAlive()) {
+            mShouldStopThread = true
+
+            try {
+                mThread!!.join()
+                mThread = null
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+        }
+
+        mShouldStopThread = false
+    }
+
     private fun initSavebutton() {
         findViewById<TextView>(R.id.topSave).setOnClickListener { v ->
-            startCodec()
+            val outputFilename1 = FileUtil.getPath() + "/blendVideo777.mp4";
+            editVideo(outputFilename1)
+
+
+
+            /*threadSync()
+
+            mThread = Thread(Runnable {
+                //String outputFilename = "/sdcard/libCGE/blendVideo.mp4";
+                //String inputFileName = "android.resource://" + getPackageName() + "/" + R.raw.fish;
+                val outputFilename = FileUtil.getPath() + "/blendVideo44.mp4"
+                //String inputFileName = FileUtil.getTextContent(CameraDemoActivity.lastVideoPathFileName);
+                //String inputFileName = "/storage/9016-4EF8/DCIM/Camera/20200402_124813.mp4";
+                //String inputFileName = "/storage/9016-4EF8/DCIM/Camera/20200402_124813_001.mp4"; // 2 sec
+                val inputFileName =
+                    "/storage/emulated/0/Pictures/Telegram/VID_20200626_125043_721.mp4" // 2 sec
+
+                //bmp is used for watermark, (just pass null if you don't want that)
+                //and ususally the blend mode is CGE_BLEND_ADDREV for watermarks.
+                CGEFFmpegNativeLibrary.generateVideoWithFilter(
+                    outputFilename,
+                    inputFileName,
+                    "@adjust lut ping.png",
+                    1.0f,
+                    null,
+                    CGENativeLibrary.TextureBlendMode.CGE_BLEND_ADDREV,
+                    1.0f,
+                    false
+                )
+                Log.d("Stas", "Done! The file is generated at: \$outputFilename")
+
+                editVideo(outputFilename)
+            })
+
+            mThread!!.start()*/
+        }
+    }
+
+    private fun editVideo(name: String) {
+        val cmdArray = ArrayList<String>();
+        val empty = arrayOf("","","")
+
+        val outputFilename = FileUtil.getPath() + "/blendVideo4.mp4";
+        //val outputFilename = "/storage/emulated/0/Pictures/Telegram/VID_20200626_125043_721.mp4";
+        val outputFilename1 = FileUtil.getPath() + "/blendVideo7797.mp4";
+
+        val file = File(outputFilename)
+        file.delete()
+
+        cmdArray.add("-i");
+        cmdArray.add(outputFilename);
+        cmdArray.add("-c");
+        cmdArray.add("copy");
+        cmdArray.add("-metadata:s:v:0");
+        cmdArray.add("rotate=270");
+        cmdArray.add(outputFilename1);
+
+        val ffmpeg = FFmpeg.getInstance(this)
+
+        try {
+            ffmpeg.execute(arrayOf("-i", name, "-filter:v", "rotate=35*PI/180", "-c:a", "copy", outputFilename1), object: ExecuteBinaryResponseHandler() {
+                override fun onStart() {
+                    super.onStart()
+                    Log.d("Stas", "onStart")
+                }
+
+                override fun onProgress(message: String?) {
+                    super.onProgress(message)
+                    Log.d("Stas", message)
+                }
+
+                override fun onFailure(message: String?) {
+                    super.onFailure(message)
+                    Log.d("Stas", "onFailure")
+                }
+
+                override fun onSuccess(message: String?) {
+                    super.onSuccess(message)
+                    //File(name).delete()
+
+                    sendBroadcast(
+                        Intent(
+                            Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                            Uri.parse("file://$outputFilename1")
+                        )
+                    )
+                }
+
+                override fun onFinish() {
+                    super.onFinish()
+                    Log.d("Stas", "onFinish")
+                }
+            })
+        } catch (e: FFmpegCommandAlreadyRunningException) {
+            Log.d("Stas", "onFinish")
         }
     }
 
     private fun initClosebutton() {
         findViewById<View>(R.id.topClose).setOnClickListener { v ->
-            val tools = findViewById<ConstraintLayout>(R.id.toolsLayout)
+            /*val tools = findViewById<ConstraintLayout>(R.id.toolsLayout)
             val crop = findViewById<ConstraintLayout>(R.id.crop_area)
 
             crop.visibility = GONE
-            tools.visibility = VISIBLE
+            tools.visibility = VISIBLE*/
         }
     }
 
     private fun getRelativeLeft(myView: GPUPlayerView): Int {
         if (myView.getParent() == myView.getRootView())
-            return myView.getLeft();
+            return myView.getLeft()
         else {
             return  myView.left - findViewById<MovieWrapperView>(R.id.layout_movie_wrapper).left;
         }
@@ -890,8 +1151,20 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
     override fun onResume() {
         super.onResume()
-        setUpSimpleExoPlayer()
-        setUoGlPlayerView()
+
+        /*val callback: VideoPlayerGLSurfaceView.PlayPreparedCallback =
+        object: VideoPlayerGLSurfaceView.PlayPreparedCallback {
+            override fun playPrepared(player: MediaPlayer) {
+                //fl.setLayoutParams(new FrameLayout.LayoutParams(width,height));
+
+                    player.start();
+            }
+        }
+
+        mPlayerView!!.setVideoUri(uri, callback, playCompletionCallback)*/
+
+        //setUpSimpleExoPlayer()
+        //setUoGlPlayerView()
     }
 
     public fun getVideoResolution(path: String?): Size {

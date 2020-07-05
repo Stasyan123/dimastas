@@ -9,6 +9,7 @@
                 android:right="3.45dp"
                 android:top="3.45dp"/>
             <stroke
+                android:id="@+id/test"
                 android:width="1.15dp"
                 android:color="#5570C4"/>
         </shape>

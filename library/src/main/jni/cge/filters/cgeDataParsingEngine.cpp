@@ -509,7 +509,7 @@ do{\
 		else if(strcmp(buffer, "hsl") == 0)
 		{
             float arg[21];
-			float all, red, green;
+			float all, red, orange, yellow, green, blue, violet;
 
 			if(sscanf(pstr, "%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f%*c%f",
                 arg, arg+1, arg+2, arg+3, arg+4, arg+5, arg+6, arg+7, arg+8, arg+9, arg+10, arg+11,
@@ -531,13 +531,29 @@ do{\
 				if(arg[3] != 0.0 || arg[4] != 0.0 || arg[5] != 0.0) {
 					red = 1.0;
 				}
+				if(arg[6] != 0.0 || arg[7] != 0.0 || arg[8] != 0.0) {
+					orange = 1.0;
+				}
+				if(arg[9] != 0.0 || arg[10] != 0.0 || arg[11] != 0.0) {
+					yellow = 1.0;
+				}
 				if(arg[12] != 0.0 || arg[13] != 0.0 || arg[14] != 0.0) {
 					green = 1.0;
+				}
+				if(arg[15] != 0.0 || arg[16] != 0.0 || arg[17] != 0.0) {
+					blue = 1.0;
+				}
+				if(arg[18] != 0.0 || arg[19] != 0.0 || arg[20] != 0.0) {
+					violet = 1.0;
 				}
 				
 				hslProc->setAll(all, arg[0], arg[1], arg[2]);
 				hslProc->setGreen(green, arg[12], arg[13], arg[14]);
 				hslProc->setRed(red, arg[3], arg[4], arg[5]);
+				hslProc->setOrange(orange, arg[6], arg[7], arg[8]);
+				hslProc->setYellow(yellow, arg[9], arg[10], arg[11]);
+				hslProc->setBlue(blue, arg[15], arg[16], arg[17]);
+				hslProc->setViolet(violet, arg[18], arg[19], arg[20]);
 			}
 		}
 		else if(strcmp(buffer, "level") == 0)

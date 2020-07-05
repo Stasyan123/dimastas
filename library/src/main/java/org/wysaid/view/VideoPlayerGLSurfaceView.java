@@ -3,7 +3,7 @@ package org.wysaid.view;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Matrix;
+import 	android.opengl.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
@@ -13,6 +13,7 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
+import android.view.TextureView;
 
 import org.wysaid.common.Common;
 import org.wysaid.nativePort.CGEFrameRenderer;
@@ -27,10 +28,9 @@ import javax.microedition.khronos.opengles.GL10;
  * Created by wangyang on 15/11/26.
  */
 
-public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
+public class VideoPlayerGLSurfaceView extends TextureView implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
 
     public static final String LOG_TAG = Common.LOG_TAG;
-
     private SurfaceTexture mSurfaceTexture;
     private int mVideoTextureID;
     private CGEFrameRenderer mFrameRenderer;
@@ -66,6 +66,14 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
         mFitFullView = fit;
         if (mFrameRenderer != null)
             calcViewport();
+    }
+
+    public void settest(boolean fit) {
+        if(fit) {
+            mFrameRenderer.setRenderRotation(0.26f);
+        } else {
+            mFrameRenderer.setRenderRotation(0f);
+        }
     }
 
     private MediaPlayer mPlayer;
@@ -350,6 +358,9 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
         }
 
         mSurfaceTexture.getTransformMatrix(mTransformMatrix);
+        Matrix.rotateM(mTransformMatrix, 0, 45, 0, 0, 1);
+        //Matrix.rotateM(mTransformMatrix, 0, 90, 0, 0, 1);
+        Matrix.translateM(mTransformMatrix, 0, 0, -0.5f, 0);
         mFrameRenderer.update(mVideoTextureID, mTransformMatrix);
 
         mFrameRenderer.runProc();
@@ -402,13 +413,24 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
 
         if (mFitFullView) {
             //撑满全部view(内容大于view)
-            if (s > 1.0) {
+            /*if (s > 1.0) {
                 w = (int) (mViewHeight * scaling);
                 h = mViewHeight;
             } else {
                 w = mViewWidth;
                 h = (int) (mViewWidth / scaling);
+            }*/
+
+            if (s > 1.0) {
+                w = mViewWidth;
+                h = (int) (mViewWidth / scaling);
+            } else {
+                h = mViewHeight;
+                w = (int) (mViewHeight * scaling);
             }
+
+
+
         } else {
             //显示全部内容(内容小于view)
             if (s > 1.0) {
@@ -419,6 +441,9 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
                 w = (int) (mViewHeight * scaling);
             }
         }
+
+        //w = (int)(w * 1.29);
+        //h = (int)(h * 1.29);
 
         mRenderViewport.width = w;
         mRenderViewport.height = h;
@@ -490,8 +515,9 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
 
                         if (mFrameRenderer.init(mVideoWidth, mVideoHeight, mVideoWidth, mVideoHeight)) {
                             //Keep right orientation for source texture blending
-                            mFrameRenderer.setSrcFlipScale(1.0f, -1.0f);
-                            mFrameRenderer.setRenderFlipScale(1.0f, -1.0f);
+                            //mFrameRenderer.setSrcRotation(0.26f);
+                            mFrameRenderer.setSrcFlipScale(1.0f, 1.0f);
+                            mFrameRenderer.setRenderFlipScale(1.0f, 1.0f);
                         } else {
                             Log.e(LOG_TAG, "Frame Recorder init failed!");
                         }
@@ -545,7 +571,7 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
     }
 
     public synchronized void takeShot(final TakeShotCallback callback) {
-        assert callback != null : "callback must not be null!";
+        /*assert callback != null : "callback must not be null!";
 
         if (mFrameRenderer == null) {
             Log.e(LOG_TAG, "Drawer not initialized!");
@@ -576,7 +602,7 @@ public class VideoPlayerGLSurfaceView extends GLSurfaceView implements GLSurface
 
                 callback.takeShotOK(bmp2);
             }
-        });
+        });*/
 
     }
 }

@@ -16,6 +16,7 @@
     <string name="label_filter">Filter</string>
     <string name="label_adjust">Adjust</string>
     <string name="molli">Molli</string>
+    <string name="edit">Edit</string>
 
     <string name="imagepicker_action_ok">OK</string>
     <string name="imagepicker_action_done">DONE</string>
@@ -46,6 +47,7 @@
     <string name="saturation">Saturation</string>
     <string name="hue">Hue</string>
 
+    <string name="percent">%1$s°</string>
     <string name="intensity">Intensity</string>
     <string name="intensity_angl">Intensity</string>
     <string name="crop">Crop</string>

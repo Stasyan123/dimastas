@@ -114,7 +114,8 @@ namespace CGE
     // A simple-slow offscreen video rendering function.
     bool cgeGenerateVideoWithFilter(const char* outputFilename, const char* inputFilename, const char* filterConfig, float filterIntensity, GLuint texID, CGETextureBlendMode blendMode, float blendIntensity, bool mute, CGETexLoadArg* loadArg)
     {
-        static const int ENCODE_FPS = 30;
+        static const int ENCODE_FPS = 60;
+        int bitrate = 0;
         
         CGEVideoDecodeHandler* decodeHandler = new CGEVideoDecodeHandler();
         
@@ -131,6 +132,8 @@ namespace CGE
         int videoHeight = decodeHandler->getHeight();
         unsigned char* cacheBuffer = nullptr;
         int cacheBufferSize = 0;
+
+        bitrate = 0.25 * 30 * videoWidth * videoHeight;
         
         CGEVideoPlayerYUV420P videoPlayer;
         videoPlayer.initWithDecodeHandler(decodeHandler);
@@ -171,7 +174,7 @@ namespace CGE
 #else
         AVDictionary* metaData = nullptr;
 #endif
-        if(!mp4Encoder.init(outputFilename, ENCODE_FPS, videoWidth, videoHeight, !mute, 1650000, audioSampleRate, metaData, decodeHandler->getRotation()))
+        if(!mp4Encoder.init(outputFilename, ENCODE_FPS, videoWidth, videoHeight, !mute, bitrate, audioSampleRate, metaData, decodeHandler->getRotation()))
         {
             CGE_LOG_ERROR("CGEVideoEncoderMP4 - start recording failed!");
             return false;

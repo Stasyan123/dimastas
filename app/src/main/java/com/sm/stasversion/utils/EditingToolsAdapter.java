@@ -44,11 +44,11 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
         image = img;
 
         mToolList.add(new ToolModel("Default", 0, FilterType.DEFAULT, "@adjust lut empty.png"));
-        mToolList.add(new ToolModel("Filter1", ContextCompat.getColor(ctx, R.color.filter1), FilterType.FILTER1, "@adjust lut ping.png"));
+        mToolList.add(new ToolModel("Vintage", ContextCompat.getColor(ctx, R.color.filter1), FilterType.FILTER1, "@adjust lut ping.png"));
         mToolList.add(new ToolModel("Filter2", ContextCompat.getColor(ctx, R.color.filter2), FilterType.FILTER2, "@adjust lut gazon_filter.JPG"));
         mToolList.add(new ToolModel("Filter3", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut lookup_pink.JPG"));
-        mToolList.add(new ToolModel("Filter4", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut soft_warming.png"));
-        mToolList.add(new ToolModel("Filter5", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut foggy_night.png"));
+        mToolList.add(new ToolModel("Filter4", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut soft_warming.png"));
+        mToolList.add(new ToolModel("Filter5", ContextCompat.getColor(ctx, R.color.filter5), FilterType.FILTER3, "@adjust lut foggy_night.png"));
         mToolList.add(new ToolModel("Filter6", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut edgy_amber.png"));
         mToolList.add(new ToolModel("Filter7", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut filmstock.png"));
         mToolList.add(new ToolModel("Filter8", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut late_sunset.png"));
@@ -56,7 +56,7 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
     }
 
     public interface OnItemSelected {
-        void onFilterSelected(FilterType filterType, Integer position, String rule);
+        void onFilterSelected(FilterType filterType, Integer position, String rule, Integer color);
     }
 
     class ToolModel {
@@ -109,17 +109,20 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
         ImageView imgToolIcon;
         TextView txtTool;
         View viewEmpty;
+        View viewBorder;
 
         ViewHolder(View itemView) {
             super(itemView);
             imgToolIcon = itemView.findViewById(R.id.imgToolIcon);
             txtTool = itemView.findViewById(R.id.txtTool);
             viewEmpty = itemView.findViewById(R.id.viewEmpty);
+            viewBorder = itemView.findViewById(R.id.viewBorder);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mOnItemSelected.onFilterSelected(mToolList.get(getLayoutPosition()).fType, getLayoutPosition(), mToolList.get(getLayoutPosition()).mRule);
+                    mOnItemSelected.onFilterSelected(mToolList.get(getLayoutPosition()).fType, getLayoutPosition(),
+                            mToolList.get(getLayoutPosition()).mRule, mToolList.get(getLayoutPosition()).mColor);
                 }
             });
         }

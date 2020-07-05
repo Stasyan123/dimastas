@@ -15,8 +15,7 @@
 #include "cgeFFmpegHeaders.h"
 
 
-static AVStream *addStream(AVFormatContext *oc, AVCodec **codec,
-                            enum AVCodecID codec_id, int frameRate, int width = -1, int height = -1, int bitRate = 1650000, int audioSampleRate = 44100)
+static AVStream *addStream(AVFormatContext *oc, AVCodec **codec, enum AVCodecID codec_id, int frameRate, int width = -1, int height = -1, int bitRate = 15552000, int audioSampleRate = 44100)
 {
     AVCodecContext *c;
     AVStream *st;
@@ -62,7 +61,7 @@ static AVStream *addStream(AVFormatContext *oc, AVCodec **codec,
         c->gop_size      = 12; /* emit one intra frame every twelve frames at most */
         c->pix_fmt       = AV_PIX_FMT_YUV420P;
 
-        av_opt_set(c->priv_data, "preset", "veryfast", 0);
+        av_opt_set(c->priv_data, "preset", "ultrafast", 0);
         if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
             /* just for testing, we also add B frames */
             c->max_b_frames = 2;

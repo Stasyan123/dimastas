@@ -23,26 +23,26 @@ public class EditingTextureAdapter extends RecyclerView.Adapter<EditingTextureAd
     public EditingTextureAdapter(OnItemSelected onItemSelected) {
         mOnItemSelected = onItemSelected;
 
-        mToolList.add(new TextureModel("", TextureType.DEFAULT, null));
-        mToolList.add(new TextureModel("Dust 001", TextureType.SCUFFED, R.drawable.d1));
-        mToolList.add(new TextureModel("Dust 002", TextureType.GLARE, R.drawable.d2));
-        mToolList.add(new TextureModel("Dust 003", TextureType.RAINBOW, R.drawable.d3));
-        mToolList.add(new TextureModel("Dust 004", TextureType.DUST, R.drawable.d4));
-        mToolList.add(new TextureModel("Dust 005", TextureType.DUST, R.drawable.d5));
+        mToolList.add(new TextureModel("", "def", null));
+        mToolList.add(new TextureModel("Dust 001", "grain_1.jpg", R.drawable.d1));
+        mToolList.add(new TextureModel("Dust 002", "grain_2.jpg", R.drawable.d2));
+        mToolList.add(new TextureModel("Dust 003", "grain_3.jpg", R.drawable.d3));
+        mToolList.add(new TextureModel("Dust 004", "grain_4.jpg", R.drawable.d4));
+        mToolList.add(new TextureModel("Dust 005", "grain_5.jpg", R.drawable.d5));
     }
 
     public interface OnItemSelected {
-        void onTextureSelected(TextureType textureType, Integer position);
+        void onTextureSelected(String name, Integer position);
     }
 
     class TextureModel {
         private String mToolName;
-        private TextureType mTextureType;
+        private String texName;
         private Integer effecIcon;
 
-        TextureModel(String toolName, TextureType textureType, Integer icon) {
+        TextureModel(String toolName, String _texName, Integer icon) {
             mToolName = toolName;
-            mTextureType = textureType;
+            texName = _texName;
             effecIcon = icon;
         }
     }
@@ -86,7 +86,7 @@ public class EditingTextureAdapter extends RecyclerView.Adapter<EditingTextureAd
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mOnItemSelected.onTextureSelected(mToolList.get(getLayoutPosition()).mTextureType, getLayoutPosition());
+                    mOnItemSelected.onTextureSelected(mToolList.get(getLayoutPosition()).texName, 10);
                 }
             });
         }

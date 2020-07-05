@@ -27,6 +27,8 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+import com.sm.stasversion.R;
+
 import java.util.Arrays;
 
 /** A custom View representing the crop window and the shaded background outside the crop window. */
@@ -411,7 +413,7 @@ public class CropOverlayView extends View {
     mBorderCornerOffset = options.borderCornerOffset;
     mBorderCornerLength = options.borderCornerLength;
     mBorderCornerPaint =
-        getNewPaintOrNull(options.borderCornerThickness, options.borderCornerColor);
+        getNewPaintOrNull(options.borderCornerThickness, getResources().getColor(R.color.ucrop_mid_line));
 
     mGuidelinePaint = getNewPaintOrNull(options.guidelinesThickness, options.guidelinesColor);
 

@@ -47,8 +47,12 @@ namespace CGE
 		virtual void setTempAndTint(float temperature, float tint) {}
 		virtual void setShadowAndHighlight(float shadow, float highlight) {}
 		virtual void setAll(float isSet, float h, float s, float l) {};
+		virtual void setRed(float isSet, float h, float s, float l) {};
+		virtual void setOrange(float isSet, float h, float s, float l) {};
+		virtual void setYellow(float isSet, float h, float s, float l) {};
 		virtual void setGreen(float isSet, float h, float s, float l) {};
-        virtual void setRed(float isSet, float h, float s, float l) {};
+		virtual void setBlue(float isSet, float h, float s, float l) {};
+		virtual void setViolet(float isSet, float h, float s, float l) {};
 
 		//mutiple effects专有， 若返回为 true， handler在添加filter时会进行拆解。
 		virtual bool isWrapper() { return false; }

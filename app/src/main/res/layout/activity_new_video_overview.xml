@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark"
+    android:background="@color/white"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -17,7 +17,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginStart="10dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_cross">
+        android:src="@drawable/ic_cross_top">
 
     </ImageView>
 
@@ -46,32 +46,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/topSave">
 
-        <com.sm.stasversion.widget.MovieWrapperView
-            android:id="@+id/layout_movie_wrapper"
+        <FrameLayout
+            android:id="@+id/videoWrapper"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
-            <com.sm.stasversion.videoClass.GPUPlayerViewO
-                android:id="@+id/gpuimageview"
-                android:layout_width="match_parent"
-                android:layout_height="470dp"
-                android:layout_gravity="center"
-                android:visibility="visible"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                />
+            >
 
-            <com.sm.stasversion.crop.CropOverlayView
-                android:id="@+id/CropOverlayView"
+            <org.wysaid.view.VideoPlayerGlTextureView
+                android:id="@+id/textureView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="invisible"/>
-        </com.sm.stasversion.widget.MovieWrapperView>
+                android:rotation="45"
+                android:layout_height="match_parent"/>
+
+            <org.wysaid.view.VideoPlayerGLSurfaceView
+                android:visibility="gone"
+                android:id="@+id/videoGLSurfaceView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

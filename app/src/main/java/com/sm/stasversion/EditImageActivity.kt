@@ -2,9 +2,11 @@ package com.sm.stasversion
 
 import android.content.ClipData
 import android.content.Context
+import android.content.Intent
 import android.content.res.Resources
 import android.graphics.*
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.VectorDrawable
 import android.media.ExifInterface
@@ -44,7 +46,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import com.sm.stasversion.videoUtils.FilterType
+import com.sm.stasversion.widget.HorizontalProgressWheelView
 import org.wysaid.common.Common
+import org.wysaid.myUtils.FileUtil
+import org.wysaid.nativePort.CGEFFmpegNativeLibrary
+import org.wysaid.nativePort.CGEImageHandler
 import org.wysaid.nativePort.CGENativeLibrary
 import org.wysaid.view.ImageGLSurfaceView
 
@@ -74,7 +80,15 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     var mSeekHue:SeekBar? = null
     var mSeekSat:SeekBar? = null
     var mSeekLum:SeekBar? = null
+    var mSeekTexture:SeekBar? = null
     var rootView: ConstraintLayout? =  null
+
+    var textIntensity: TextView? = null
+    var hue_container: ConstraintLayout? = null
+    var saturetion_container: ConstraintLayout? = null
+    var lum_container: ConstraintLayout? = null
+    var temp_container: ConstraintLayout? = null
+    var tint_container: ConstraintLayout? = null
 
     /* effects */
     var mLayoutInflater: LayoutInflater? = null
@@ -93,6 +107,10 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     var intensity: Float = 1.0f
     val tag: String = "DimaStas"
 
+    var imgHandler: CGEImageHandler = CGEImageHandler()
+
+    var mThread: Thread? = null
+    var mShouldStopThread = false
 
     var mLoadImageCallback: CGENativeLibrary.LoadImageCallback =
         object : CGENativeLibrary.LoadImageCallback {
@@ -110,7 +128,12 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                     return null
                 }
 
-                return BitmapFactory.decodeStream(`is`)
+                if(mActiveConfig != null && name.equals(mActiveConfig!!.name)) {
+                    return BitmapFactory.decodeStream(`is`).changeBmp(mActiveConfig!!.horizontal[1], mActiveConfig!!.vertical[1], mActiveConfig!!.rotate[1])
+                } else {
+                    return BitmapFactory.decodeStream(`is`)
+                }
+
             }
 
             override fun loadImageOK(bmp: Bitmap, arg: Any) {
@@ -130,6 +153,9 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         mSeekHue = findViewById(R.id.seekBar_hue)
         mSeekSat = findViewById(R.id.seekBar_saturation)
         mSeekLum = findViewById(R.id.seekBar_luminance)
+        mSeekTexture = findViewById(R.id.seekBar_texture)
+
+        textIntensity = findViewById(R.id.text_intensity)
 
         grainImage = BitmapFactory.decodeResource(this.getResources(), R.drawable.oise_light)
         val uri = intent.getParcelableExtra<Uri>("file")
@@ -141,6 +167,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         CGENativeLibrary.setLoadImageCallback(mLoadImageCallback, 1);
 
         setPaddings()
+        initEffectsNames()
         initEffectsArray()
         showSingleImage(uri)
         initSavebutton()
@@ -148,17 +175,33 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         initCrop()
     }
 
-    private fun setPaddings() {
-        val right = 13
-        val left = 13
+    private fun initEffectsNames() {
+        hue_container = findViewById<ConstraintLayout>(R.id.hue_container)
+        hue_container!!.findViewById<TextView>(R.id.effect_name).text = getString(R.string.hue)
 
-        findViewById<SeekBar>(R.id.seekBar_hue).setPadding(left, 0,  right, 0);
-        findViewById<SeekBar>(R.id.seekBar_saturation).setPadding(left, 0, right, 0);
-        findViewById<SeekBar>(R.id.seekBar_luminance).setPadding(left, 0, right, 0);
-        findViewById<SeekBar>(R.id.seekBar).setPadding(left, 0, right, 0);
-        findViewById<SeekBar>(R.id.seekBar_temperature).setPadding(left, 0, right, 0);
-        findViewById<SeekBar>(R.id.seekBar_tint).setPadding(left, 0, right, 0);
-        findViewById<SeekBar>(R.id.seekBar_straightening).setPadding(left, 0, right, 0);
+        saturetion_container = findViewById<ConstraintLayout>(R.id.saturation_container)
+        saturetion_container!!.findViewById<TextView>(R.id.effect_name).text = getString(R.string.saturation)
+
+        lum_container = findViewById<ConstraintLayout>(R.id.luminance_container)
+        lum_container!!.findViewById<TextView>(R.id.effect_name).text = getString(R.string.luminance)
+
+        temp_container = findViewById<ConstraintLayout>(R.id.temp_container)
+        temp_container!!.findViewById<TextView>(R.id.effect_name).text = getString(R.string.temperature)
+
+        tint_container = findViewById<ConstraintLayout>(R.id.tint_container)
+        tint_container!!.findViewById<TextView>(R.id.effect_name).text = getString(R.string.tint)
+    }
+
+    private fun setPaddings() {
+        val padding = (6.5 * getScale()).toInt()
+
+        mSeekHue!!.setPadding(padding, 0,  padding, 0)
+        mSeekSat!!.setPadding(padding, 0, padding, 0)
+        mSeekLum!!.setPadding(padding, 0, padding, 0)
+        mSeekBar!!.setPadding(padding, 0, padding, 0)
+        mSeekTemp!!.setPadding(padding, 0, padding, 0)
+        mSeekTint!!.setPadding(padding, 0, padding, 0)
+        mSeekTexture!!.setPadding(padding, 0, padding, 0)
     }
 
     private fun initCrop() {
@@ -211,12 +254,37 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         val rect = findViewById<View>(R.id.rect)
         rect.setOnClickListener{
+            if(mCurrentFragment!!.instaMode) {
+                mCurrentFragment!!.mCropImageView.mCropOverlayView.setFixedAspectRatio(false)
+                mCurrentFragment!!.mCropImageView.mCropOverlayView.cropWindowRect = RectF(0f, 0f,
+                    mCurrentFragment!!.mCropImageView.width.toFloat(), mCurrentFragment!!.mCropImageView.height.toFloat())
 
+                mCurrentFragment!!.instaMode = false
+            } else {
+                var width = mCurrentFragment!!.mCropImageView.width
+                var height = mCurrentFragment!!.mCropImageView.height
+
+                if (width > height) {
+                    width = height;
+                } else {
+                    height = width;
+                }
+
+                val lOffset = (mCurrentFragment!!.mCropImageView.width - width) / 2
+                val tOffset = (mCurrentFragment!!.mCropImageView.height - height) / 2
+
+                mCurrentFragment!!.mCropImageView.mCropOverlayView.setFixedAspectRatio(true)
+                mCurrentFragment!!.mCropImageView.mCropOverlayView.cropWindowRect = RectF(lOffset.toFloat(), tOffset.toFloat(),
+                    width + lOffset.toFloat(), height + tOffset.toFloat())
+
+                mCurrentFragment!!.instaMode = true
+            }
+
+            mCurrentFragment!!.mCropImageView.mCropOverlayView.invalidate()
         }
 
         val accept = findViewById<View>(R.id.apply_crop)
         accept.setOnClickListener{
-            gpu!!.deleteImage()
             mCurrentFragment!!.save(bitmapCrop())
         }
 
@@ -228,6 +296,13 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             val main = findViewById<ConstraintLayout>(R.id.main_area)
             main.visibility = View.VISIBLE
         }
+    }
+
+    private fun Bitmap.changeBmp(x: Float, y: Float, degrees: Float): Bitmap {
+
+        val matrix = Matrix().apply { postScale(x, y, width / 2f, height / 2f) }
+        matrix.apply { postRotate(degrees) }
+        return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
     }
 
     private fun bitmapCrop(): Bitmap {
@@ -249,10 +324,18 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun initProgress() {
-        val seek = findViewById<SeekBar>(R.id.seekBar_straightening)
-        seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
-                val angl = progress - 15
+        val percentTextView = findViewById<TextView>(R.id.text_straightening)
+            percentTextView.text = getString(R.string.percent, 0.toString())
+
+        val straightening = findViewById<HorizontalProgressWheelView>(R.id.rotate_scroll_wheel)
+        straightening.setScrollingListener(object: HorizontalProgressWheelView.ScrollingListener {
+            override fun onScrollStart() {
+
+            }
+            override fun onScroll(percent: Int) {
+                percentTextView.text = getString(R.string.percent, percent.toString())
+
+                val angl = percent.toFloat() / 2
 //h = 439.4949f
 //w = 1400.551f
                 var width = calculatedW;//bm!!.width
@@ -278,35 +361,36 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 // compute the scaling factor
                 scale = (len2 / len1)
 
-                mCurrentFragment!!.straighten(angl.toFloat(), scale)
+                mCurrentFragment!!.straighten(angl, scale)
             }
 
-            override fun onStartTrackingTouch(p0: SeekBar?) {
-            }
+            override fun onScrollEnd() {
 
-            override fun onStopTrackingTouch(p0: SeekBar?) {
             }
-
         })
     }
 
+    protected fun threadSync() {
+        if (mThread != null && mThread!!.isAlive) {
+            mShouldStopThread = true
+
+            try {
+                mThread!!.join()
+                mThread = null
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+        }
+
+        mShouldStopThread = false
+    }
+
     private fun initSavebutton() {
-        var t: Bitmap? = null
-        var test = true
-        val v = findViewById<View>(R.id.topSave)
+        val v = findViewById<TextView>(R.id.topSave)
 
         v.setOnClickListener{
-            if(test) {
-                glImageView!!.getResultBitmap(object :
-                    ImageGLSurfaceView.QueryResultBitmapCallback {
-                    override fun get(bmp: Bitmap?) {
-                        t = bmp
-                        test = false
-                    }
-                })
-            } else {
-                glImageView!!.setImageBitmap(t)
-            }
+
         }
     }
 
@@ -315,14 +399,14 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun initClosebutton() {
-        val view = findViewById<View>(R.id.topClose)
+        val view = findViewById<ImageView>(R.id.topClose)
 
         view.setOnClickListener{
-            glImageView!!.setFilterWithConfig("@adjust hsl 0.02 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
+            glImageView!!.setFilterWithConfig("@adjust lut ping.png 0.0 @adjust exposure 0.0 @adjust brightness 0.0 @adjust contrast 1.0 @adjust shadowhighlight 0.0 0.0 @adjust saturation 1.0 @adjust whitebalance 0.0 1.0 @blend sl oise_light.png 0.0 @adjust sharpen 0.0 @adjust hsl 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
         }
     }
 
-    private fun showSingleImage(uri: Uri) {
+    private fun showSingleImage(uri: Uri?) {
         initRvEffects()
         initRvTexture()
 
@@ -354,9 +438,13 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         //rootView?.invalidate()
     }
 
-    private fun hideIntensity() {
+    private fun hideIntensity(texture: Boolean) {
         val tools = findViewById<ConstraintLayout>(R.id.toolsLayout)
         val intensity = findViewById<ConstraintLayout>(R.id.intensityLayout)
+
+        if(texture) {
+            findViewById<ConstraintLayout>(R.id.texture_container).visibility = View.GONE
+        }
 
         tools.visibility = View.VISIBLE
         intensity.visibility = View.GONE
@@ -409,20 +497,86 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
             cropSurface(res, true)
 
-            glImageView!!.setSurfaceCreatedCallback(ImageGLSurfaceView.OnSurfaceCreatedCallback {
+            glImageView!!.setSurfaceCreatedCallback( {
                 glImageView!!.setImageBitmap(res)
-                glImageView!!.setFilterWithConfig(calculateRules());
+                glImageView!!.setFilterWithConfig(calculateRules())
             })
 
             glImageView!!.setDisplayMode(ImageGLSurfaceView.DisplayMode.DISPLAY_ASPECT_FIT)
 
             image = res
-            transImage =res
+            transImage = res
 
             colorsEvents(true)
             effectsEvents()
+            textureEvents()
         } catch (e: IOException) {
             e.printStackTrace()
+        }
+    }
+
+    private fun textureEvents() {
+        mSeekTexture!!.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
+                if(mActiveConfig!!.startEditing) {
+                    val pr = progress.toFloat() / 100.0f
+                    mActiveConfig!!.setTempIntensity(pr, true, glImageView)
+                }
+            }
+
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+            }
+        })
+
+        val rotate = findViewById<View>(R.id.texture_rotate)
+        val horizontal = findViewById<View>(R.id.texture_hor)
+        val vert = findViewById<View>(R.id.texture_vert)
+        val diff = findViewById<View>(R.id.texture_diff)
+
+        rotate.setOnClickListener {
+            mActiveConfig!!.rotate[1] += 90f
+
+            if(mActiveConfig!!.rotate[1] >= 360f) {
+                mActiveConfig!!.rotate[1] -= 360f
+            }
+
+            glImageView!!.setFilterWithConfig(calculateRules())
+        }
+        horizontal.setOnClickListener {
+            mActiveConfig!!.horizontal[1] *= -1f
+            glImageView!!.setFilterWithConfig(calculateRules())
+        }
+        vert.setOnClickListener {
+            mActiveConfig!!.vertical[1] *= -1f
+            glImageView!!.setFilterWithConfig(calculateRules())
+        }
+        diff.setOnClickListener {
+            mActiveConfig!!.diff[1] = !mActiveConfig!!.diff[1]
+            mActiveConfig!!.setRule(mActiveConfig!!.diff[1])
+
+            glImageView!!.setFilterWithConfig(calculateRules())
+        }
+
+        val cancel = findViewById<View>(R.id.cancel_texture_button)
+        val apply = findViewById<View>(R.id.accept_texture_button)
+
+        cancel.setOnClickListener {
+            mActiveConfig!!.textureConfig(mActiveConfig!!.rotate[0], mActiveConfig!!.horizontal[0], mActiveConfig!!.vertical[0], mActiveConfig!!.diff[0])
+            mActiveConfig!!.setIntensity(mActiveConfig!!.slierIntensity, false, glImageView)
+
+            setFilters()
+            hideIntensity(true)
+            toggleTopBar(false)
+        }
+        apply.setOnClickListener {
+            mActiveConfig!!.textureConfig(mActiveConfig!!.rotate[1], mActiveConfig!!.horizontal[1], mActiveConfig!!.vertical[1], mActiveConfig!!.diff[1])
+            mActiveConfig!!.setIntensity(mSeekTexture!!.progress / 100f, false, glImageView)
+
+            hideIntensity(true)
+            toggleTopBar(false)
         }
     }
 
@@ -466,36 +620,33 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun effectsEvents() {
-        var pr = 0.0f
-
         mSeekBar!!.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
                 if(mActiveConfig != null) {
-                    pr = progress.toFloat() / 100.0f
-
                     if (mActiveConfig!!.type == EffectType.Shadow) {
                         mActiveConfig!!.setTempIntensityWithParam(
-                            2,
-                            pr,
+                            8,
+                            mSeekBar!!.progress / 100f,
                             mActiveConfig!!.calcIntensity(mActiveConfig!!.additionaItem.slierIntensity),
                             0.0f,
                             glImageView
                         )
                     } else if (mActiveConfig!!.type == EffectType.Highlight) {
                         mActiveConfig!!.setTempIntensityWithParam(
-                            2,
+                            8,
                             mActiveConfig!!.slierIntensity,
-                            mActiveConfig!!.calcIntensity(pr),
+                            mActiveConfig!!.calcIntensity(mSeekBar!!.progress / 100f),
                             0.0f,
                             glImageView
                         )
                     } else {
-                        mActiveConfig!!.setTempIntensity(pr, true, glImageView)
+                        mActiveConfig!!.setTempIntensity(mSeekBar!!.progress / 100f, true, glImageView)
                     }
                 } else {
-                    pr = progress.toFloat() / 100.0f
-                    glImageView!!.setFilterIntensity(pr);
+                    glImageView!!.setFilterIntensity(mSeekBar!!.progress / 100f)
                 }
+
+                textIntensity!!.text = progress.toString()
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -527,35 +678,38 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 } else if (mActiveConfig!!.type == EffectType.Shadow) {
                     mActiveConfig!!.setIntensityWithParam(
                         8,
-                        pr,
+                        mSeekBar!!.progress / 100f,
                         mActiveConfig!!.additionaItem.slierIntensity,
                         glImageView,
                         false
                     )
                 } else if (mActiveConfig!!.type == EffectType.HSL) {
                     copyArray(mActiveConfig!!.tempHsl, mActiveConfig!!.hsl)
-                    glImageView!!.setFilterWithConfig(calculateRules())
+
+                    setFilters()
                 } else if (mActiveConfig!!.type == EffectType.Highlight) {
                     mActiveConfig!!.setIntensityWithParam(
                         8,
                         mActiveConfig!!.slierIntensity,
-                        pr,
+                        mSeekBar!!.progress / 100f,
                         glImageView,
                         false
                     )
                 } else {
-                    mActiveConfig!!.setIntensity(pr, false, glImageView)
+                    mActiveConfig!!.setIntensity(mSeekBar!!.progress / 100f, false, glImageView)
                 }
 
                 mActiveConfig!!.startEditing = false
                 scaleArea(false)
             } else {
-                intensity = pr
+                intensity = mSeekBar!!.progress / 100f
+                mAdjustConfigs!!.get(0).intensity = intensity
 
                 scaleArea(false)
             }
 
-            hideIntensity()
+            toggleTopBar(false)
+            hideIntensity(false)
         }
 
         cancel_effect.setOnClickListener {
@@ -578,7 +732,8 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                     )
                 } else if (mActiveConfig!!.type == EffectType.HSL) {
                     copyArray(mActiveConfig!!.hsl, mActiveConfig!!.tempHsl)
-                    glImageView!!.setFilterWithConfig(calculateRules())
+
+                    setFilters()
                 } else {
                     mActiveConfig!!.setIntensity(mActiveConfig!!.slierIntensity, true, glImageView)
                 }
@@ -591,13 +746,17 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 scaleArea(false)
             }
 
-            hideIntensity()
+            toggleTopBar(false)
+            hideIntensity(false)
         }
     }
 
     override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
         if(mActiveConfig!!.startEditing) {
             if (mActiveConfig!!.type == EffectType.Temperature) {
+                temp_container!!.findViewById<TextView>(R.id.effect_value).text = mSeekTemp!!.progress.toString()
+                tint_container!!.findViewById<TextView>(R.id.effect_value).text = mSeekTint!!.progress.toString()
+
                 mActiveConfig!!.setTempIntensityWithParam(
                     7,
                     mSeekTemp!!.progress / 100.0f,
@@ -606,11 +765,18 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                     glImageView
                 )
             } else {
+                val sat = mActiveConfig!!.calcIntensity(mSeekSat!!.progress / 100.0f)
+                val lum = mActiveConfig!!.calcIntensity(mSeekLum!!.progress / 100.0f)
+
+                hue_container!!.findViewById<TextView>(R.id.effect_value).text = String.format("%.1f", mActiveConfig!!.calcIntensity(mSeekHue!!.progress / 100.0f) * 10)
+                saturetion_container!!.findViewById<TextView>(R.id.effect_value).text = String.format("%.1f", sat * 10)
+                lum_container!!.findViewById<TextView>(R.id.effect_value).text = String.format("%.1f", lum * 10)
+
                 mActiveConfig!!.setTempIntensityWithParam(
                     mActiveConfig!!.hslPos,
                     mSeekHue!!.progress / 100.0f,
-                    mActiveConfig!!.calcIntensity(mSeekSat!!.progress / 100.0f),
-                    mActiveConfig!!.calcIntensity(mSeekLum!!.progress / 100.0f),
+                    sat,
+                    lum,
                     glImageView
                 )
             }
@@ -651,13 +817,21 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     override fun onEffectSelected(eType: EffectType, position: Int) {
+
+        toggleTopBar(true)
+
+        if(eType == EffectType.Crop) {
+            startCropping(CGENativeLibrary.filterImage_MultipleEffects(transImage, calculateRules(), intensity))
+            return
+        }
+
         changeMargin(true)
 
         mActiveConfig = mAdjustConfigs!!.get(position)
         mActiveConfig!!.type = eType
 
         showEffects(eType)
-
+		
         if(eType == EffectType.HSL) {
             initHslSeek(false)
             mActiveConfig!!.startEditing = true
@@ -675,10 +849,15 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             seek_temp.setProgress((mActiveConfig!!.slierIntensity * seek_temp.max).toInt())
             seek_tint.setProgress((mActiveConfig!!.additionaItem.slierIntensity * seek_tint.max).toInt())
 
+            temp_container!!.findViewById<TextView>(R.id.effect_value).text = ((mActiveConfig!!.slierIntensity * seek_temp.max).toInt()).toString()
+            tint_container!!.findViewById<TextView>(R.id.effect_value).text = ((mActiveConfig!!.additionaItem.slierIntensity * seek_tint.max).toInt()).toString()
+
             mActiveConfig!!.startEditing = true
         } else if(eType == EffectType.Highlight) {
+            textIntensity!!.text = ((mActiveConfig!!.additionaItem.slierIntensity * mSeekBar!!.max).toInt()).toString()
             mSeekBar!!.setProgress((mActiveConfig!!.additionaItem.slierIntensity * mSeekBar!!.max).toInt())
         } else {
+            textIntensity!!.text =((mActiveConfig!!.slierIntensity * mSeekBar!!.max).toInt()).toString()
             mSeekBar!!.setProgress((mActiveConfig!!.slierIntensity * mSeekBar!!.max).toInt())
         }
     }
@@ -694,6 +873,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         }
 
         parent.layoutParams = params
+    }
+
+    private fun showTexture() {
+        findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = View.GONE
+        findViewById<ConstraintLayout>(R.id.texture_container).visibility = View.VISIBLE
     }
 
     private fun showEffects(type: EffectType) {
@@ -732,7 +916,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         return currentBar.toInt()
     }
 
-    override fun onFilterSelected(fType: FilterType, pos: Int, rule: String) {
+    override fun onFilterSelected(fType: FilterType, pos: Int, rule: String, color: Int) {
         changeMargin(true)
         mActiveConfig = null;
 
@@ -741,35 +925,49 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             mAdjustConfigs!!.get(0).mRule = rule
         }
 
-        glImageView!!.setFilterWithConfig(calculateRules())
-        glImageView!!.setFilterIntensity(intensity)
+        setFilters()
 
         val rec = findViewById<RecyclerView>(R.id.rvTools)
         val item = rec.getLayoutManager()!!.findViewByPosition(position);
 
         if(pos == position) {
             if(pos != 0) {
+                textIntensity!!.text = ((intensity * 100.0f).toInt()).toString()
                 mSeekBar!!.setProgress((intensity * 100.0f).toInt())
 
                 findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = View.GONE
                 findViewById<ConstraintLayout>(R.id.intensityLayout).visibility = View.VISIBLE
                 findViewById<ConstraintLayout>(R.id.intensity_buttons).visibility = View.VISIBLE
+
+                toggleTopBar(true)
             }
         } else {
-            val intens = item!!.findViewById<ImageView>(R.id.intensity_icon)
-            intens.visibility = View.GONE
+            item!!.findViewById<View>(R.id.viewBorder).visibility = View.GONE
+            item.findViewById<ImageView>(R.id.intensity_icon).visibility = View.GONE
 
             if(pos != 0) {
                 val itemNew = rec.getLayoutManager()!!.findViewByPosition(pos);
                 val intens_new = itemNew!!.findViewById<ImageView>(R.id.intensity_icon)
                 intens_new.visibility = View.VISIBLE
+
+                val viewBorder = itemNew.findViewById<View>(R.id.viewBorder)
+
+                if(viewBorder.tag != 1) {
+                    val border = viewBorder.background as LayerDrawable
+                    val shape = border.findDrawableByLayerId(R.id.shapeBorder) as GradientDrawable
+                    shape.setStroke(4 * getScale().toInt(), color)
+                    viewBorder.background = shape
+                    viewBorder.tag = 1
+                }
+
+                viewBorder.visibility = View.VISIBLE
             }
 
             position = pos
         }
     }
 
-    private fun startCropping(arr: Bitmap) {
+    private fun startCropping(arr: Bitmap?) {
         val main = findViewById<ConstraintLayout>(R.id.main_area)
         val crop = findViewById<ConstraintLayout>(R.id.crop_area)
 
@@ -798,6 +996,9 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     override fun onBitmapCropped(bm: Bitmap) {
+        glImageView!!.setImageBitmap(bm)
+        setFilters()
+
         val crop = findViewById<ConstraintLayout>(R.id.crop_area)
         crop.visibility = View.GONE
 
@@ -806,8 +1007,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         cropSurface(bm, false)
         image = bm
-
-        gpu!!.setImage(bm)
     }
 
     private fun getWidth(): Int{
@@ -912,10 +1111,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             AdjustConfig(7, .0f, 0.0f, 1.0f, "@blend sl oise_light.png", 0f, false, EffectType.Grain),
             AdjustConfig(8, 0f, 0.0f, 2.5f, "@adjust sharpen", 0f, false, EffectType.Sharpness),
             hslConfig,
-            AdjustConfig(10, 0f, 0.0f, 1.0f, "@adjust sharpen", 0f, false, EffectType.Texture)
+            AdjustConfig(10, 0f, 0.5f, 1f, "", 1f, false, EffectType.Texture)
         )
 
         mAdjustConfigs!!.get(10).active = false
+        mAdjustConfigs!!.get(10).intensity = 1.0f
     }
 
     private fun copyArray(ar1: Array<FloatArray>, ar2: Array<FloatArray>) {
@@ -924,28 +1124,34 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         }
     }
 
-    override fun onTextureSelected(textureType: TextureType?, position: Int?) {
-        if(textureType != TextureType.DEFAULT) {
-            /*gpu!!.setImage(image)
+    override fun onTextureSelected(name: String, position: Int) {
+        mActiveConfig = mAdjustConfigs!!.get(position)
 
-            val temp_list = effectsList!!.toMutableList()
-            if(isLookup != false) {
-                temp_list[0] = gpuLookupFilter
-            } else {
-                temp_list[0] =  gpuFilter
-            }
-
-            val filter: GPUImageFilter
-
-            if(pos == 0) {
-                filter = GPUImageFilter()
-            } else {
-                filter = GPUImageScreenBlendFilter()
-                filter.bitmap = BitmapFactory.decodeResource(this.getResources(), texture!!)
-            }*/
-        } else {
-
+        if(mActiveConfig != null && !name.equals(mActiveConfig!!.name)) {
+            mActiveConfig!!.setIntensity(1f, false, glImageView)
+            mActiveConfig!!.textureConfig(0f, 1f, 1f, false)
         }
+
+        mActiveConfig!!.startEditing = false
+
+        if(name.equals("def", true)) {
+            mActiveConfig!!.textureConfig(0f, 1f, 1f, false)
+            mActiveConfig!!.active = false
+            mActiveConfig!!.mRule = ""
+        } else {
+            mActiveConfig!!.active = true
+            mActiveConfig!!.name = name
+            mActiveConfig!!.setRule(mActiveConfig!!.diff[0])
+
+            mSeekTexture!!.setProgress((mActiveConfig!!.slierIntensity * mSeekTexture!!.max).toInt())
+
+            toggleTopBar(true)
+            showTexture()
+        }
+
+        mActiveConfig!!.startEditing = true
+
+        setFilters()
     }
 
     private fun getMultiTouchListener(): MultiTouchListener {
@@ -1074,8 +1280,30 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val seek_s = findViewById<SeekBar>(R.id.seekBar_saturation)
         val seek_l = findViewById<SeekBar>(R.id.seekBar_luminance)
 
+        hue_container!!.findViewById<TextView>(R.id.effect_value).text = String.format("%.1f", config[0] * 10)
+        saturetion_container!!.findViewById<TextView>(R.id.effect_value).text = String.format("%.1f", config[1] * 10)
+        lum_container!!.findViewById<TextView>(R.id.effect_value).text = String.format("%.1f", config[2] * 10)
+
         seek_h.setProgress(mActiveConfig!!.calculateProgress(config[0]))
         seek_s.setProgress(mActiveConfig!!.calculateProgress(config[1]))
         seek_l.setProgress(mActiveConfig!!.calculateProgress(config[2]))
+    }
+
+    private fun setFilters() {
+        glImageView!!.setFilterWithConfig(calculateRules())
+        glImageView!!.setFilterIntensity(intensity)
+    }
+
+    private fun toggleTopBar(hide: Boolean) {
+        val close = findViewById<ImageView>(R.id.topClose)
+        val save = findViewById<TextView>(R.id.topSave)
+
+        if(hide) {
+            close.visibility = View.GONE
+            save.visibility = View.GONE
+        } else {
+            close.visibility = View.VISIBLE
+            save.visibility = View.VISIBLE
+        }
     }
 }

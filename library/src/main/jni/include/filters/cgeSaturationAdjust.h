@@ -28,8 +28,12 @@ namespace CGE
 
 		void setLum(float lum); // range [-1, 1]
 		void setAll(float isSet, float h, float s, float l); // range [-1, 1]
-		void setGreen(float isSet, float h, float s, float l); // range [-1, 1]
 		void setRed(float isSet, float h, float s, float l); // range [-1, 1]
+		void setOrange(float isSet, float h, float s, float l); // range [-1, 1]
+		void setYellow(float isSet, float h, float s, float l); // range [-1, 1]
+		void setGreen(float isSet, float h, float s, float l); // range [-1, 1]
+		void setBlue(float isSet, float h, float s, float l); // range [-1, 1]
+		void setViolet(float isSet, float h, float s, float l); // range [-1, 1]
 
 		bool init();
 

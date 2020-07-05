@@ -25,41 +25,6 @@ public class EditingTexturesAdapter extends RecyclerView.Adapter<EditingTextures
     public EditingTexturesAdapter(OnItemSelected onItemSelected, TextureType type) {
         mOnItemSelected = onItemSelected;
         currentType = type;
-
-        switch (type) {
-            case SCUFFED:
-                mToolList.add(new TexturesModel("", type, null, null));
-                mToolList.add(new TexturesModel("Dust 1", type, R.drawable.d1, R.drawable.grain_1));
-                mToolList.add(new TexturesModel("Dust 2", type, R.drawable.d2, R.drawable.grain_2));
-                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
-                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
-                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
-                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
-                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
-                mToolList.add(new TexturesModel("Dust 4", type, R.drawable.d4, R.drawable.grain_4));
-                break;
-            case RAINBOW:
-                mToolList.add(new TexturesModel("", type, null, null));
-                mToolList.add(new TexturesModel("Dust 1", type, R.drawable.d1, R.drawable.grain_1));
-                mToolList.add(new TexturesModel("Dust 2", type, R.drawable.d2, R.drawable.grain_2));
-                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
-                break;
-            case DUST:
-                mToolList.add(new TexturesModel("", type, null, null));
-                mToolList.add(new TexturesModel("Dust 1", type, R.drawable.d1, R.drawable.grain_1));
-                mToolList.add(new TexturesModel("Dust 2", type, R.drawable.d2, R.drawable.grain_2));
-                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
-                mToolList.add(new TexturesModel("Dust 4", type, R.drawable.d4, R.drawable.grain_4));
-                mToolList.add(new TexturesModel("Dust 5", type, R.drawable.d5, R.drawable.grain_5));
-                break;
-            case GLARE:
-                mToolList.add(new TexturesModel("", type, null, null));
-                mToolList.add(new TexturesModel("Dust 1", type, R.drawable.d1, R.drawable.grain_1));
-                mToolList.add(new TexturesModel("Dust 2", type, R.drawable.d2, R.drawable.grain_2));
-                mToolList.add(new TexturesModel("Dust 3", type, R.drawable.d3, R.drawable.grain_3));
-                mToolList.add(new TexturesModel("Dust 4", type, R.drawable.d4, R.drawable.grain_4));
-                break;
-        }
     }
 
     public interface OnItemSelected {

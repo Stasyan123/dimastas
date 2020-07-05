@@ -21,10 +21,11 @@ public class AdjustConfig {
     public Boolean active = true;
 
     //texture settings
-    public int rotate = 0;
-    public Boolean horizontal = false;
-    public Boolean vertical = false;
-    public Boolean diff = false;
+    public Float[] rotate = {0f, 0f};
+    public Float[] horizontal = {1f, 1f};
+    public Float[] vertical = {1f, 1f};
+    public Boolean[] diff = {false, false};
+    public String name = "";
 
     public AdjustConfig(int _index, float _minValue, float _originValue, float _maxValue,
                         String rule, float _slierIntensity, boolean _additional, EffectType _type) {
@@ -131,6 +132,29 @@ public class AdjustConfig {
         }
     }
 
+    public void setRule(Boolean isDiff) {
+        mRule = "@blend";
+
+        if(isDiff) {
+            mRule += " sub";
+        } else {
+            mRule += " sr";
+        }
+
+        mRule += " " + name;
+    }
+
+    public void textureConfig(Float r, Float h, Float v, Boolean dif) {
+        rotate[0] = r;
+        rotate[1] = r;
+        vertical[0] = v;
+        vertical[1] = v;
+        horizontal[0] = h;
+        horizontal[1] = h;
+        diff[0] = dif;
+        diff[1] = dif;
+    }
+
     public String getRule() {
         String rule = mRule;
 
@@ -142,6 +166,8 @@ public class AdjustConfig {
                 rule += " " + config[1];
                 rule += " " + config[2];
             }
+        } else if(type == EffectType.Texture) {
+            rule += " " + intensity * 100;
         } else {
             rule += " " + intensity;
         }
