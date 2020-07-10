@@ -97,13 +97,8 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     var transImage: Bitmap? = null
     var grainImage: Bitmap? = null
     var position: Int = 0
-    var gpu: GPUImage? = null
-    var isLookup: Boolean = false
-    var gpuFilter: GPUImageFilter = GPUImageFilter()
-    var gpuLookupFilter: GPUImageLookupFilter = GPUImageLookupFilter()
     var mOnPhotoEditorListener: OnPhotoEditorListener? = null
 
-    var effectsList: MutableList<GPUImageFilter>? = null
     var intensity: Float = 1.0f
     val tag: String = "DimaStas"
 
@@ -390,7 +385,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val v = findViewById<TextView>(R.id.topSave)
 
         v.setOnClickListener{
-
+            glImageView!!.setFilterWithConfig("@adjust sharpen 1.0")
         }
     }
 
@@ -402,7 +397,8 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val view = findViewById<ImageView>(R.id.topClose)
 
         view.setOnClickListener{
-            glImageView!!.setFilterWithConfig("@adjust lut ping.png 0.0 @adjust exposure 0.0 @adjust brightness 0.0 @adjust contrast 1.0 @adjust shadowhighlight 0.0 0.0 @adjust saturation 1.0 @adjust whitebalance 0.0 1.0 @blend sl oise_light.png 0.0 @adjust sharpen 0.0 @adjust hsl 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
+            //glImageView!!.setFilterWithConfig("@adjust lut ping.png 0.0 @adjust exposure 0.0 @adjust brightness 0.0 @adjust contrast 1.0 @adjust shadowhighlight 0.0 0.0 @adjust saturation 1.0 @adjust whitebalance 0.0 1.0 @blend sl oise_light.png 0.0 @adjust sharpen 0.0 @adjust hsl 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
+            glImageView!!.setFilterIntensityForIndex(0.0f, 0)
         }
     }
 
@@ -817,7 +813,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     override fun onEffectSelected(eType: EffectType, position: Int) {
-
         toggleTopBar(true)
 
         if(eType == EffectType.Crop) {
@@ -1090,28 +1085,28 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun initEffectsArray() {
-        val temperature = AdjustConfig(6, -1.0f, 0.0f, 1.0f, "@adjust whitebalance", 0.5f, true, EffectType.Temperature)
-        temperature.setAdditional(AdjustConfig(5, 0.0f, 1.0f, 2.0f, "", 0.5f, true, EffectType.Temperature))
+        val temperature = AdjustConfig(6, -1.0f, 0.0f, 1.0f, "@adjust whitebalance", 0.5f, true, EffectType.Temperature, null)
+        temperature.setAdditional(AdjustConfig(5, 0.0f, 1.0f, 2.0f, "", 0.5f, true, EffectType.Temperature, null))
 
-        val sh = AdjustConfig(4, -100.0f, 0.0f, 100.0f, "@adjust shadowhighlight", 0.5f, true, EffectType.Shadow)
-        sh.setAdditional(AdjustConfig(4, -100.0f, 0.0f, 100.0f, "", 0.5f, true, EffectType.Highlight))
+        val sh = AdjustConfig(4, -100.0f, 0.0f, 100.0f, "@adjust shadowhighlight", 0.5f, true, EffectType.Shadow, null)
+        sh.setAdditional(AdjustConfig(4, -100.0f, 0.0f, 100.0f, "", 0.5f, true, EffectType.Highlight, null))
 
-        val hslConfig = AdjustConfig(9, -1.0f, 0.0f, 1.0f, "@adjust hsl", 0.5f, false, EffectType.HSL)
+        val hslConfig = AdjustConfig(9, -1.0f, 0.0f, 1.0f, "@adjust hsl", 0.5f, false, EffectType.HSL, null)
         hslConfig.hsl = arrayOf(floatArrayOf(0.0f, 0.0f, 0.0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f))
         hslConfig.tempHsl = arrayOf(floatArrayOf(0.0f, 0.0f, 0.0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f))
 
         mAdjustConfigs = mutableListOf(
-            AdjustConfig(0, -1.0f, 0.0f, 1.0f, "@adjust lut empty.png", 0.5f, false, EffectType.Lut),
-            AdjustConfig(1, -1.0f, 0.0f, 1.0f, "@adjust exposure", 0.5f, false, EffectType.Exposition),
-            AdjustConfig(2, -.5f, 0.0f, 0.5f, "@adjust brightness", 0.5f, false, EffectType.Brightness),
-            AdjustConfig(3, .0f, 1.0f, 2.0f, "@adjust contrast", 0.5f, false, EffectType.Contrast),
+            AdjustConfig(0, -1.0f, 0.0f, 1.0f, "@adjust lut empty.png", 0.5f, false, EffectType.Lut, null),
+            AdjustConfig(1, -1.0f, 0.0f, 1.0f, "@adjust exposure", 0.5f, false, EffectType.Exposition, null),
+            AdjustConfig(2, -.5f, 0.0f, 0.5f, "@adjust brightness", 0.5f, false, EffectType.Brightness, null),
+            AdjustConfig(3, .0f, 1.0f, 2.0f, "@adjust contrast", 0.5f, false, EffectType.Contrast, null),
             sh,
-            AdjustConfig(5, 0.0f, 1.0f, 2.0f, "@adjust saturation", 0.5f, false, EffectType.Saturation),
+            AdjustConfig(5, 0.0f, 1.0f, 2.0f, "@adjust saturation", 0.5f, false, EffectType.Saturation, null),
             temperature,
-            AdjustConfig(7, .0f, 0.0f, 1.0f, "@blend sl oise_light.png", 0f, false, EffectType.Grain),
-            AdjustConfig(8, 0f, 0.0f, 2.5f, "@adjust sharpen", 0f, false, EffectType.Sharpness),
+            AdjustConfig(7, .0f, 0.0f, 1.0f, "@blend sl oise_light.png", 0f, false, EffectType.Grain, null),
+            AdjustConfig(8, 0f, 0.0f, 2.5f, "@adjust sharpen", 0f, false, EffectType.Sharpness, null),
             hslConfig,
-            AdjustConfig(10, 0f, 0.5f, 1f, "", 1f, false, EffectType.Texture)
+            AdjustConfig(10, 0f, 0.5f, 1f, "", 1f, false, EffectType.Texture, null)
         )
 
         mAdjustConfigs!!.get(10).active = false

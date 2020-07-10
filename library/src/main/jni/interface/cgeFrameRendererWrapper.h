@@ -94,6 +94,12 @@ JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEFrameRenderer_nativeSetFilt
 JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEFrameRenderer_nativeSetFilterIntensity
   (JNIEnv *, jobject, jlong, jfloat);
 
+JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEFrameRenderer_nativeSetFilterIntensityAtIndex
+  (JNIEnv *, jobject, jlong, jfloat, jint, jint);
+
+JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEFrameRenderer_nativeSetParamAtIndex
+  (JNIEnv *, jobject, jlong, jint, jfloat, jfloat, jfloat, jint);
+
 JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEFrameRenderer_nativeSrcResize
   (JNIEnv *, jobject, jlong, jint, jint);
 

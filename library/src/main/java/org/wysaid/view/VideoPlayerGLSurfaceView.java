@@ -14,6 +14,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import org.wysaid.common.Common;
 import org.wysaid.nativePort.CGEFrameRenderer;
@@ -28,15 +30,16 @@ import javax.microedition.khronos.opengles.GL10;
  * Created by wangyang on 15/11/26.
  */
 
-public class VideoPlayerGLSurfaceView extends TextureView implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
+public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTextureView.Renderer, SurfaceTexture.OnFrameAvailableListener {
 
     public static final String LOG_TAG = Common.LOG_TAG;
     private SurfaceTexture mSurfaceTexture;
     private int mVideoTextureID;
     private CGEFrameRenderer mFrameRenderer;
 
+    public FrameLayout parentView;
 
-    private TextureRenderer.Viewport mRenderViewport = new TextureRenderer.Viewport();
+    public TextureRenderer.Viewport mRenderViewport = new TextureRenderer.Viewport();
     private float[] mTransformMatrix = new float[16];
     private boolean mIsUsingMask = false;
 
@@ -45,9 +48,10 @@ public class VideoPlayerGLSurfaceView extends TextureView implements GLSurfaceVi
     }
 
     private float mMaskAspectRatio = 1.0f;
-
     private int mViewWidth = 1000;
     private int mViewHeight = 1000;
+
+    protected float mFilterIntensity = 1.0f;
 
     public int getViewWidth() {
         return mViewWidth;
@@ -61,6 +65,9 @@ public class VideoPlayerGLSurfaceView extends TextureView implements GLSurfaceVi
     private int mVideoHeight = 1000;
 
     private boolean mFitFullView = false;
+
+    protected final Object mSettingIntensityLock = new Object();
+    protected int mSettingIntensityCount = 1;
 
     public void setFitFullView(boolean fit) {
         mFitFullView = fit;
@@ -170,6 +177,70 @@ public class VideoPlayerGLSurfaceView extends TextureView implements GLSurfaceVi
         });
     }
 
+    public void setParamAtIndex(final int config, final float intensity, final float intensity2, final float intensity3, final int index) {
+        if (mFrameRenderer == null)
+            return;
+
+        synchronized (mSettingIntensityLock) {
+
+            if (mSettingIntensityCount <= 0) {
+                Log.i(LOG_TAG, "Too fast, skipping...");
+                return;
+            }
+            --mSettingIntensityCount;
+        }
+
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mFrameRenderer == null) {
+                    Log.e(LOG_TAG, "set intensity after release!!");
+                } else {
+                    mFrameRenderer.setParamAtIndex(intensity, intensity2, intensity3, index, config);
+                    requestRender();
+                }
+
+                synchronized (mSettingIntensityLock) {
+                    ++mSettingIntensityCount;
+                }
+            }
+        });
+    }
+
+    public void setFilterIntensityAtIndex(final float intensity, final int index, final int isSharpen) {
+        if (mFrameRenderer == null) {
+            return;
+        }
+
+        mFilterIntensity = intensity;
+
+        synchronized (mSettingIntensityLock) {
+
+            if (mSettingIntensityCount <= 0) {
+                Log.i(LOG_TAG, "Too fast, skipping...");
+                return;
+            }
+            --mSettingIntensityCount;
+        }
+
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mFrameRenderer != null) {
+                    mFrameRenderer.setFilterIntensityAtIndex(intensity, index, isSharpen);
+                } else {
+                    Log.e(LOG_TAG, "setFilterIntensity after release!!");
+                }
+
+                synchronized (mSettingIntensityLock) {
+                    ++mSettingIntensityCount;
+                }
+            }
+        });
+    }
+
     public interface SetMaskBitmapCallback {
         void setMaskOK(CGEFrameRenderer recorder);
     }
@@ -253,10 +324,10 @@ public class VideoPlayerGLSurfaceView extends TextureView implements GLSurfaceVi
 
         setEGLContextClientVersion(2);
         setEGLConfigChooser(8, 8, 8, 8, 8, 0);
-        getHolder().setFormat(PixelFormat.RGBA_8888);
+        //getHolder().setFormat(PixelFormat.RGBA_8888);
         setRenderer(this);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
-        setZOrderOnTop(true);
+        //setZOrderOnTop(true);
 
         Log.i(LOG_TAG, "MyGLSurfaceView Construct OK...");
     }
@@ -344,34 +415,44 @@ public class VideoPlayerGLSurfaceView extends TextureView implements GLSurfaceVi
         super.onPause();
     }
 
+    public void releasePlayer() {
+        if(mPlayer != null) {
+            mPlayer.stop();
+            mPlayer.release();
+            mPlayer = null;
+        }
+    }
+
+    @Override
+    public void onSurfaceDestroyed(GL10 gl) {
+        releasePlayer();
+    }
+
     @Override
     public void onDrawFrame(GL10 gl) {
+        if(mPlayer != null) {
+            if (mSurfaceTexture == null || mFrameRenderer == null) {
+                return;
+            }
 
-        if (mSurfaceTexture == null || mFrameRenderer == null) {
-            return;
+            mSurfaceTexture.updateTexImage();
+
+            if (!mPlayer.isPlaying()) {
+                return;
+            }
+
+            mSurfaceTexture.getTransformMatrix(mTransformMatrix);
+            mFrameRenderer.update(mVideoTextureID, mTransformMatrix);
+
+            mFrameRenderer.runProc();
+
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
+            GLES20.glEnable(GLES20.GL_BLEND);
+            mFrameRenderer.render(mRenderViewport.x, mRenderViewport.y, mRenderViewport.width, mRenderViewport.height);
+            GLES20.glDisable(GLES20.GL_BLEND);
         }
-
-        mSurfaceTexture.updateTexImage();
-
-        if (!mPlayer.isPlaying()) {
-            return;
-        }
-
-        mSurfaceTexture.getTransformMatrix(mTransformMatrix);
-        Matrix.rotateM(mTransformMatrix, 0, 45, 0, 0, 1);
-        //Matrix.rotateM(mTransformMatrix, 0, 90, 0, 0, 1);
-        Matrix.translateM(mTransformMatrix, 0, 0, -0.5f, 0);
-        mFrameRenderer.update(mVideoTextureID, mTransformMatrix);
-
-        mFrameRenderer.runProc();
-
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-
-        GLES20.glEnable(GLES20.GL_BLEND);
-        mFrameRenderer.render(mRenderViewport.x, mRenderViewport.y, mRenderViewport.width, mRenderViewport.height);
-        GLES20.glDisable(GLES20.GL_BLEND);
-
     }
 
     private long mTimeCount2 = 0;
@@ -513,7 +594,7 @@ public class VideoPlayerGLSurfaceView extends TextureView implements GLSurfaceVi
                             mFrameRenderer = new CGEFrameRenderer();
                         }
 
-                        if (mFrameRenderer.init(mVideoWidth, mVideoHeight, mVideoWidth, mVideoHeight)) {
+                        if (mFrameRenderer.init(mVideoWidth, mVideoHeight, (int)(mVideoWidth / 2.5f), (int)(mVideoHeight / 2.5f))) {
                             //Keep right orientation for source texture blending
                             //mFrameRenderer.setSrcRotation(0.26f);
                             mFrameRenderer.setSrcFlipScale(1.0f, 1.0f);
@@ -563,6 +644,10 @@ public class VideoPlayerGLSurfaceView extends TextureView implements GLSurfaceVi
             }
         }
 
+    }
+
+    public void setParentView(FrameLayout fl) {
+        parentView = fl;
     }
 
     public interface TakeShotCallback {

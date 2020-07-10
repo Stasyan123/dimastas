@@ -78,6 +78,9 @@ namespace CGE
 
 		void setFilterIntensity(float value);
 
+        void setFilterIntensityAtIndex(float value, int index, int isSharpen);
+        void setParamAtIndex(int config, float intensity, float intensity2, float intensity3, int index);
+
 		void setFilter(CGEImageFilterInterfaceAbstract* filter);
 
 		GLuint getTargetTexture();

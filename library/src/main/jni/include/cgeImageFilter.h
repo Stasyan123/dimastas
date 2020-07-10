@@ -44,6 +44,7 @@ namespace CGE
 		virtual void render2Texture(CGEImageHandlerInterface* handler, GLuint srcTexture, GLuint vertexBufferID) = 0;
 
 		virtual void setIntensity(float value) {}
+		virtual void setSharpenIntensity(float value) {}
 		virtual void setTempAndTint(float temperature, float tint) {}
 		virtual void setShadowAndHighlight(float shadow, float highlight) {}
 		virtual void setAll(float isSet, float h, float s, float l) {};

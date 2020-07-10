@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:visibility="visible">
+
+    <com.sm.stasversion.widget.HorizontalProgressWheelView
+        android:id="@+id/rotate_scroll_wheel"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/crop_horizontal_progress_height"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        />
+
+</RelativeLayout>

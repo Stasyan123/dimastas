@@ -208,7 +208,7 @@ JNIEXPORT jboolean JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetP
 }
 
 JNIEXPORT jboolean JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetFilterIntensityAtIndex
-  (JNIEnv *env, jobject, jlong addr, jfloat intensity, jint index, jboolean shouldProcess)
+  (JNIEnv *env, jobject, jlong addr, jfloat intensity, jint index, jboolean shouldProcess, jint isSharpen)
 {
 	CGEImageHandlerAndroid* handler = (CGEImageHandlerAndroid*)addr;
 
@@ -244,7 +244,11 @@ JNIEXPORT jboolean JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetF
 
 	assert(filter != nullptr); //impossible
 
-	filter->setIntensity(intensity);
+    if(isSharpen == 1) {
+        filter->setSharpenIntensity(intensity);
+    } else {
+        filter->setIntensity(intensity);
+    }
 
 	if(shouldProcess && handler->getTargetTextureID() != 0)
 	{

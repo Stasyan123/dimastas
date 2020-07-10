@@ -3,6 +3,7 @@ package com.sm.stasversion.classes;
 import com.sm.stasversion.utils.EffectType;
 
 import org.wysaid.view.ImageGLSurfaceView;
+import org.wysaid.view.VideoPlayerGLSurfaceView;
 
 import java.lang.reflect.Array;
 
@@ -17,8 +18,11 @@ public class AdjustConfig {
     public float[][] hsl = null;
     public float[][] tempHsl = null;
     public int hslPos = 0;
+    public int isSharpen = 0;
     public Boolean startEditing = false;
     public Boolean active = true;
+
+    public VideoPlayerGLSurfaceView mPlayerView;
 
     //texture settings
     public Float[] rotate = {0f, 0f};
@@ -28,7 +32,7 @@ public class AdjustConfig {
     public String name = "";
 
     public AdjustConfig(int _index, float _minValue, float _originValue, float _maxValue,
-                        String rule, float _slierIntensity, boolean _additional, EffectType _type) {
+                        String rule, float _slierIntensity, boolean _additional, EffectType _type, VideoPlayerGLSurfaceView _mPlayerView) {
         index = _index;
         minValue = _minValue;
         originValue = _originValue;
@@ -38,6 +42,15 @@ public class AdjustConfig {
         mRule = rule;
         additional = _additional;
         type = _type;
+        mPlayerView = _mPlayerView;
+
+        if(type == EffectType.Sharpness) {
+            isSharpen = 1;
+        }
+    }
+
+    public void setPlayerView(VideoPlayerGLSurfaceView _mPlayerView) {
+        mPlayerView = _mPlayerView;
     }
 
     public void setAdditional(AdjustConfig _additionaItem) {
@@ -77,34 +90,41 @@ public class AdjustConfig {
 
     //_intensity range: [0.0, 1.0], 0.5 for the origin.
     public void setIntensity(float _intensity, boolean shouldProcess, ImageGLSurfaceView mImageView) {
-        if (mImageView != null) {
-            slierIntensity = _intensity;
-            intensity = calcIntensity(_intensity);
-            if(shouldProcess) {
-                mImageView.setFilterIntensityForIndex(intensity, index, shouldProcess);
+        slierIntensity = _intensity;
+        intensity = calcIntensity(_intensity);
+
+        if(shouldProcess) {
+            if (mImageView != null) {
+                mImageView.setFilterIntensityForIndex(intensity, index, shouldProcess, isSharpen);
+            } else if (mPlayerView != null) {
+                mPlayerView.setFilterIntensityAtIndex(intensity, index, isSharpen);
             }
         }
     }
 
     public void setIntensityWithParam(int config, float _intensity, float _intensity2, ImageGLSurfaceView mImageView, boolean shouldProcess) {
-        if (mImageView != null) {
-            slierIntensity = _intensity;
-            intensity = calcIntensity(_intensity);
+        slierIntensity = _intensity;
+        intensity = calcIntensity(_intensity);
 
-            if(additional) {
-                additionaItem.slierIntensity = _intensity2;
-                additionaItem.intensity = additionaItem.calcIntensity(_intensity2);
-            }
+        if(additional) {
+            additionaItem.slierIntensity = _intensity2;
+            additionaItem.intensity = additionaItem.calcIntensity(_intensity2);
+        }
 
-            if(shouldProcess) {
+        if(shouldProcess) {
+            if (mImageView != null) {
                 mImageView.setParamAtIndex(config, intensity, additionaItem.intensity, 0.0f, index);
+            } else if (mPlayerView != null) {
+                mPlayerView.setParamAtIndex(config, intensity, additionaItem.intensity, 0.0f, index);
             }
         }
     }
 
     public void setTempIntensity(float _intensity, boolean shouldProcess, ImageGLSurfaceView mImageView) {
         if (mImageView != null) {
-            mImageView.setFilterIntensityForIndex(calcIntensity(_intensity), index, shouldProcess);
+            mImageView.setFilterIntensityForIndex(calcIntensity(_intensity), index, shouldProcess, isSharpen);
+        } else if(mPlayerView != null) {
+            mPlayerView.setFilterIntensityAtIndex(calcIntensity(_intensity), index, isSharpen);
         }
     }
 
@@ -117,6 +137,8 @@ public class AdjustConfig {
 
         if (mImageView != null) {
             mImageView.setParamAtIndex(config, calcIntensity(_intensity), _intensity2, _intensity3, index);
+        } else if(mPlayerView != null) {
+            mPlayerView.setParamAtIndex(config, calcIntensity(_intensity), _intensity2, _intensity3, index);
         }
     }
 

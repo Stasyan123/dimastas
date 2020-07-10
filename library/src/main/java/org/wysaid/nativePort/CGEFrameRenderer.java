@@ -98,11 +98,19 @@ public class CGEFrameRenderer {
 
     }
 
+    public boolean setParamAtIndex(float intensity, float intensity2, float intensity3, int index, int config) {
+        return nativeSetParamAtIndex(mNativeAddress, config, intensity, intensity2, intensity3, index);
+    }
 
     //set the intensity of the filter
     public void setFilterIntensity(float value) {
         if(mNativeAddress != 0)
             nativeSetFilterIntensity(mNativeAddress, value);
+    }
+
+    public void setFilterIntensityAtIndex(float value, int index, int isSharpen) {
+        if(mNativeAddress != 0)
+            nativeSetFilterIntensityAtIndex(mNativeAddress, value, index, isSharpen);
     }
 
     public void srcResize(int width, int height) {
@@ -172,6 +180,8 @@ public class CGEFrameRenderer {
     protected native void nativeSetRenderFlipScale(long holder, float x, float y);
     protected native void nativeSetFilterWithConfig(long holder, String config);
     protected native void nativeSetFilterIntensity(long holder, float value);
+    protected native boolean nativeSetParamAtIndex(long holder, int config, float intensity, float intensity2, float intensity3, int index);
+    protected native void nativeSetFilterIntensityAtIndex(long holder, float value, int index, int isSharpen);
     protected native void nativeSetMaskRotation(long holder, float value);
     protected native void nativeSetMaskFlipScale(long holder, float x, float y);
 

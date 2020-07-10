@@ -41,7 +41,7 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
 
     public EditingToolsAdapter(OnItemSelected onItemSelected, Bitmap img, Context ctx) {
         mOnItemSelected = onItemSelected;
-        image = img;
+        image = img.copy(Bitmap.Config.ARGB_8888,true);
 
         mToolList.add(new ToolModel("Default", 0, FilterType.DEFAULT, "@adjust lut empty.png"));
         mToolList.add(new ToolModel("Vintage", ContextCompat.getColor(ctx, R.color.filter1), FilterType.FILTER1, "@adjust lut ping.png"));

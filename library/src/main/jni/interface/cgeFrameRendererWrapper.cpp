@@ -145,6 +145,20 @@ JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEFrameRenderer_nativeSetFilt
 	renderer->setFilterIntensity(intensity);
 }
 
+JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEFrameRenderer_nativeSetFilterIntensityAtIndex
+  (JNIEnv *env, jobject, jlong addr, jfloat intensity, jint index, jint isSharpen)
+{
+	CGEFrameRenderer* renderer = (CGEFrameRenderer*)addr;
+	renderer->setFilterIntensityAtIndex(intensity, index, isSharpen);
+}
+
+JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEFrameRenderer_nativeSetParamAtIndex
+  (JNIEnv *env, jobject, jlong addr, jint config, jfloat intensity, jfloat intensity2, jfloat intensity3, jint index)
+{
+	CGEFrameRenderer* renderer = (CGEFrameRenderer*)addr;
+	renderer->setParamAtIndex(config, intensity, intensity2, intensity3, index);
+}
+
 JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEFrameRenderer_nativeSrcResize
   (JNIEnv *env, jobject, jlong addr, jint width, jint height)
 {

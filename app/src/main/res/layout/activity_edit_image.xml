@@ -77,7 +77,6 @@
                     android:visibility="invisible">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/constr_container_test"
                         android:layout_width="match_parent"
                         android:layout_height="470dp"
                         android:layout_marginStart="25dp"
@@ -128,7 +127,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="17dp"
             android:layout_marginEnd="17dp"
-            android:layout_marginBottom="35.15dp"
+            android:layout_marginBottom="32.15dp"
             android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/intensity_buttons">
@@ -338,7 +337,7 @@
             android:id="@+id/intensityLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="49.5dp"
+            android:layout_marginBottom="45.5dp"
             android:layout_marginStart="17dp"
             android:layout_marginEnd="17dp"
             android:visibility="gone"
@@ -377,7 +376,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/toolsLayout"
             android:layout_width="match_parent"
-            android:visibility="visible"
+            android:visibility="gone"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
@@ -646,7 +645,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="45dp"
-        android:visibility="gone"
+        android:visibility="visible"
         >
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -731,7 +730,7 @@
                 android:id="@+id/text_straightening"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
+                android:layout_marginBottom="7dp"
                 android:layout_marginStart="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

@@ -161,6 +161,7 @@ namespace CGE
 	public:
 
 		bool init();
+		void setIntensity(float value);
 
 	};
 

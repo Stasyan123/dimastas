@@ -234,6 +234,113 @@ namespace CGE
 		m_frameHandler->addImageFilter(filter);
 	}
 
+    void CGEFrameRenderer::setParamAtIndex(int config, float intensity, float intensity2, float intensity3, int index)
+    {
+        CHECK_RENDERER_STATUS;
+        m_resultMutex.lock();
+
+        auto& filters = m_frameHandler->peekFilters();
+
+        if(index < 0 || filters.empty())
+        {
+            return;
+        }
+
+        CGEImageFilterInterfaceAbstract* filter = nullptr;
+
+        if(filters.size() == 1)
+        {
+            auto* mutipleFilter = filters[0];
+            auto&& innerFilters = mutipleFilter->getFilters(false);
+
+            if(index >= innerFilters.size())
+            {
+                return;
+            }
+
+            filter = innerFilters[index];
+        }
+        else if(index < filters.size())
+        {
+            filter = filters[index];
+        }
+        else
+        {
+            return;
+        }
+
+        assert(filter != nullptr); //impossible
+
+        if(config == 7) {
+            filter->setTempAndTint(intensity, intensity2);
+        } else if (config == 8) {
+            filter->setShadowAndHighlight(intensity, intensity2);
+        } else if (config == 0) {
+            filter->setAll(1.0, intensity, intensity2, intensity3);
+        } else if (config == 1) {
+            filter->setRed(1.0, intensity, intensity2, intensity3);
+        } else if (config == 2) {
+            filter->setOrange(1.0, intensity, intensity2, intensity3);
+        } else if (config == 3) {
+            filter->setYellow(1.0, intensity, intensity2, intensity3);
+        } else if (config == 4) {
+            filter->setGreen(1.0, intensity, intensity2, intensity3);
+        } else if (config == 5) {
+            filter->setBlue(1.0, intensity, intensity2, intensity3);
+        } else if (config == 6) {
+            filter->setViolet(1.0, intensity, intensity2, intensity3);
+        }
+
+        m_resultMutex.unlock();
+    }
+
+    void CGEFrameRenderer::setFilterIntensityAtIndex(float value, int index, int isSharpen)
+	{
+		CHECK_RENDERER_STATUS;
+
+		m_resultMutex.lock();
+
+        auto& filters = m_frameHandler->peekFilters();
+
+		if(index < 0 || filters.empty())
+        {
+            return;
+        }
+
+        CGEImageFilterInterfaceAbstract* filter = nullptr;
+
+        if(filters.size() == 1)
+        {
+            auto* mutipleFilter = filters[0];
+            auto&& innerFilters = mutipleFilter->getFilters(false);
+
+            if(index >= innerFilters.size())
+            {
+                return;
+            }
+
+            filter = innerFilters[index];
+        }
+        else if(index < filters.size())
+        {
+            filter = filters[index];
+        }
+        else
+        {
+            return;
+        }
+
+        assert(filter != nullptr); //impossible
+
+        if(isSharpen == 1) {
+            filter->setSharpenIntensity(value);
+        } else {
+            filter->setIntensity(value);
+        }
+
+		m_resultMutex.unlock();
+	}
+
 	void CGEFrameRenderer::setFilterIntensity(float value)
 	{
 		CHECK_RENDERER_STATUS;

@@ -2,227 +2,474 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/dark"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <ImageView
-        android:id="@+id/topClose"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_alignParentTop="true"
-        android:layout_marginBottom="5dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginStart="10dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_cross_top">
-
-    </ImageView>
-
-    <TextView
-        android:id="@+id/topSave"
+    <include
+        android:id="@+id/top_bar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="5dp"
-        android:layout_marginEnd="10dp"
-        android:layout_width="wrap_content"
+        android:layout_marginStart="17dp"
+        android:layout_marginEnd="17dp"
+        android:layout_marginTop="15dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:text="@string/save_image"
-        android:fontFamily="@font/stix"
-        android:textAppearance="@style/top_bar"
-        />
+        layout="@layout/top_bar">
+
+    </include>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/video_container"
+        android:id="@+id/groupLayout"
         android:layout_width="match_parent"
         android:layout_height="470dp"
-        android:layout_marginEnd="15dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginBottom="10dp"
-        android:layout_gravity="center"
+        android:layout_marginTop="12dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topSave">
+        app:layout_constraintTop_toBottomOf="@+id/top_bar">
 
         <FrameLayout
-            android:id="@+id/videoWrapper"
+            android:id="@+id/parentView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginEnd="17dp"
+            android:layout_marginStart="17dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             >
 
-            <org.wysaid.view.VideoPlayerGlTextureView
-                android:id="@+id/textureView"
-                android:layout_width="match_parent"
-                android:rotation="45"
-                android:layout_height="match_parent"/>
-
             <org.wysaid.view.VideoPlayerGLSurfaceView
-                android:visibility="gone"
                 android:id="@+id/videoGLSurfaceView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
+
+            <com.sm.stasversion.crop.CropOverlayView
+                android:id="@+id/CropOverlayView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="invisible" />
         </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        app:layout_constraintTop_toBottomOf="@+id/topSave"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:progress="0" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/intensityLayout_effect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="15dp"
+        android:layout_marginStart="17dp"
+        android:layout_marginEnd="17dp"
+        android:layout_marginBottom="32.15dp"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toTopOf="@+id/intensity_buttons">
 
-        <SeekBar
-            android:id="@+id/seekBar_effect"
+        <LinearLayout
+            android:id="@+id/hsl_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="32dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginStart="10dp"
-            android:paddingLeft="0dp"
-            android:paddingRight="0dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:max="100"
-            android:minHeight="2dp"
-            android:maxHeight="2dp"
-            android:progressDrawable="@drawable/sb_progress_drawable"
-            android:thumb="@drawable/scrubber_control"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/intensity_effect_buttons"/>
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginBottom="23dp"
+            android:orientation="vertical" >
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/intensity_effect_buttons"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:visibility="visible"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <View
-                android:id="@+id/cancel_effect_button"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:background="@drawable/ic_cross_bottom"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/colors"
+                android:layout_width="match_parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <TextView
-                android:layout_width="wrap_content"
+                android:layout_marginStart="4.75dp"
+                android:layout_marginEnd="4.75dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="1dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:text="@string/intensity"
-                android:textAppearance="@style/intensity"
-                android:layout_gravity="center_vertical">
+                android:layout_marginBottom="15.5dp">
 
-            </TextView>
+                <View
+                    android:id="@+id/all"
+                    style="@style/color_item"
+                    android:background="@drawable/ic_all"
+                    app:layout_constraintHorizontal_chainStyle="spread_inside"
+                    app:layout_constraintEnd_toStartOf="@+id/red"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
 
-            <View
-                android:id="@+id/apply_effect_button"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
-                android:background="@drawable/ic_done_bottom"
+                <View
+                    android:id="@+id/all_empty"
+                    android:layout_height="26dp"
+                    android:layout_width="26dp"
+                    android:layout_marginBottom="3.45dp"
+                    android:layout_marginStart="3dp"
+                    android:background="@drawable/ic_all_empty"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <View
+                    android:id="@+id/red"
+                    style="@style/color_item"
+                    android:background="@drawable/red"
+                    app:layout_constraintHorizontal_chainStyle="spread_inside"
+                    app:layout_constraintEnd_toStartOf="@+id/orange"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/all" />
+
+                <View
+                    android:id="@+id/orange"
+                    style="@style/color_item"
+                    android:background="@drawable/orange"
+                    app:layout_constraintHorizontal_chainStyle="spread_inside"
+                    app:layout_constraintEnd_toStartOf="@+id/yellow"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/red"
+                    />
+
+                <View
+                    android:id="@+id/yellow"
+                    style="@style/color_item"
+                    android:background="@drawable/yellow"
+                    app:layout_constraintHorizontal_chainStyle="spread_inside"
+                    app:layout_constraintEnd_toStartOf="@+id/green"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/orange"
+                    />
+
+                <View
+                    android:id="@+id/green"
+                    style="@style/color_item"
+                    android:background="@drawable/green"
+                    app:layout_constraintHorizontal_chainStyle="spread_inside"
+                    app:layout_constraintEnd_toStartOf="@+id/blue"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/yellow"
+                    />
+
+                <View
+                    android:id="@+id/blue"
+                    style="@style/color_item"
+                    android:background="@drawable/blue"
+                    app:layout_constraintHorizontal_chainStyle="spread_inside"
+                    app:layout_constraintEnd_toStartOf="@+id/violet"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/green"/>
+
+                <View
+                    android:id="@+id/violet"
+                    style="@style/color_item"
+                    android:background="@drawable/violet"
+                    app:layout_constraintHorizontal_chainStyle="spread_inside"
+                    app:layout_constraintLeft_toRightOf="@id/blue"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <include
+                android:id="@+id/hue_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_marginBottom="2dp"
+                layout="@layout/effects_container">
+
+            </include>
+
+            <SeekBar
+                android:id="@+id/seekBar_hue"
+                android:layout_marginTop="0.95dp"
+                android:layout_marginBottom="27dp"
+                style="@style/seek_dimens"
+                android:progressDrawable="@drawable/progress_white"
+                android:thumb="@drawable/scrubber_control"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent" />
+
+
+            <include
+                android:id="@+id/saturation_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginBottom="2dp"
+                layout="@layout/effects_container">
+
+            </include>
+
+            <SeekBar
+                android:id="@+id/seekBar_saturation"
+                android:layout_marginTop="0.95dp"
+                android:layout_marginBottom="27dp"
+                style="@style/seek_dimens"
+                android:progressDrawable="@drawable/sb_progress_drawable"
+                android:thumb="@drawable/scrubber_control" />
+
+            <include
+                android:id="@+id/luminance_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginBottom="2dp"
+                layout="@layout/effects_container">
+
+            </include>
+
+            <SeekBar
+                android:id="@+id/seekBar_luminance"
+                style="@style/seek_dimens"
+                android:progressDrawable="@drawable/sb_progress_drawable"
+                android:thumb="@drawable/scrubber_control"
+                app:layout_constraintLeft_toLeftOf="parent" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/temperature_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:orientation="vertical" >
+
+            <include
+                android:id="@+id/temp_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginBottom="2dp"
+                layout="@layout/effects_container">
+
+            </include>
+
+            <SeekBar
+                android:id="@+id/seekBar_temperature"
+                android:layout_marginTop="0.95dp"
+                android:layout_marginBottom="28dp"
+                style="@style/seek_dimens"
+                android:progressDrawable="@drawable/sb_progress_drawable"
+                android:thumb="@drawable/scrubber_control" />
+
+
+            <include
+                android:id="@+id/tint_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginBottom="2dp"
+                layout="@layout/effects_container">
+
+            </include>
+
+            <SeekBar
+                android:id="@+id/seekBar_tint"
+                style="@style/seek_dimens"
+                android:layout_marginBottom="7dp"
+                android:progressDrawable="@drawable/sb_progress_drawable"
+                android:thumb="@drawable/scrubber_control"
+                app:layout_constraintLeft_toLeftOf="parent" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/intensityLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="15dp"
+        android:layout_marginBottom="45.5dp"
+        android:layout_marginStart="17dp"
+        android:layout_marginEnd="17dp"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toTopOf="@+id/intensity_buttons">
+
+        <TextView
+            android:id="@+id/text_intensity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/seekBar"
+            android:textAppearance="@style/intensity"
+            android:textSize="12sp"
+            android:layout_gravity="center">
+        </TextView>
 
         <SeekBar
-            android:id="@+id/seekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="32dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginStart="10dp"
+            android:id="@+id/seekBar"
             android:max="100"
-            android:progress="100"
-            style="@style/MySeekBar"
+            android:progress="50"
             android:thumb="@drawable/scrubber_control"
-            app:layout_constraintLeft_toLeftOf="parent"
+            android:progressDrawable="@drawable/seekbar"
+            android:maxHeight="9dp"
+            android:minHeight="9dp"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/intensity_buttons"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/intensity_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="21dp"
+        android:visibility="gone"
+        android:layout_marginStart="17dp"
+        android:layout_marginEnd="17dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/intensity_buttons"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
+            android:id="@+id/cancel_effect_button"
+            style="@style/action_area_cancel"
             android:visibility="visible"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
-
             <View
-                android:id="@+id/cancel_button"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
+                style="@style/action_button_cancel"
                 android:background="@drawable/ic_cross_bottom"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="1dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:text="@string/intensity"
-                android:textAppearance="@style/intensity"
-                android:layout_gravity="center_vertical">
+        <TextView
+            android:id="@+id/action_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:text="@string/intensity"
+            android:textAppearance="@style/intensity"
+            android:layout_gravity="center_vertical">
 
-            </TextView>
+        </TextView>
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/apply_effect_button"
+            style="@style/action_area_accept"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
             <View
-                android:id="@+id/apply_button"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
+                style="@style/action_button_accept"
                 android:background="@drawable/ic_done_bottom"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/texture_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            app:layout_constraintBottom_toTopOf="@+id/texture_buttons"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="45.5dp"
+            android:layout_marginEnd="45.5dp"
+            android:layout_marginBottom="37dp">
+
+            <View
+                android:id="@+id/texture_rotate"
+                android:layout_width="25.6dp"
+                android:layout_height="25.6dp"
+                android:background="@drawable/ic_rotate"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/texture_hor"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <View
+                android:id="@+id/texture_hor"
+                style="@style/action_button_standart"
+                android:background="@drawable/ic_horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/texture_vert"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintStart_toEndOf="@+id/texture_rotate" />
+
+            <View
+                android:id="@+id/texture_vert"
+                style="@style/action_button_standart"
+                android:background="@drawable/ic_vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/texture_diff"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintStart_toEndOf="@+id/texture_hor" />
+
+            <View
+                android:id="@+id/texture_diff"
+                android:layout_width="27.5dp"
+                android:layout_height="27.5dp"
+                android:background="@drawable/ic_diff"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintStart_toEndOf="@+id/texture_vert" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <RelativeLayout
+            android:id="@+id/texture_buttons"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="36dp"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="17dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cancel_texture_button"
+                style="@style/action_area_cancel"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent">
+                <View
+                    style="@style/action_button_cancel"
+                    android:background="@drawable/ic_cross_bottom"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <SeekBar
+                android:id="@+id/seekBar_texture"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:progress="50"
+                android:thumb="@drawable/scrubber_control"
+                android:progressDrawable="@drawable/seekbar"
+                android:maxHeight="9dp"
+                android:minHeight="9dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_toStartOf="@+id/accept_texture_button"
+                android:layout_toEndOf="@+id/cancel_texture_button" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/accept_texture_button"
+                style="@style/action_area_accept"
+                android:layout_width="22dp"
+                android:visibility="visible"
+                android:layout_alignParentEnd="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+                <View
+                    style="@style/action_button_accept"
+                    android:background="@drawable/ic_done_bottom"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </RelativeLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -230,40 +477,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="visible"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="7dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvTextures"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="4dp"
-            android:paddingTop="4dp"
-            android:visibility="gone"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="10dp"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintBottom_toTopOf="@+id/tools"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:listitem="@layout/row_editing_textures" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvTools"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingBottom="4dp"
-            android:paddingTop="4dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="10dp"
+            style="@style/rv_margin"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintBottom_toTopOf="@+id/tools"
+            app:layout_constraintBottom_toTopOf="@+id/divider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:listitem="@layout/row_editing_filters" />
@@ -273,92 +497,72 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingBottom="4dp"
-            android:paddingTop="4dp"
             android:visibility="gone"
-            android:layout_marginTop="4dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="25dp"
+            style="@style/rv_margin"
+            android:layout_marginBottom="27.5dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintBottom_toTopOf="@+id/tools"
+            app:layout_constraintBottom_toTopOf="@+id/divider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:listitem="@layout/row_editing_effects" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="4dp"
-            android:paddingTop="4dp"
-            android:visibility="gone"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="10dp"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintBottom_toTopOf="@+id/tools"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:listitem="@layout/row_editing_text" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvTexture"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingBottom="4dp"
-            android:paddingTop="4dp"
             android:visibility="gone"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="10dp"
+            style="@style/rv_margin"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintBottom_toTopOf="@+id/tools"
+            app:layout_constraintBottom_toTopOf="@+id/divider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:listitem="@layout/row_editing_texture" />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:layout_marginBottom="9dp"
+            android:background="@color/div"
+            app:layout_constraintBottom_toTopOf="@+id/tools"
+            app:layout_constraintStart_toStartOf="parent">
+
+        </View>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/tools"
             android:layout_width="match_parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_height="35dp"
-            android:layout_marginStart="17dp"
-            android:layout_marginEnd="17dp"
-            android:layout_marginBottom="10dp">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="11.5dp">
 
             <View
                 android:id="@+id/filter"
-                android:layout_width="28dp"
-                android:layout_height="33dp"
+                style="@style/bottom_bar"
+                android:layout_marginStart="0dp"
                 android:background="@drawable/ic_filters_check"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/effect"
-                app:layout_constraintHorizontal_chainStyle="spread"
+                app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toStartOf="parent" />
 
             <View
                 android:id="@+id/effect"
-                android:layout_width="28dp"
-                android:layout_height="33dp"
-                android:layout_marginStart="12dp"
+                style="@style/bottom_bar"
                 android:background="@drawable/ic_effects"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/textures"
-                app:layout_constraintHorizontal_chainStyle="spread"
+                app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toEndOf="@+id/filter" />
 
             <View
                 android:id="@+id/textures"
-                android:layout_width="28dp"
-                android:layout_height="33dp"
-                android:layout_marginStart="12dp"
+                style="@style/bottom_bar"
                 android:background="@drawable/ic_textures"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_chainStyle="spread"
+                app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toEndOf="@+id/effect" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -368,7 +572,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        app:layout_constraintTop_toBottomOf="@+id/video_container"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:visibility="gone"
@@ -377,196 +581,140 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/crop_tools"
             android:layout_width="match_parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_height="75dp"
-            android:layout_marginStart="17dp"
-            android:layout_marginEnd="17dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="10dp">
+            app:layout_constraintBottom_toTopOf="@+id/straightening_cont"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="46.5dp"
+            android:layout_marginEnd="46.5dp"
+            android:layout_marginTop="19dp"
+            android:layout_marginBottom="12dp">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/custom_cont"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <View
+                android:id="@+id/rotate"
+                style="@style/action_button_crop"
+                android:background="@drawable/ic_rotate"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/threefour_cont"
-                app:layout_constraintHorizontal_chainStyle="spread"
-                app:layout_constraintStart_toStartOf="parent">
+                app:layout_constraintEnd_toStartOf="@+id/horizontal"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintStart_toStartOf="parent" />
 
-                <View
-                    android:id="@+id/custom"
-                    android:layout_width="28dp"
-                    android:layout_height="33dp"
-                    android:background="@drawable/ic_rect"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    />
-
-                <TextView
-                    android:id="@+id/custom_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintTop_toBottomOf="@+id/custom"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/all"
-                    android:textAppearance="@style/crop_rect">
-
-                </TextView>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/threefour_cont"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <View
+                android:id="@+id/horizontal"
+                style="@style/action_button_crop"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/ic_horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/one_cont"
-                app:layout_constraintHorizontal_chainStyle="spread"
-                app:layout_constraintStart_toEndOf="@+id/custom_cont">
+                app:layout_constraintEnd_toStartOf="@+id/vertical"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintStart_toEndOf="@+id/rotate" />
 
-                <View
-                    android:id="@+id/threefour"
-                    android:layout_width="28dp"
-                    android:layout_height="33dp"
-                    android:background="@drawable/ic_rect"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    />
-
-                <TextView
-                    android:id="@+id/threefour_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintTop_toBottomOf="@+id/threefour"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/threefour"
-                    android:textAppearance="@style/crop_rect">
-
-                </TextView>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/one_cont"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <View
+                android:id="@+id/vertical"
+                style="@style/action_button_crop"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/ic_vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/fourthree_cont"
-                app:layout_constraintHorizontal_chainStyle="spread"
-                app:layout_constraintStart_toEndOf="@+id/threefour_cont">
+                app:layout_constraintEnd_toStartOf="@+id/rect"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintStart_toEndOf="@+id/horizontal" />
 
-                <View
-                    android:id="@+id/one"
-                    android:layout_width="28dp"
-                    android:layout_height="33dp"
-                    android:background="@drawable/ic_rect"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    />
-
-                <TextView
-                    android:id="@+id/one_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintTop_toBottomOf="@+id/one"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/one"
-                    android:textAppearance="@style/crop_rect"
-                    android:layout_gravity="center_vertical">
-
-                </TextView>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/fourthree_cont"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <View
+                android:id="@+id/rect"
+                style="@style/action_button_crop"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/ic_rect"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_chainStyle="spread"
-                app:layout_constraintStart_toEndOf="@+id/one_cont">
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintStart_toEndOf="@+id/vertical" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/straightening_cont"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/crop_buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:id="@+id/text_straightening"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="7dp"
+                android:layout_marginStart="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/straightening_wheel"
+                android:text="@string/percent"
+                android:textAppearance="@style/intensity"
+                android:textSize="14sp"
+                android:layout_gravity="center_vertical">
+
+            </TextView>
+
+            <include
+                android:id="@+id/straightening_wheel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                layout="@layout/progress_wheel">
+
+            </include>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/crop_buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="21dp"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="17dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cancel_crop"
+                style="@style/action_area_cancel"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
                 <View
-                    android:id="@+id/fourthree"
-                    android:layout_width="28dp"
-                    android:layout_height="33dp"
-                    android:background="@drawable/ic_rect"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    style="@style/action_button_cancel"
+                    android:background="@drawable/ic_cross_bottom"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    />
+                    app:layout_constraintStart_toStartOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <TextView
-                    android:id="@+id/fourthree_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintTop_toBottomOf="@+id/fourthree"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/fourthree"
-                    android:textAppearance="@style/crop_rect"
-                    android:layout_gravity="center_vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="1dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:text="@string/crop"
+                android:textAppearance="@style/intensity"
+                android:layout_gravity="center_vertical">
 
-                </TextView>
+            </TextView>
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/apply_crop"
+                style="@style/action_area_accept"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+                <View
+                    style="@style/action_button_accept"
+                    android:background="@drawable/ic_done_bottom"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/bottom_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="15dp"
-        android:visibility="gone"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <View
-            android:id="@+id/cancel"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:background="@drawable/ic_cross_bottom"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <TextView
-            android:id="@+id/tab_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="1dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:text="@string/crop"
-            android:textAppearance="@style/intensity"
-            android:layout_gravity="center_vertical">
-
-        </TextView>
-
-        <View
-            android:id="@+id/accept"
-            android:layout_width="15dp"
-            android:layout_height="15dp"
-            android:background="@drawable/ic_done_bottom"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

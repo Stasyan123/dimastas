@@ -473,4 +473,9 @@ namespace CGE
 		return false;
 	}
 
+	void CGESharpenBlurSimpleBetterFilter::setIntensity(float value)
+    {
+        m_program.bind();
+        m_program.sendUniformf(paramIntensity, value);
+    }
 }

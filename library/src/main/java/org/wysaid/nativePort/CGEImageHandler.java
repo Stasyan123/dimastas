@@ -82,8 +82,8 @@ public class CGEImageHandler {
     //       Pass 0 for index to set the intensity of "@adjust contrast 0.5", the return value is true.
     //       Pass 1 for index to set the intensity of "@adjust brightness 1", the return value is true.
     //       Otherwise the return value is false.
-    public boolean setFilterIntensityAtIndex(float intensity, int index, boolean shouldProcess) {
-        return nativeSetFilterIntensityAtIndex(mNativeAddress, intensity, index, shouldProcess);
+    public boolean setFilterIntensityAtIndex(float intensity, int index, boolean shouldProcess, int isSharpen) {
+        return nativeSetFilterIntensityAtIndex(mNativeAddress, intensity, index, shouldProcess, isSharpen);
     }
 
     public boolean setParamAtIndex(float intensity, float intensity2, float intensity3, int index, int config) {
@@ -145,7 +145,7 @@ public class CGEImageHandler {
     protected native boolean nativeSetFilterWithConfig(long holder, String config, boolean shouldCleanOlder, boolean shouldProcess);
     protected native void nativeSetFilterWithAddress(long holder, long filter);
     protected native void nativeSetFilterIntensity(long holder, float value, boolean shouldProcess);
-    protected native boolean nativeSetFilterIntensityAtIndex(long holder, float value, int index, boolean shouldProcess);
+    protected native boolean nativeSetFilterIntensityAtIndex(long holder, float value, int index, boolean shouldProcess, int isSharpen);
     protected native boolean nativeSetParamAtIndex(long holder, int config, float intensity, float intensity2, float intensity3, int index);
 
     protected native void nativeDrawResult(long holder);

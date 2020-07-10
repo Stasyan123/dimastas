@@ -92,11 +92,11 @@ public class ImageGLSurfaceView extends GLSurfaceView implements Renderer {
     protected int mSettingIntensityCount = 1;
 
     public void setFilterIntensityForIndex(final float intensity, final int index) {
-        setFilterIntensityForIndex(intensity, index, true);
+        setFilterIntensityForIndex(intensity, index, true, 0);
     }
 
     //See: CGEImageHandler.setFilterIntensityAtIndex
-    public void setFilterIntensityForIndex(final float intensity, final int index, final  boolean shouldProcess) {
+    public void setFilterIntensityForIndex(final float intensity, final int index, final  boolean shouldProcess, final int isSharpen) {
         if (mImageHandler == null)
             return;
 
@@ -118,7 +118,7 @@ public class ImageGLSurfaceView extends GLSurfaceView implements Renderer {
                 if (mImageHandler == null) {
                     Log.e(LOG_TAG, "set intensity after release!!");
                 } else {
-                    mImageHandler.setFilterIntensityAtIndex(mFilterIntensity, index, shouldProcess);
+                    mImageHandler.setFilterIntensityAtIndex(mFilterIntensity, index, shouldProcess, isSharpen);
                     if(shouldProcess) {
                         requestRender();
                     }
