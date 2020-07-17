@@ -24,8 +24,6 @@ import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.daasuu.gpuv.composer.FillMode
-import com.daasuu.gpuv.composer.FillModeCustomItem
 import com.daasuu.gpuv.composer.GPUMp4Composer
 import com.daasuu.gpuv.composer.Rotation
 import com.daasuu.gpuv.egl.filter.*
@@ -40,16 +38,11 @@ import com.sm.stasversion.crop.BitmapUtils
 import com.sm.stasversion.crop.CropImageOptions
 import com.sm.stasversion.crop.CropImageView
 import com.sm.stasversion.crop.CropOverlayView
-import com.sm.stasversion.customFilters.StasFilter
-import com.sm.stasversion.customFilters.StasOverlayBlendSample
-import com.sm.stasversion.customFilters.StasOverlaySample
 import com.sm.stasversion.utils.*
 import com.sm.stasversion.videoClass.GPUPlayerViewO
 import com.sm.stasversion.videoUtils.FilterType
-import com.sm.stasversion.videoUtils.GlBitmapOverlaySample
 import com.sm.stasversion.widget.HorizontalProgressWheelView
 import com.sm.stasversion.widget.MovieWrapperView
-import jp.co.cyberagent.android.gpuimage.filter.*
 import kotlinx.android.synthetic.main.activity_edit_image.view.*
 import org.wysaid.common.Common
 import org.wysaid.myUtils.FileUtil
@@ -63,6 +56,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.min
 
 class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItemSelected, EditingEffectsAdapter.OnItemSelected,
     EditingTextureAdapter.OnItemSelected, SeekBar.OnSeekBarChangeListener {
@@ -350,8 +344,39 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         }
     }
 
-    override fun onTextureSelected(textureType: String?, position: Int?) {
+    override fun onTextureSelected(name: String, position: Int) {
+        mActiveConfig = mAdjustConfigs!!.get(position)
 
+        if(mActiveConfig != null && !name.equals(mActiveConfig!!.name)) {
+            mActiveConfig!!.setIntensity(1f, false, null)
+            mActiveConfig!!.textureConfig(0f, 1f, 1f, false)
+        }
+
+        mActiveConfig!!.startEditing = false
+
+        if(name.equals("def", true)) {
+            mActiveConfig!!.textureConfig(0f, 1f, 1f, false)
+            mActiveConfig!!.active = false
+            mActiveConfig!!.mRule = ""
+        } else {
+            mActiveConfig!!.active = true
+            mActiveConfig!!.name = name
+            mActiveConfig!!.setRule(mActiveConfig!!.diff[0])
+
+            mSeekTexture!!.setProgress((mActiveConfig!!.slierIntensity * mSeekTexture!!.max).toInt())
+
+            toggleTopBar(true)
+            showTexture()
+        }
+
+        mActiveConfig!!.startEditing = true
+
+        setFilters()
+    }
+
+    private fun showTexture() {
+        findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = View.GONE
+        findViewById<ConstraintLayout>(R.id.texture_container).visibility = View.VISIBLE
     }
 
     private fun initToolsEvents() {
@@ -526,6 +551,71 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         }
     }
 
+    private fun textureEvents() {
+        mSeekTexture!!.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
+                if(mActiveConfig!!.startEditing) {
+                    val pr = progress.toFloat() / 100.0f
+                    mActiveConfig!!.setTempIntensity(pr, true, null)
+                }
+            }
+
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+            }
+        })
+
+        val rotate = findViewById<View>(R.id.texture_rotate)
+        val horizontal = findViewById<View>(R.id.texture_hor)
+        val vert = findViewById<View>(R.id.texture_vert)
+        val diff = findViewById<View>(R.id.texture_diff)
+
+        rotate.setOnClickListener {
+            mActiveConfig!!.rotate[1] += 90f
+
+            if(mActiveConfig!!.rotate[1] >= 360f) {
+                mActiveConfig!!.rotate[1] -= 360f
+            }
+
+            mPlayerView!!.setFilterWithConfig(calculateRules())
+        }
+        horizontal.setOnClickListener {
+            mActiveConfig!!.horizontal[1] *= -1f
+            mPlayerView!!.setFilterWithConfig(calculateRules())
+        }
+        vert.setOnClickListener {
+            mActiveConfig!!.vertical[1] *= -1f
+            mPlayerView!!.setFilterWithConfig(calculateRules())
+        }
+        diff.setOnClickListener {
+            mActiveConfig!!.diff[1] = !mActiveConfig!!.diff[1]
+            mActiveConfig!!.setRule(mActiveConfig!!.diff[1])
+
+            mPlayerView!!.setFilterWithConfig(calculateRules())
+        }
+
+        val cancel = findViewById<View>(R.id.cancel_texture_button)
+        val apply = findViewById<View>(R.id.accept_texture_button)
+
+        cancel.setOnClickListener {
+            mActiveConfig!!.textureConfig(mActiveConfig!!.rotate[0], mActiveConfig!!.horizontal[0], mActiveConfig!!.vertical[0], mActiveConfig!!.diff[0])
+            mActiveConfig!!.setIntensity(mActiveConfig!!.slierIntensity, false, null)
+
+            setFilters()
+            hideIntensity(true)
+            toggleTopBar(false)
+        }
+        apply.setOnClickListener {
+            mActiveConfig!!.textureConfig(mActiveConfig!!.rotate[1], mActiveConfig!!.horizontal[1], mActiveConfig!!.vertical[1], mActiveConfig!!.diff[1])
+            mActiveConfig!!.setIntensity(mSeekTexture!!.progress / 100f, false, null)
+
+            hideIntensity(true)
+            toggleTopBar(false)
+        }
+    }
+
     override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
         if(mActiveConfig!!.startEditing) {
             if (mActiveConfig!!.type == EffectType.Temperature) {
@@ -574,9 +664,8 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         mSeekSat!!.setOnSeekBarChangeListener(this)
         mSeekLum!!.setOnSeekBarChangeListener(this)
 
-        initTools()
-        initProgress()
-
+        initToolsCrop()
+        textureEvents()
 /*
         val all = findViewById<View>(R.id.custom)
         all.setOnClickListener{
@@ -663,21 +752,25 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         initRvTools();
     }
 
-    private fun initTools() {
+    private fun initToolsCrop() {
+        mCropOverlayView!!.setPlayer(mPlayerView)
 
-    }
-
-    private fun initProgress() {
         val percentTextView = findViewById<TextView>(R.id.text_straightening)
         percentTextView.text = getString(R.string.percent, 0.toString())
+
+        var progressF = 0f
+        var progress = 0
 
         val straightening = findViewById<HorizontalProgressWheelView>(R.id.rotate_scroll_wheel)
         straightening.setScrollingListener(object: HorizontalProgressWheelView.ScrollingListener {
             override fun onScrollStart() {
 
             }
-            override fun onScroll(percent: Int) {
+            override fun onScroll(percent: Int, percentF: Float) {
                 percentTextView.text = getString(R.string.percent, percent.toString())
+
+                progressF = percentF
+                progress = percent
 
                 val angl = percent.toFloat() / 2
 //h = 439.4949f
@@ -705,16 +798,112 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 // compute the scaling factor
                 scale = (len2 / len1)
 
-                val matrix = mPlayerView!!.matrix
-                matrix.postRotate(angl, mPlayerView!!.getWidth() / 2.0f, mPlayerView!!.getHeight() / 2.0f);
+                mCropOverlayView!!.mPostRotate = angl
+                mCropOverlayView!!.mPostScale = scale
 
-                mPlayerView!!.setTransform(matrix)
+                mCropOverlayView!!.applyCustom()
             }
 
             override fun onScrollEnd() {
 
             }
         })
+
+        val rotate = findViewById<View>(R.id.rotate);
+        rotate.setOnClickListener {
+            mPlayerView!!.rotateView(90f)
+        }
+
+        val flipHor = findViewById<View>(R.id.horizontal)
+        flipHor.setOnClickListener{
+            mCropOverlayView!!.mFlipHorizontally = !mCropOverlayView!!.mFlipHorizontally
+            mCropOverlayView!!.applyCustom()
+        }
+
+        val flipVert = findViewById<View>(R.id.vertical)
+        flipVert.setOnClickListener{
+            mCropOverlayView!!.mFlipVertically = !mCropOverlayView!!.mFlipVertically
+            mCropOverlayView!!.applyCustom()
+        }
+
+        val rect = findViewById<View>(R.id.rect)
+        rect.setOnClickListener{
+            val parentLp = gpuWrapper!!.getLayoutParams()
+
+            if(mCropOverlayView!!.instaMode) {
+                mCropOverlayView!!.setFixedAspectRatio(false)
+                mCropOverlayView!!.cropWindowRect = RectF(0f, 0f,
+                    parentLp.width.toFloat(), parentLp.height.toFloat())
+
+                mCropOverlayView!!.instaMode = false
+            } else {
+                var width = parentLp.width
+                var height = parentLp.height
+
+                if (width > height) {
+                    width = height;
+                } else {
+                    height = width;
+                }
+
+                val lOffset = (parentLp.width - width) / 2
+                val tOffset = (parentLp.height - height) / 2
+
+                mCropOverlayView!!.setFixedAspectRatio(true)
+                mCropOverlayView!!.cropWindowRect = RectF(lOffset.toFloat(), tOffset.toFloat(),
+                    width + lOffset.toFloat(), height + tOffset.toFloat())
+
+                mCropOverlayView!!.instaMode = true
+            }
+
+            mCropOverlayView!!.invalidate()
+        }
+
+        val apply = findViewById<View>(R.id.apply_crop)
+        apply.setOnClickListener {
+            val overlay = mCropOverlayView!!.getCropWindowRect()
+
+            mCropOverlayView!!.visibility = GONE
+
+            val scaleX = mPlayerView!!.width / overlay.width()
+            val scaleY = mPlayerView!!.height / overlay.height()
+
+            val y = gpuWrapper!!.height - overlay.bottom
+
+            val cropInfo = floatArrayOf(overlay.width() * gpuWrapper!!.scaleX, overlay.height() * gpuWrapper!!.scaleX, y, overlay.left, scaleX, scaleY,
+                gpuWrapper!!.rotation, mCropOverlayView!!.mPostRotate, gpuWrapper!!.scaleX)
+
+            mPlayerView!!.cropInfo.flipHor = mCropOverlayView!!.mFlipHorizontally
+            mPlayerView!!.cropInfo.flipVert = mCropOverlayView!!.mFlipVertically
+
+            straightening.setValue(progress, progressF)
+            mPlayerView!!.setCroppedInfo(cropInfo)
+
+            initCropBar(false)
+            toggleTopBar(false)
+
+            mPlayerView!!.setCrop(true)
+            mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(), overlay.width().toInt(), overlay.height().toInt(), true)
+        }
+
+        val cancel = findViewById<View>(R.id.cancel_crop)
+        cancel.setOnClickListener {
+            mCropOverlayView!!.visibility = GONE
+            initCropBar(false)
+
+            mPlayerView!!.cropInfo.percent = straightening.currentPercentF
+
+            percentTextView.text = getString(R.string.percent, straightening.currentPercent.toString())
+            straightening.invalidateValue()
+
+            mPlayerView!!.setCrop(true)
+            mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(), mPlayerView!!.cropInfo.width,
+                                        mPlayerView!!.cropInfo.height, true)
+
+            mCropOverlayView!!.cancelCrop()
+
+            toggleTopBar(false)
+        }
     }
 
     private fun changeOverlay(wRatio: Int, hRatio: Int) {
@@ -946,11 +1135,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
     private fun initClosebutton() {
         findViewById<View>(R.id.topClose).setOnClickListener { v ->
-            /*val tools = findViewById<ConstraintLayout>(R.id.toolsLayout)
-            val crop = findViewById<ConstraintLayout>(R.id.crop_area)
 
-            crop.visibility = GONE
-            tools.visibility = VISIBLE*/
         }
     }
 
@@ -1016,6 +1201,9 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         parentLp.height = mPlayerView!!.mRenderViewport.height
         parentLp.width = mPlayerView!!.mRenderViewport.width
 
+        calculatedW = parentLp.width.toFloat()
+        calculatedH = parentLp.height.toFloat()
+
         gpuWrapper!!.setLayoutParams(parentLp)
     }
 
@@ -1033,6 +1221,14 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         val lp = group.layoutParams
         lp.height = distance.toInt()
         group.layoutParams = lp
+
+        mPlayerView!!.aetWrapper(oneRect.right - oneRect.left, distance)
+
+        val size = mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(),
+                                    mPlayerView!!.mVideoWidth, mPlayerView!!.mVideoHeight, true)
+
+        mPlayerView!!.cropInfo.width = size[0]
+        mPlayerView!!.cropInfo.height = size[1]
     }
 
     override fun onResume() {
@@ -1133,43 +1329,33 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     }
 
     fun startCropping() {
-        cropVideo()
+        mPlayerView!!.setCrop(false)
 
-        val lp = gpuWrapper!!.layoutParams
+        calculatedW = mPlayerView!!.mWrapperWidth
+        calculatedH = mPlayerView!!.mWrapperHeight
 
-        mDimension[0] = lp.width
-        mDimension[1] = lp.height
+        mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(),
+            mPlayerView!!.mVideoWidth, mPlayerView!!.mVideoHeight, true)
 
-        //lp.width = mPlayerView!!.width
-        lp.height = 366//mPlayerView!!.height
-
-        /*val params = FrameLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            mPlayerView!!.height
-        ).apply {
-            gravity = Gravity.START
-        }*/
-
-        //mPlayerView!!.layoutParams = params
-
-        //mPlayerView!!.translationY = 0f
-        //mPlayerView!!.translationX = 0f
-
-        gpuWrapper!!.layoutParams = lp
-
-        initCropBar()
+        initCropBar(true)
         initOverlay()
     }
 
-    private fun initCropBar() {
+    private fun initCropBar(show: Boolean) {
         val tools = findViewById<ConstraintLayout>(R.id.toolsLayout)
         val crop = findViewById<ConstraintLayout>(R.id.crop_area)
 
-        tools.visibility = GONE
-        crop.visibility = VISIBLE
+        if(show) {
+            tools.visibility = GONE
+            crop.visibility = VISIBLE
+        } else {
+            tools.visibility = VISIBLE
+            crop.visibility = GONE
+        }
     }
 
     fun initOverlay() {
+        val parentLp = gpuWrapper!!.getLayoutParams()
         val overlay = mCropOverlayView!!.getCropWindowRect()
 
         if(overlay.isEmpty) {
@@ -1180,23 +1366,23 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
             mImagePoints[0] = 0f
             mImagePoints[1] = 0f
-            mImagePoints[2] = mPlayerView!!.width.toFloat()
+            mImagePoints[2] = parentLp.width.toFloat()
             mImagePoints[3] = 0f
-            mImagePoints[4] = mPlayerView!!.width.toFloat()
-            mImagePoints[5] = mPlayerView!!.height.toFloat()
+            mImagePoints[4] = parentLp.width.toFloat()
+            mImagePoints[5] = parentLp.height.toFloat()
             mImagePoints[6] = 0f
-            mImagePoints[7] = mPlayerView!!.height.toFloat()
+            mImagePoints[7] = parentLp.height.toFloat()
 
             mCropOverlayView!!.setCropWindowLimits(
-                mPlayerView!!.width.toFloat(), mPlayerView!!.height.toFloat(), 1.0f, 1.0f
+                parentLp.width.toFloat(), parentLp.height.toFloat(), 1.0f, 1.0f
             )
 
             mCropOverlayView!!.setFixedAspectRatio(false)
 
             mCropOverlayView!!.setBounds(
                 mImagePoints,
-                mPlayerView!!.width,
-                mPlayerView!!.height
+                parentLp.width,
+                parentLp.height
             )
         }
         //mCropOverlayView!!.setInitialCropWindowRect(null)

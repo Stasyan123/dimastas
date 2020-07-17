@@ -37,6 +37,8 @@ import android.widget.ProgressBar;
 
 import com.sm.stasversion.R;
 
+import org.wysaid.texUtils.CropInfo;
+
 import java.lang.ref.WeakReference;
 import java.util.UUID;
 
@@ -54,6 +56,8 @@ public class CropImageView extends FrameLayout {
 
   /** The matrix used to transform the cropping image in the image view */
   private final Matrix mImageMatrix = new Matrix();
+
+  private CropInfo cropInfo = new CropInfo();
 
   /** Reusing matrix instance for reverse matrix calculations. */
   private final Matrix mImageInverseMatrix = new Matrix();
@@ -362,6 +366,29 @@ public class CropImageView extends FrameLayout {
 
     mProgressBar = v.findViewById(R.id.CropProgressBar);
     setProgressBarVisibility();
+  }
+
+  public void setCropInfo() {
+      cropInfo.scale = mPostScale;
+      cropInfo.postRotate = mPostRotate;
+      cropInfo.flipHor = mFlipHorizontally;
+      cropInfo.flipVert = mFlipVertically;
+      cropInfo.rotation = mDegreesRotated;
+  }
+
+  public boolean checkRemainder() {
+      return ((cropInfo.rotation - mDegreesRotated) / 90) % 2 == 1;
+  }
+
+  public void cancelCropInfo() {
+    mPostScale = cropInfo.scale;
+    mPostRotate = cropInfo.postRotate;
+    mFlipHorizontally = cropInfo.flipHor;
+    mFlipVertically = cropInfo.flipVert;
+
+    if(cropInfo.rotation != mDegreesRotated) {
+      rotateImage((int)cropInfo.rotation - mDegreesRotated);
+    }
   }
 
   /** Get the scale type of the image in the crop view. */
@@ -1719,7 +1746,7 @@ public class CropImageView extends FrameLayout {
          scale =
                 Math.min(
                         width / BitmapUtils.getRectWidth(mImagePoints),
-                        height / BitmapUtils.getRectHeight(mImagePoints));
+                        height / BitmapUtils.getRectHeight(mImagePoints) );
 
 
         if (mScaleType == ScaleType.FIT_CENTER

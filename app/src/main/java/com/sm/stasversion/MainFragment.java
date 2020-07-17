@@ -132,6 +132,14 @@ public final class MainFragment extends Fragment
     return mCropImageView.postScaleY();
   }
 
+  public void cancelCropInfo() {
+      mCropImageView.cancelCropInfo();
+  }
+
+  public boolean checkRemainder() {
+     return mCropImageView.checkRemainder();
+  }
+
   public boolean toolsSelect(View item) {
         if (item.getId() == R.id.rect) {
             mCropImageView.getCroppedImageAsync();

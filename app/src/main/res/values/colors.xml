@@ -19,6 +19,7 @@
     <color name="yellow_green_color_picker">#C5E17A</color>
     <color name="tool_bg">#151414</color>
 
+    <color name="menu_bottom">#1F1F1F</color>
     <color name="dark">#000000</color>
     <color name="ldark">#2E2E2E</color>
     <color name="eGray">#FFCFCFCF</color>

@@ -19,12 +19,15 @@ import android.widget.FrameLayout;
 
 import org.wysaid.common.Common;
 import org.wysaid.nativePort.CGEFrameRenderer;
+import org.wysaid.texUtils.CropInfo;
 import org.wysaid.texUtils.TextureRenderer;
 
 import java.nio.IntBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import static java.lang.Math.min;
 
 /**
  * Created by wangyang on 15/11/26.
@@ -51,6 +54,12 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
     private int mViewWidth = 1000;
     private int mViewHeight = 1000;
 
+    public float mWrapperWidth = 0;
+    public float mWrapperHeight = 0;
+
+    public CropInfo cropInfo = new CropInfo();
+    private boolean isCrop = false;
+
     protected float mFilterIntensity = 1.0f;
 
     public int getViewWidth() {
@@ -61,13 +70,35 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
         return mViewHeight;
     }
 
-    private int mVideoWidth = 1000;
-    private int mVideoHeight = 1000;
+    public Boolean stopCalculate = false;
+    public int mVideoWidth = 1000;
+    public int mVideoHeight = 1000;
 
     private boolean mFitFullView = false;
 
     protected final Object mSettingIntensityLock = new Object();
     protected int mSettingIntensityCount = 1;
+
+    public void aetWrapper (float width, float height) {
+        mWrapperWidth = width;
+        mWrapperHeight = height;
+    }
+
+    public void setCroppedInfo(float[] info) {
+        cropInfo.width = (int)info[0];
+        cropInfo.height = (int)info[1];
+        cropInfo.y = (int)info[2];
+        cropInfo.x = (int)info[3];
+        cropInfo.scaleX = info[4];
+        cropInfo.scaleY = info[5];
+        cropInfo.rotation = (int)info[6];
+        cropInfo.postRotate = info[7];
+        cropInfo.scale = info[8];
+    }
+
+    public void setCrop (boolean _crop) {
+        isCrop = _crop;
+    }
 
     public void setFitFullView(boolean fit) {
         mFitFullView = fit;
@@ -75,12 +106,10 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
             calcViewport();
     }
 
-    public void settest(boolean fit) {
-        if(fit) {
-            mFrameRenderer.setRenderRotation(0.26f);
-        } else {
-            mFrameRenderer.setRenderRotation(0f);
-        }
+    public void settest() {
+        mFrameRenderer.setSrcRotation(1.57f);
+        mFrameRenderer.setRenderRotation(1.57f);
+        mFrameRenderer.runProc();
     }
 
     private MediaPlayer mPlayer;
@@ -359,7 +388,11 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
         mViewWidth = width;
         mViewHeight = height;
 
-        calcViewport();
+        if(stopCalculate) {
+            stopCalculate = false;
+        } else {
+            calcViewport();
+        }
     }
 
     //must be in the OpenGL thread!
@@ -478,59 +511,112 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
         }
     }
 
-    private void calcViewport() {
-        float scaling;
+    private void cropParent(int w, int h) {
+        ViewGroup.LayoutParams lp = parentView.getLayoutParams();
 
-        if (mIsUsingMask) {
-            scaling = mMaskAspectRatio;
+        lp.width = w;
+        lp.height = h;
+
+        parentView.setLayoutParams(lp);
+    }
+
+    public void rotateView(float degrees) {
+        float scaleX, scaleY;
+        int[] size;
+
+        float rotation = parentView.getRotation();
+        float scale;
+
+        if (degrees < 0) {
+            degrees = (degrees % 360) + 360;
         } else {
-            scaling = mVideoWidth / (float) mVideoHeight;
+            degrees = degrees % 360;
         }
 
-        float viewRatio = mViewWidth / (float) mViewHeight;
+        rotation = (rotation + degrees) % 360;
+
+        if(rotation == 90 || rotation == 270) {
+            size = calcDimension((int) mWrapperWidth, (int) mWrapperHeight, mVideoHeight, mVideoWidth, false);
+
+            scaleX = (float)size[0] / parentView.getHeight();
+            scaleY = (float)size[1] / parentView.getWidth();
+        } else {
+            size = calcDimension((int) mWrapperWidth, (int) mWrapperHeight, mVideoWidth, mVideoHeight, false);
+
+            scaleX = (float)size[0] / parentView.getWidth();
+            scaleY = (float)size[1] / parentView.getHeight();
+        }
+
+        scale = min(scaleX, scaleY);
+
+        parentView.setRotation(rotation);
+        parentView.setScaleX(scale);
+        parentView.setScaleY(scale);
+    }
+
+    public int[] calcDimension(int _w, int _h, int vW, int vH, boolean crop) {
+        float scaling = vW / (float) vH;
+
+        float viewRatio = _w / (float) _h;
         float s = scaling / viewRatio;
 
         int w, h;
 
-        if (mFitFullView) {
-            //撑满全部view(内容大于view)
-            /*if (s > 1.0) {
-                w = (int) (mViewHeight * scaling);
-                h = mViewHeight;
-            } else {
-                w = mViewWidth;
-                h = (int) (mViewWidth / scaling);
-            }*/
-
-            if (s > 1.0) {
-                w = mViewWidth;
-                h = (int) (mViewWidth / scaling);
-            } else {
-                h = mViewHeight;
-                w = (int) (mViewHeight * scaling);
-            }
-
-
-
+        //显示全部内容(内容小于view)
+        if (s > 1.0) {
+            w = _w;
+            h = (int) (_w / scaling);
         } else {
-            //显示全部内容(内容小于view)
-            if (s > 1.0) {
-                w = mViewWidth;
-                h = (int) (mViewWidth / scaling);
-            } else {
-                h = mViewHeight;
-                w = (int) (mViewHeight * scaling);
-            }
+            h = _h;
+            w = (int) (_h * scaling);
         }
 
-        //w = (int)(w * 1.29);
-        //h = (int)(h * 1.29);
+        if(crop) {
+            cropParent(w, h);
+        }
 
-        mRenderViewport.width = w;
-        mRenderViewport.height = h;
-        mRenderViewport.x = (mViewWidth - mRenderViewport.width) / 2;
-        mRenderViewport.y = (mViewHeight - mRenderViewport.height) / 2;
-        Log.i(LOG_TAG, String.format("View port: %d, %d, %d, %d", mRenderViewport.x, mRenderViewport.y, mRenderViewport.width, mRenderViewport.height));
+        return new int[] {w, h};
+    }
+
+    public void calcViewport() {
+        int vHeight, vWidth, parentHeight, parentWidth;
+
+        if(isCrop) {
+            vHeight = (int)cropInfo.height;
+            vWidth = (int)cropInfo.width;
+
+            parentHeight = (int)mWrapperHeight;
+            parentWidth = (int)mWrapperWidth;
+        } else {
+            vHeight = mVideoHeight;
+            vWidth = mVideoWidth;
+
+            parentHeight = mViewHeight;
+            parentWidth = mViewWidth;
+        }
+
+        int[] size = calcDimension(parentWidth, parentHeight, vWidth, vHeight, false);
+
+        if(isCrop) {
+            mRenderViewport.width = (int)(size[0] * cropInfo.scaleX);
+            mRenderViewport.height = (int)(size[1] * cropInfo.scaleY);
+
+            mRenderViewport.y = -(int)(cropInfo.y * (mRenderViewport.height / (cropInfo.scaleY * cropInfo.height)));
+            mRenderViewport.x = (int)(-cropInfo.x * cropInfo.scaleX);
+        } else {
+            mRenderViewport.width = size[0];
+            mRenderViewport.height = size[1];
+
+            mRenderViewport.x = (mViewWidth - mRenderViewport.width) / 2;
+            mRenderViewport.y = (mViewHeight - mRenderViewport.height) / 2;
+
+            Log.i(LOG_TAG, String.format("View port: %d, %d, %d, %d", mRenderViewport.x, mRenderViewport.y, mRenderViewport.width, mRenderViewport.height));
+        }
+    }
+
+    public void cripCroahap() {
+        isCrop = true;
+        calcViewport();
     }
 
     private void _useUri() {
@@ -596,7 +682,6 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
 
                         if (mFrameRenderer.init(mVideoWidth, mVideoHeight, (int)(mVideoWidth / 2.5f), (int)(mVideoHeight / 2.5f))) {
                             //Keep right orientation for source texture blending
-                            //mFrameRenderer.setSrcRotation(0.26f);
                             mFrameRenderer.setSrcFlipScale(1.0f, 1.0f);
                             mFrameRenderer.setRenderFlipScale(1.0f, 1.0f);
                         } else {

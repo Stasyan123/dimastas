@@ -15,6 +15,7 @@ package com.sm.stasversion.crop;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -29,12 +30,26 @@ import android.view.View;
 
 import com.sm.stasversion.R;
 
+import org.wysaid.view.VideoPlayerGLSurfaceView;
+
 import java.util.Arrays;
 
 /** A custom View representing the crop window and the shaded background outside the crop window. */
 public class CropOverlayView extends View {
 
   // region: Fields and Consts
+
+  public boolean mFlipHorizontally;
+  public boolean mFlipVertically;
+
+  public boolean instaMode;
+
+  private int mDegreesRotated = 0;
+
+  public Float mPostRotate = 0.0f;
+  public Float mPostScale = 1.0f;
+
+  private VideoPlayerGLSurfaceView playerView;
 
   /** Gesture detector used for multi touch box scaling */
   private ScaleGestureDetector mScaleDetector;
@@ -162,6 +177,29 @@ public class CropOverlayView extends View {
     RectF rect = getCropWindowRect();
     fixCropWindowRectByRules(rect);
     mCropWindowHandler.setRect(rect);
+  }
+
+  public void setPlayer(VideoPlayerGLSurfaceView vp) {
+      playerView = vp;
+  }
+
+  public void cancelCrop() {
+      mFlipHorizontally = playerView.cropInfo.flipHor;
+      mFlipVertically = playerView.cropInfo.flipVert;
+      mPostRotate = playerView.cropInfo.postRotate;
+      mPostScale = playerView.cropInfo.scale;
+
+      applyCustom();
+  }
+
+  public void applyCustom() {
+      Matrix m = playerView.getMatrix();
+
+      float postScaleX = mFlipHorizontally ? -mPostScale : mPostScale;
+      float postScaleY = mFlipVertically ? -mPostScale : mPostScale;
+      m.postScale(postScaleX, postScaleY, playerView.getWidth() / 2.0f, playerView.getHeight() / 2.0f);
+      m.postRotate(mPostRotate, playerView.getWidth() / 2.0f, playerView.getHeight() / 2.0f);
+      playerView.setTransform(m);
   }
 
   /**

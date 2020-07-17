@@ -45,7 +45,7 @@ public class MainActivityPicker extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                start();
+                //start();
             }
         }, 1200);
 
@@ -60,6 +60,9 @@ public class MainActivityPicker extends AppCompatActivity {
     };
 
     private void start() {
+        /*Intent intent = new Intent(MainActivityPicker.this, MainMenu.class);
+        startActivity(intent);*/
+
         AssetPicker.with(this)
                 .setFolderMode(true)
                 .setIncludeVideos(true)

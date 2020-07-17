@@ -212,12 +212,62 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         }
 
         initTools()
-        initProgress()
     }
 
     private fun initTools() {
+        val percentTextView = findViewById<TextView>(R.id.text_straightening)
+        percentTextView.text = getString(R.string.percent, 0.toString())
+
+        var progressF = 0f
+        var progress = 0
+
+        val straightening = findViewById<HorizontalProgressWheelView>(R.id.rotate_scroll_wheel)
+        straightening.setScrollingListener(object: HorizontalProgressWheelView.ScrollingListener {
+            override fun onScrollStart() {
+
+            }
+            override fun onScroll(percent: Int, percentF: Float) {
+                percentTextView.text = getString(R.string.percent, percent.toString())
+
+                progressF = percentF
+                progress = percent
+
+                val angl = percent.toFloat() / 2
+
+                var width = calculatedW;//bm!!.width
+                var height = calculatedH;//bm!!.height
+
+                if (width > height) {
+                    width = calculatedH
+                    height = calculatedW
+                }
+
+                val a = Math.atan((height / width).toDouble()).toFloat()
+
+                // the length from the center to the corner of the green
+                val len1 =
+                    width / 2 / Math.cos(a - Math.abs(Math.toRadians(angl.toDouble()))).toFloat()
+                // the length from the center to the corner of the black
+                val len2 = Math.sqrt(
+                    Math.pow(
+                        (width / 2).toDouble(),
+                        2.0
+                    ) + Math.pow((height / 2).toDouble(), 2.0)
+                ).toFloat()
+                // compute the scaling factor
+                scale = (len2 / len1)
+
+                mCurrentFragment!!.straighten(angl, scale)
+            }
+
+            override fun onScrollEnd() {
+
+            }
+        })
+
         val rotate = findViewById<View>(R.id.rotate);
-        rotate.setOnClickListener{
+
+        val rotateEvent = fun (rotateObly: Boolean) {
             val frame = findViewById<FrameLayout>(R.id.container)
             val civ = findViewById<CropImageView>(R.id.cropImageView)
 
@@ -234,7 +284,13 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             imageLayoutParams.width = mHeight
             civ.layoutParams = imageLayoutParams
 
-            mCurrentFragment!!.toolsSelect(rotate)
+            if(rotateObly) {
+                mCurrentFragment!!.toolsSelect(rotate)
+            }
+        }
+
+        rotate.setOnClickListener{
+            rotateEvent(true)
         }
 
         val hor = findViewById<View>(R.id.horizontal);
@@ -281,6 +337,10 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val accept = findViewById<View>(R.id.apply_crop)
         accept.setOnClickListener{
             mCurrentFragment!!.save(bitmapCrop())
+            mCurrentFragment!!.mCropImageView.setCropInfo()
+
+            straightening.setValue(progress, progressF)
+            toggleTopBar(false)
         }
 
         val cancel = findViewById<View>(R.id.cancel_crop)
@@ -290,6 +350,19 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
             val main = findViewById<ConstraintLayout>(R.id.main_area)
             main.visibility = View.VISIBLE
+
+            percentTextView.text = getString(R.string.percent, straightening.currentPercent.toString())
+            straightening.invalidateValue()
+
+            mCurrentFragment!!.mCropImageView.cancelCropInfo()
+
+            if(mCurrentFragment!!.checkRemainder()) {
+                rotateEvent(false)
+            }
+
+            mCurrentFragment!!.cancelCropInfo()
+
+            toggleTopBar(false)
         }
     }
 
@@ -316,53 +389,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         translateCanvas.drawBitmap(transImage!!, translateMatrix, Paint())
 
         return translateBitmap
-    }
-
-    private fun initProgress() {
-        val percentTextView = findViewById<TextView>(R.id.text_straightening)
-            percentTextView.text = getString(R.string.percent, 0.toString())
-
-        val straightening = findViewById<HorizontalProgressWheelView>(R.id.rotate_scroll_wheel)
-        straightening.setScrollingListener(object: HorizontalProgressWheelView.ScrollingListener {
-            override fun onScrollStart() {
-
-            }
-            override fun onScroll(percent: Int) {
-                percentTextView.text = getString(R.string.percent, percent.toString())
-
-                val angl = percent.toFloat() / 2
-//h = 439.4949f
-//w = 1400.551f
-                var width = calculatedW;//bm!!.width
-                var height = calculatedH;//bm!!.height
-
-                if (width > height) {
-                    width = calculatedH
-                    height = calculatedW
-                }
-
-                val a = Math.atan((height / width).toDouble()).toFloat()
-
-                // the length from the center to the corner of the green
-                val len1 =
-                    width / 2 / Math.cos(a - Math.abs(Math.toRadians(angl.toDouble()))).toFloat()
-                // the length from the center to the corner of the black
-                val len2 = Math.sqrt(
-                    Math.pow(
-                        (width / 2).toDouble(),
-                        2.0
-                    ) + Math.pow((height / 2).toDouble(), 2.0)
-                ).toFloat()
-                // compute the scaling factor
-                scale = (len2 / len1)
-
-                mCurrentFragment!!.straighten(angl, scale)
-            }
-
-            override fun onScrollEnd() {
-
-            }
-        })
     }
 
     protected fun threadSync() {

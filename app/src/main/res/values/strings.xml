@@ -17,6 +17,7 @@
     <string name="label_adjust">Adjust</string>
     <string name="molli">Molli</string>
     <string name="edit">Edit</string>
+    <string name="studio">Studio</string>
 
     <string name="imagepicker_action_ok">OK</string>
     <string name="imagepicker_action_done">DONE</string>
@@ -46,6 +47,11 @@
     <string name="luminance">Luminance</string>
     <string name="saturation">Saturation</string>
     <string name="hue">Hue</string>
+
+    <string name="copy_edit">Copy Edit</string>
+    <string name="paste_edit">Paste Edit</string>
+    <string name="save_edit">Save</string>
+    <string name="delete_edit">Delete</string>
 
     <string name="percent">%1$s°</string>
     <string name="intensity">Intensity</string>

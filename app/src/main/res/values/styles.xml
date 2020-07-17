@@ -39,6 +39,33 @@
         </item>
     </style>
 
+    <style name="main_menu_cont">
+        <item name="android:layout_marginStart">
+            47.5dp
+        </item>
+        <item name="android:layout_marginBottom">
+            9dp
+        </item>
+        <item name="android:layout_marginTop">
+            9dp
+        </item>
+    </style>
+
+    <style name="main_menu_text_margin">
+        <item name="android:layout_marginTop">
+            6.7dp
+        </item>
+    </style>
+
+    <style name="main_menu_bar">
+        <item name="android:layout_height">
+            25.6dp
+        </item>
+        <item name="android:layout_width">
+            20dp
+        </item>
+    </style>
+
     <style name="bottom_bar">
         <item name="android:layout_height">
             31.3dp
@@ -128,6 +155,18 @@
     <style name="filter_param">
         <item name="android:textSize">
             10sp
+        </item>
+        <item name="android:textColor">
+            #FFFFFF
+        </item>
+        <item name="android:fontFamily">
+            @font/masiva
+        </item>
+    </style>
+
+    <style name="main_menu_text">
+        <item name="android:textSize">
+            8sp
         </item>
         <item name="android:textColor">
             #FFFFFF

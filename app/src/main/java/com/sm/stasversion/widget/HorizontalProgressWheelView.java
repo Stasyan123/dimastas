@@ -38,7 +38,8 @@ public class HorizontalProgressWheelView extends View {
     private float mTotalScrollDistance;
 
     private int mMiddleLineColor;
-    private int currentPercent = 0;
+    public float currentPercentF = 0f;
+    public int currentPercent = 0;
     private static final int percentMax = 30;
 
     public HorizontalProgressWheelView(Context context) {
@@ -141,15 +142,26 @@ public class HorizontalProgressWheelView extends View {
 
     }
 
+    public void setValue(int percent, float percentF) {
+        currentPercent = percent;
+        currentPercentF = percentF;
+    }
+
+    public void invalidateValue() {
+        mTotalScrollDistance = ((currentPercentF * ((linesCount - 1) / 2)) / percentMax) * (mProgressLineWidth + mProgressLineMargin);
+        postInvalidate();
+    }
+
     private void onScrollEvent(MotionEvent event, float distance) {
         mTotalScrollDistance -= distance;
 
         postInvalidate();
         mLastTouchedPosition = event.getX();
         if (mScrollingListener != null) {
-            currentPercent = ((int)(mTotalScrollDistance / (mProgressLineWidth + mProgressLineMargin)) * percentMax) / ((linesCount - 1) / 2);
+            int percent = ((int)(mTotalScrollDistance / (mProgressLineWidth + mProgressLineMargin)) * percentMax) / ((linesCount - 1) / 2);
+            float percentF = ((mTotalScrollDistance / (mProgressLineWidth + mProgressLineMargin)) * percentMax) / ((linesCount - 1) / 2);
 
-            mScrollingListener.onScroll(-currentPercent);
+            mScrollingListener.onScroll(-percent, percentF);
         }
     }
 
@@ -175,7 +187,7 @@ public class HorizontalProgressWheelView extends View {
 
         void onScrollStart();
 
-        void onScroll(int percent);
+        void onScroll(int percent, float percentF);
 
         void onScrollEnd();
     }
