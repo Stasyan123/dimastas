@@ -58,7 +58,7 @@ public class CropOverlayView extends View {
   private boolean mMultiTouchEnabled;
 
   /** Handler from crop window stuff, moving and knowing possition. */
-  private final CropWindowHandler mCropWindowHandler = new CropWindowHandler();
+  public final CropWindowHandler mCropWindowHandler = new CropWindowHandler();
 
   /** Listener to publicj crop window changes */
   private CropWindowChangeListener mCropWindowChangeListener;
@@ -165,6 +165,26 @@ public class CropOverlayView extends View {
   /** Get the left/top/right/bottom coordinates of the crop window. */
   public RectF getCropWindowRect() {
     return mCropWindowHandler.getRect();
+  }
+
+  public float[] getPoints(Matrix mtx) {
+    RectF cropWindowRect = getCropWindowRect();
+
+    float[] points =
+            new float[] {
+                    cropWindowRect.left,
+                    cropWindowRect.top,
+                    cropWindowRect.right,
+                    cropWindowRect.top,
+                    cropWindowRect.right,
+                    cropWindowRect.bottom,
+                    cropWindowRect.left,
+                    cropWindowRect.bottom
+            };
+
+    mtx.mapPoints(points);
+
+    return points;
   }
 
   /** Set the left/top/right/bottom coordinates of the crop window. */

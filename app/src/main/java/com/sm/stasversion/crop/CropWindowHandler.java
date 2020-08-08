@@ -15,7 +15,7 @@ package com.sm.stasversion.crop;
 import android.graphics.RectF;
 
 /** Handler from crop window stuff, moving and knowing possition. */
-final class CropWindowHandler {
+public final class CropWindowHandler {
 
   // region: Fields and Consts
 
@@ -35,10 +35,10 @@ final class CropWindowHandler {
   private float mMinCropWindowHeight;
 
   /** Maximum width in pixels that the crop window can CURRENTLY get. */
-  private float mMaxCropWindowWidth;
+  public float mMaxCropWindowWidth;
 
   /** Maximum height in pixels that the crop window can CURRENTLY get. */
-  private float mMaxCropWindowHeight;
+  public float mMaxCropWindowHeight;
 
   /**
    * Minimum width in pixels that the result of cropping an image can get, affects crop window width

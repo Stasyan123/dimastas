@@ -45,7 +45,7 @@ public class MainActivityPicker extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                //start();
+                start();
             }
         }, 1200);
 
@@ -60,10 +60,10 @@ public class MainActivityPicker extends AppCompatActivity {
     };
 
     private void start() {
-        /*Intent intent = new Intent(MainActivityPicker.this, MainMenu.class);
-        startActivity(intent);*/
+        Intent intent = new Intent(MainActivityPicker.this, MainMenu.class);
+        startActivity(intent);
 
-        AssetPicker.with(this)
+        /*AssetPicker.with(this)
                 .setFolderMode(true)
                 .setIncludeVideos(true)
                 .setVideoOrImagePickerTitle("Capture image or video")
@@ -78,7 +78,7 @@ public class MainActivityPicker extends AppCompatActivity {
                 .setAlwaysShowDoneButton(false)
                 .setRequestCode(100)
                 .setKeepScreenOn(true)
-                .start();
+                .start();*/
     }
 
     @Override
@@ -90,9 +90,7 @@ public class MainActivityPicker extends AppCompatActivity {
             Uri uri = Uri.fromFile(new File(assets.get(0).getPath()));
 
             File f = new File(uri.getPath());
-            if (Extensions_FileKt.isImageFile(f)) { // If file is an Image
-
-            } else if (Extensions_FileKt.isVideoFile(f)) { // If file is a Video
+            if (Extensions_FileKt.isVideoFile(f)) { // If file is an Image
                 intent = new Intent(MainActivityPicker.this, NewVideoOverviewActivity.class);
             }
 

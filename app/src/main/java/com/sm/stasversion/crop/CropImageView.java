@@ -35,6 +35,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+import com.sm.stasversion.MainFragment;
 import com.sm.stasversion.R;
 
 import org.wysaid.texUtils.CropInfo;
@@ -50,6 +51,7 @@ public class CropImageView extends FrameLayout {
   /** Image view widget used to show the image for cropping. */
   private final ImageView mImageView;
   //private final Matrix mMatrix;
+  public MainFragment.OnBitmapReady mBitmapReady;
 
   /** Overlay over the image view to show cropping UI. */
   public final CropOverlayView mCropOverlayView;
@@ -57,7 +59,7 @@ public class CropImageView extends FrameLayout {
   /** The matrix used to transform the cropping image in the image view */
   private final Matrix mImageMatrix = new Matrix();
 
-  private CropInfo cropInfo = new CropInfo();
+  public CropInfo cropInfo = new CropInfo();
 
   /** Reusing matrix instance for reverse matrix calculations. */
   private final Matrix mImageInverseMatrix = new Matrix();
@@ -75,12 +77,13 @@ public class CropImageView extends FrameLayout {
   private CropImageAnimation mAnimation;
 
   public Bitmap mBitmap;
+  public Boolean initialCrop = true;
 
   /** The image rotation value used during loading of the image so we can reset to it */
   private int mInitialDegreesRotated;
 
   /** How much the image is rotated from original clockwise */
-  private int mDegreesRotated;
+  public int mDegreesRotated;
 
   /** if the image flipped horizontally */
   private boolean mFlipHorizontally;
@@ -368,6 +371,10 @@ public class CropImageView extends FrameLayout {
     setProgressBarVisibility();
   }
 
+  public CropInfo getCropInfo() {
+     return cropInfo;
+  }
+
   public void setCropInfo() {
       cropInfo.scale = mPostScale;
       cropInfo.postRotate = mPostRotate;
@@ -376,17 +383,28 @@ public class CropImageView extends FrameLayout {
       cropInfo.rotation = mDegreesRotated;
   }
 
+  public void setCropDimension(float scaleX, float scaleY, int width, int height, float oScaleX, float oScaleY, int _x, int _y) {
+    cropInfo.scaleX = scaleX;
+    cropInfo.scaleY = scaleY;
+    cropInfo.width = width;
+    cropInfo.height = height;
+    cropInfo.originalScaleX = oScaleX;
+    cropInfo.originalScaleY = oScaleY;
+    cropInfo.x = _x;
+    cropInfo.y = _y;
+  }
+
   public boolean checkRemainder() {
       return ((cropInfo.rotation - mDegreesRotated) / 90) % 2 == 1;
   }
 
-  public void cancelCropInfo() {
+  public void cancelCropInfo(Boolean withCrop) {
     mPostScale = cropInfo.scale;
     mPostRotate = cropInfo.postRotate;
     mFlipHorizontally = cropInfo.flipHor;
     mFlipVertically = cropInfo.flipVert;
 
-    if(cropInfo.rotation != mDegreesRotated) {
+    if(cropInfo.rotation != mDegreesRotated && withCrop) {
       rotateImage((int)cropInfo.rotation - mDegreesRotated);
     }
   }
@@ -1004,6 +1022,27 @@ public class CropImageView extends FrameLayout {
    *
    * @param bitmap the Bitmap to set
    */
+  public void setConfigImage(Bitmap bitmap) {
+    mCropOverlayView.setInitialCropWindowRect(null);
+
+    if (mBitmap == null || !mBitmap.equals(bitmap)) {
+
+      mImageView.clearAnimation();
+
+      clearImageInt();
+
+      mBitmap = bitmap;
+      mImageView.setImageBitmap(mBitmap);
+
+      mLoadedImageUri = null;
+      mImageResource = 0;
+      mLoadedSampleSize = 1;
+      mDegreesRotated = 0;
+
+      //applyImageMatrix(getWidth(), getHeight(), true, false);
+    }
+  }
+
   public void setImageBitmap(Bitmap bitmap) {
     mCropOverlayView.setInitialCropWindowRect(null);
     setBitmap(bitmap, 0, null, 1, 0);
@@ -1114,7 +1153,7 @@ public class CropImageView extends FrameLayout {
       }
   }
 
-  private void applyCustom() {
+  public void applyCustom() {
       Matrix m = new Matrix(mImageMatrix);
 
       float postScaleX = mFlipHorizontally ? -mPostScale : mPostScale;
@@ -1631,6 +1670,11 @@ public class CropImageView extends FrameLayout {
       }
     } else {
       updateImageBounds(true);
+    }
+
+    if(initialCrop) {
+      mBitmapReady.onAreaReady();
+      initialCrop = false;
     }
   }
 

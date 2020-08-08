@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.widget.Toast;
 
 import com.sm.stasversion.R;
+import com.sm.stasversion.classes.AppDatabase;
 import com.sm.stasversion.imagepicker.listener.OnAssetLoaderListener;
 import com.sm.stasversion.imagepicker.model.Asset;
 import com.sm.stasversion.imagepicker.model.Config;
@@ -36,6 +37,43 @@ public class ImagePickerPresenter extends BasePresenter<ImagePickerView> {
 
     public void abortLoading() {
         imageLoader.abortLoadAssets();
+    }
+
+    public void loadConfigAssets(AppDatabase db) {
+        if (!isViewAttached()) return;
+
+        getView().showLoading(true);
+        imageLoader.loadConfigAssets(db, new OnAssetLoaderListener() {
+            @Override
+            public void onAssetLoaded(final List<Asset> assets, final List<Folder> folders) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (isViewAttached()) {
+                            getView().showFetchCompleted(assets, folders);
+                            final boolean isEmpty = assets.isEmpty();
+                            if (isEmpty) {
+                                getView().showEmpty();
+                            } else {
+                                getView().showLoading(false);
+                            }
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onFailed(final Throwable throwable) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (isViewAttached()) {
+                            getView().showError(throwable);
+                        }
+                    }
+                });
+            }
+        });
     }
 
     public void loadAssets(boolean includeVideos, boolean isFolderMode) {

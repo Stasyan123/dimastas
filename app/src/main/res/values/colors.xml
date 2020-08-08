@@ -18,12 +18,20 @@
     <color name="yellow_color_picker">#FBE870</color>
     <color name="yellow_green_color_picker">#C5E17A</color>
     <color name="tool_bg">#151414</color>
+    <color name="dgrey">#5E5E5E</color>
+
+    <color name="bggrey">#191919</color>
+    <color name="grey_text">#8F8F8F</color>
 
     <color name="menu_bottom">#1F1F1F</color>
     <color name="dark">#000000</color>
     <color name="ldark">#2E2E2E</color>
     <color name="eGray">#FFCFCFCF</color>
     <color name="seekGray">#909090</color>
+    <color name="lGray">#1A1A1A</color>
+    <color name="menu_border">#4A4A4A</color>
+    <color name="menu_title">#E4E4E4</color>
+    <color name="text_lgrey">#7E7E7E</color>
 
     <color name="filter1">#660707</color>
     <color name="filter2">#BC7805</color>
@@ -34,6 +42,7 @@
     <color name="imagepicker_white">#FFFFFF</color>
     <color name="imagepicker_black">#000000</color>
     <color name="imagepicker_black_alpha_50">#80000000</color>
+    <color name="studio_alpha_50">#383838</color>
     <color name="imagepicker_grey">#9E9E9E</color>
     <color name="imagepicker_dark">#323232</color>
     <color name="imagepicker_teal">#009688</color>

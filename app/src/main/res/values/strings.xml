@@ -19,6 +19,40 @@
     <string name="edit">Edit</string>
     <string name="studio">Studio</string>
 
+    <string name="feedback">Feedback</string>
+    <string name="rate">Rate us</string>
+    <string name="contact">Contact us</string>
+    <string name="contact_in">Contact us in:</string>
+    <string name="dev">Developer instagram</string>
+    <string name="app_inst">Mood app instagram</string>
+    <string name="my">Malienko `stifler` Stanislav</string>
+    <string name="boar">Dmitry `boar` Gaziev</string>
+    <string name="other">Other</string>
+    <string name="terms">Terms of Use</string>
+    <string name="policy">Privacy policy</string>
+    <string name="restore">restore</string>
+    <string name="join">Join</string>
+    <string name="mood">Mood</string>
+
+    <string name="yearly">Yearly subscription</string>
+    <string name="save_20">Save ~20%</string>
+    <string name="one_year_price">18.99$</string>
+    <string name="photos_videos_year_price">28.99$</string>
+
+    <string name="monthly">Monthly subscription</string>
+    <string name="jphotos">Just Photos</string>
+    <string name="photos_videos">Photos &amp; Videos</string>
+    <string name="one_month">1 month</string>
+    <string name="one_month_price">1.99$</string>
+    <string name="photos_videos_price">2.99$</string>
+
+    <string name="version">v.1.0</string>
+
+    <string name="trial">Try to 7 days period free! \n After free period 28.99 $/year</string>
+    <string name="trial2">After free period 28.99 $/year</string>
+    <string name="subscribe_now">Subscribe Now</string>
+    <string name="payment_message">Payment will be charged to your iTunes account at confirmation of purchase and will automatically renew (at the duration/price selected) unless auto-renew is turned off at least 24 hrs before the end of the current period.</string>
+
     <string name="imagepicker_action_ok">OK</string>
     <string name="imagepicker_action_done">DONE</string>
     <string name="all">All</string>
@@ -43,6 +77,9 @@
 
     <string name="temperature">Temperature</string>
     <string name="tint">Tint</string>
+
+    <string name="copy">Settings Copied</string>
+    <string name="paste">Settings Pasted</string>
 
     <string name="luminance">Luminance</string>
     <string name="saturation">Saturation</string>

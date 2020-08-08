@@ -82,9 +82,9 @@ public class ImageHelper {
         List<Asset> assets = new ArrayList<>();
         File f = new File(path);
         if (Extensions_FileKt.isImageFile(f)) {
-            assets.add(new Image(0, getNameFromFilePath(path), path));
+            assets.add(new Image(0, getNameFromFilePath(path), path, "", "", 0));
         } else if (Extensions_FileKt.isVideoFile(f)) {
-            assets.add(new Video(0, getNameFromFilePath(path), path));
+            assets.add(new Video(0, getNameFromFilePath(path), path, "", "", 0));
         }
         return assets;
     }

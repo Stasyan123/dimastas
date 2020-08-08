@@ -28,21 +28,20 @@ import androidx.core.view.children
 import androidx.core.view.forEachIndexed
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.sm.stasversion.classes.*
+import com.sm.stasversion.crop.BitmapUtils
 import com.sm.stasversion.crop.CropDemoPreset
+import com.sm.stasversion.crop.CropImageOptions
 import com.sm.stasversion.crop.CropImageView
-import com.sm.stasversion.customFilters.GpuFilterShadowHighlight
 import com.sm.stasversion.imageeditor.TextEditorDialogFragment
 import com.sm.stasversion.utils.*
-import jp.co.cyberagent.android.gpuimage.GPUImage
-import jp.co.cyberagent.android.gpuimage.filter.*
 import java.io.IOException
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import com.sm.stasversion.videoUtils.FilterType
@@ -52,6 +51,7 @@ import org.wysaid.myUtils.FileUtil
 import org.wysaid.nativePort.CGEFFmpegNativeLibrary
 import org.wysaid.nativePort.CGEImageHandler
 import org.wysaid.nativePort.CGENativeLibrary
+import org.wysaid.texUtils.CropInfo
 import org.wysaid.view.ImageGLSurfaceView
 
 import java.io.InputStream
@@ -62,6 +62,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     protected var BASIC_FILTER_CONFIG: String = "@adjust lut edgy_amber.png";
     protected var CONFIG_RULES: String = "";
     protected var LOG_TAG: String = "DimaStas";
+
+    private var db: AppDatabase? = null
+    private var imgId: Int? = null
+    private var correction: String? = null
+    private var crop: String? = null
 
     private var mCurrentFragment: MainFragment? = null
     private var mImageView: ImageView? = null
@@ -101,6 +106,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     var intensity: Float = 1.0f
     val tag: String = "DimaStas"
+    var initCrop: Boolean = true
 
     var imgHandler: CGEImageHandler = CGEImageHandler()
 
@@ -153,7 +159,13 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         textIntensity = findViewById(R.id.text_intensity)
 
         grainImage = BitmapFactory.decodeResource(this.getResources(), R.drawable.oise_light)
+
+        val bundle = intent.extras
+
         val uri = intent.getParcelableExtra<Uri>("file")
+        imgId = bundle!!.getInt("imgId")
+        correction = bundle.getString("configs")
+        crop = bundle.getString("crop")
 
         mOnPhotoEditorListener = this
 
@@ -161,6 +173,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         CGENativeLibrary.setLoadImageCallback(mLoadImageCallback, 1);
 
+        initDB()
         setPaddings()
         initEffectsNames()
         initEffectsArray()
@@ -168,6 +181,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         initSavebutton()
         initClosebutton()
         initCrop()
+    }
+
+    private fun initDB() {
+        db = Room.databaseBuilder(this.applicationContext, AppDatabase::class.java, "mood_v4")
+            .allowMainThreadQueries().build()
     }
 
     private fun initEffectsNames() {
@@ -210,18 +228,18 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
-        initTools()
     }
 
     private fun initTools() {
         val percentTextView = findViewById<TextView>(R.id.text_straightening)
-        percentTextView.text = getString(R.string.percent, 0.toString())
+        percentTextView.text = getString(R.string.percent, mCurrentFragment!!.mCropImageView.cropInfo.currentPercent.toString())
 
-        var progressF = 0f
-        var progress = 0
+        var progressF = mCurrentFragment!!.mCropImageView.cropInfo.currentPercentF
+        var progress = mCurrentFragment!!.mCropImageView.cropInfo.currentPercent
 
         val straightening = findViewById<HorizontalProgressWheelView>(R.id.rotate_scroll_wheel)
+        straightening.setValue(progress, progressF)
+
         straightening.setScrollingListener(object: HorizontalProgressWheelView.ScrollingListener {
             override fun onScrollStart() {
 
@@ -267,7 +285,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         val rotate = findViewById<View>(R.id.rotate);
 
-        val rotateEvent = fun (rotateObly: Boolean) {
+        val rotateEvent = fun (rotateOnly: Boolean) {
             val frame = findViewById<FrameLayout>(R.id.container)
             val civ = findViewById<CropImageView>(R.id.cropImageView)
 
@@ -284,7 +302,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             imageLayoutParams.width = mHeight
             civ.layoutParams = imageLayoutParams
 
-            if(rotateObly) {
+            if(rotateOnly) {
                 mCurrentFragment!!.toolsSelect(rotate)
             }
         }
@@ -295,7 +313,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         val hor = findViewById<View>(R.id.horizontal);
         hor.setOnClickListener{
-            mCurrentFragment!!.toolsSelect(hor)
+            rotateImage()
         }
 
         val vert = findViewById<View>(R.id.vertical);
@@ -336,8 +354,28 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         val accept = findViewById<View>(R.id.apply_crop)
         accept.setOnClickListener{
+            val overlay = mCurrentFragment!!.mCropImageView.cropWindowRect
+
+            val points = mCurrentFragment!!.mCropImageView.getCropPoints()
+
+            val scaleX = transImage!!.width / overlay.width()
+            val scaleY = transImage!!.height / overlay.height()
+
             mCurrentFragment!!.save(bitmapCrop())
             mCurrentFragment!!.mCropImageView.setCropInfo()
+
+            mCurrentFragment!!.mCropImageView.setCropDimension(scaleX, scaleY, (overlay.width() * scaleX).toInt(),
+                (overlay.height() * scaleY).toInt(), mCurrentFragment!!.mCropImageView.width / overlay.width(),
+                mCurrentFragment!!.mCropImageView.height / overlay.height(), overlay.left.toInt(), overlay.top.toInt())
+
+            mCurrentFragment!!.mCropImageView.cropInfo.originalH = transImage!!.height
+            mCurrentFragment!!.mCropImageView.cropInfo.originalW = transImage!!.width
+            mCurrentFragment!!.mCropImageView.cropInfo.instaMode = mCurrentFragment!!.instaMode
+            mCurrentFragment!!.mCropImageView.cropInfo.points = points
+            mCurrentFragment!!.mCropImageView.cropInfo.overlay = overlay
+
+            mCurrentFragment!!.mCropImageView.cropInfo.currentPercent = progress
+            mCurrentFragment!!.mCropImageView.cropInfo.currentPercentF = progressF
 
             straightening.setValue(progress, progressF)
             toggleTopBar(false)
@@ -351,16 +389,18 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             val main = findViewById<ConstraintLayout>(R.id.main_area)
             main.visibility = View.VISIBLE
 
-            percentTextView.text = getString(R.string.percent, straightening.currentPercent.toString())
+            percentTextView.text = getString(R.string.percent, mCurrentFragment!!.mCropImageView.cropInfo.currentPercent.toString())
             straightening.invalidateValue()
+            straightening.postInvalidate()
 
-            mCurrentFragment!!.mCropImageView.cancelCropInfo()
+            mCurrentFragment!!.cancelCropInfo(false)
+            mCurrentFragment!!.applyCustom()
 
             if(mCurrentFragment!!.checkRemainder()) {
                 rotateEvent(false)
             }
 
-            mCurrentFragment!!.cancelCropInfo()
+            mCurrentFragment!!.cancelCropInfo(true)
 
             toggleTopBar(false)
         }
@@ -411,7 +451,15 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val v = findViewById<TextView>(R.id.topSave)
 
         v.setOnClickListener{
-            glImageView!!.setFilterWithConfig("@adjust sharpen 1.0")
+            mAdjustConfigs!!.get(0).intensity = intensity
+
+            val gsonConfig = serializedConfigs.encryptConfigs(mAdjustConfigs)
+            val gsonCrop = Gson().toJson(mCurrentFragment!!.mCropImageView.getCropInfo())
+
+            db!!.configDao().updateConfig(imgId, gsonConfig, gsonCrop)
+            finish()
+            //val listType = object : TypeToken<MutableList<AdjustConfig>?>(){}.getType();
+            //glImageView!!.setFilterWithConfig("@adjust sharpen 1.0")
         }
     }
 
@@ -424,7 +472,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         view.setOnClickListener{
             //glImageView!!.setFilterWithConfig("@adjust lut ping.png 0.0 @adjust exposure 0.0 @adjust brightness 0.0 @adjust contrast 1.0 @adjust shadowhighlight 0.0 0.0 @adjust saturation 1.0 @adjust whitebalance 0.0 1.0 @blend sl oise_light.png 0.0 @adjust sharpen 0.0 @adjust hsl 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
-            glImageView!!.setFilterIntensityForIndex(0.0f, 0)
+            initOverlay()
         }
     }
 
@@ -510,6 +558,19 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         return rotate;
     }
 
+    fun initCropConfig(res: Bitmap): Bitmap {
+        if(crop != null && !crop!!.isEmpty()) {
+            val cropInfo = Gson().fromJson(crop, CropInfo::class.java)
+
+            mCurrentFragment!!.mCropImageView.cropInfo = cropInfo
+            mCurrentFragment!!.mCropImageView.cancelCropInfo(true)
+
+            return serializedConfigs.cropImage(res, cropInfo)
+        } else {
+            return res
+        }
+    }
+
     private fun initView(res: Bitmap) {
         updateView()
         initToolsEvents()
@@ -517,10 +578,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         try {
             glImageView = findViewById(R.id.gpuimageview) as ImageGLSurfaceView
 
-            cropSurface(res, true)
+            val img = initCropConfig(res)
+            cropSurface(img, true)
 
             glImageView!!.setSurfaceCreatedCallback( {
-                glImageView!!.setImageBitmap(res)
+                glImageView!!.setImageBitmap(img)
                 glImageView!!.setFilterWithConfig(calculateRules())
             })
 
@@ -529,9 +591,12 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             image = res
             transImage = res
 
+            startCropping(res, true)
+
             colorsEvents(true)
             effectsEvents()
             textureEvents()
+            initTools()
         } catch (e: IOException) {
             e.printStackTrace()
         }
@@ -842,7 +907,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         toggleTopBar(true)
 
         if(eType == EffectType.Crop) {
-            startCropping(CGENativeLibrary.filterImage_MultipleEffects(transImage, calculateRules(), intensity))
+            startCropping(CGENativeLibrary.filterImage_MultipleEffects(transImage, calculateRules(), intensity), false)
             return
         }
 
@@ -944,6 +1009,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         if(pos != position) {
             intensity = 1.0f
             mAdjustConfigs!!.get(0).mRule = rule
+            mAdjustConfigs!!.get(0).intensity = intensity
         }
 
         setFilters()
@@ -988,12 +1054,14 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         }
     }
 
-    private fun startCropping(arr: Bitmap?) {
-        val main = findViewById<ConstraintLayout>(R.id.main_area)
-        val crop = findViewById<ConstraintLayout>(R.id.crop_area)
+    private fun startCropping(arr: Bitmap, initOnly: Boolean) {
+        if(!initOnly) {
+            val main = findViewById<ConstraintLayout>(R.id.main_area)
+            val cropArea = findViewById<ConstraintLayout>(R.id.crop_area)
 
-        main.visibility = View.GONE
-        crop.visibility = View.VISIBLE
+            main.visibility = View.GONE
+            cropArea.visibility = View.VISIBLE
+        }
 
         //val bitmap = getInitialImage(arr)
 
@@ -1010,9 +1078,76 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             mImageView!!.setImageBitmap(arr)
         } else {
             mCurrentFragment!!.setFrame(findViewById<FrameLayout>(R.id.container))
-
             mCurrentFragment!!.setImageBm(arr, findViewById<FrameLayout>(R.id.container))
+
             mImageView = findViewById<ImageView>(R.id.ImageView_image)
+        }
+
+        if(initCrop && crop != null && !crop!!.isEmpty() && !initOnly) {
+            initCrop = false
+
+            initOverlay()
+            rotateImage()
+        }
+    }
+
+    fun initOverlay() {
+        val crop = mCurrentFragment!!.mCropImageView.cropInfo
+
+        if(!crop.isCropped()) {
+            val rect =
+                BitmapUtils.getRectFromPoints(
+                    crop.points,
+                    crop.originalW,
+                    crop.originalH,
+                    false,
+                    1,
+                    1
+                );
+
+            val left = rect.left * (mCurrentFragment!!.mCropImageView.width.toFloat() / crop.originalW.toFloat())
+            val top = rect.top * (mCurrentFragment!!.mCropImageView.height.toFloat() / crop.originalH.toFloat())
+            val width = rect.width() * (mCurrentFragment!!.mCropImageView.width.toFloat() / crop.originalW.toFloat())
+            val height = rect.height() * (mCurrentFragment!!.mCropImageView.height.toFloat() / crop.originalH.toFloat())
+
+            mCurrentFragment!!.mCropImageView.mCropOverlayView.setFixedAspectRatio(mCurrentFragment!!.mCropImageView.cropInfo.instaMode)
+
+            mCurrentFragment!!.mCropImageView.mCropOverlayView.cropWindowRect = RectF(
+                left, top,
+                left + width, top + height
+            )
+
+            mCurrentFragment!!.mCropImageView.mCropOverlayView.invalidate();
+        }
+    }
+
+    override fun onAreaReady() {
+
+    }
+
+    fun rotateImage() {
+        val crop = mCurrentFragment!!.mCropImageView.cropInfo
+
+        if (mCurrentFragment!!.checkRemainder()) {
+            val frame = findViewById<FrameLayout>(R.id.container)
+            val civ = findViewById<CropImageView>(R.id.cropImageView)
+
+            val mHeight = frame.measuredHeight
+            val mWidth = frame.measuredWidth
+
+            val layoutParams = frame.layoutParams
+            layoutParams.height = mWidth
+            layoutParams.width = mHeight
+            frame.layoutParams = layoutParams
+
+            val imageLayoutParams = civ.layoutParams
+            imageLayoutParams.height = mWidth
+            imageLayoutParams.width = mHeight
+            civ.layoutParams = imageLayoutParams
+        }
+
+        if (crop.rotation != mCurrentFragment!!.mCropImageView.mDegreesRotated.toFloat()) {
+            mCurrentFragment!!.mCropImageView.rotateImage(crop.rotation.toInt() - mCurrentFragment!!.mCropImageView.mDegreesRotated)
         }
     }
 
@@ -1111,32 +1246,150 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun initEffectsArray() {
-        val temperature = AdjustConfig(6, -1.0f, 0.0f, 1.0f, "@adjust whitebalance", 0.5f, true, EffectType.Temperature, null)
-        temperature.setAdditional(AdjustConfig(5, 0.0f, 1.0f, 2.0f, "", 0.5f, true, EffectType.Temperature, null))
+        if(correction != null &&!correction!!.isEmpty()) {
+            mAdjustConfigs = serializedConfigs.decryptConfigsStatic(correction)
+            intensity = mAdjustConfigs!!.get(0).intensity
+        } else {
+            val temperature = AdjustConfig(
+                6,
+                -1.0f,
+                0.0f,
+                1.0f,
+                "@adjust whitebalance",
+                0.5f,
+                true,
+                EffectType.Temperature,
+                null
+            )
+            val temp_add =
+                AdjustConfig(6, 0.0f, 1.0f, 2.0f, "", 0.5f, true, EffectType.Temperature, null)
+            temp_add.parentId = 6
+            temperature.setAdditional(temp_add)
 
-        val sh = AdjustConfig(4, -100.0f, 0.0f, 100.0f, "@adjust shadowhighlight", 0.5f, true, EffectType.Shadow, null)
-        sh.setAdditional(AdjustConfig(4, -100.0f, 0.0f, 100.0f, "", 0.5f, true, EffectType.Highlight, null))
+            val sh = AdjustConfig(
+                4,
+                -100.0f,
+                0.0f,
+                100.0f,
+                "@adjust shadowhighlight",
+                0.5f,
+                true,
+                EffectType.Shadow,
+                null
+            )
+            val sh_add =
+                AdjustConfig(4, -100.0f, 0.0f, 100.0f, "", 0.5f, true, EffectType.Highlight, null)
+            sh_add.parentId = 4
+            sh.setAdditional(sh_add)
 
-        val hslConfig = AdjustConfig(9, -1.0f, 0.0f, 1.0f, "@adjust hsl", 0.5f, false, EffectType.HSL, null)
-        hslConfig.hsl = arrayOf(floatArrayOf(0.0f, 0.0f, 0.0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f))
-        hslConfig.tempHsl = arrayOf(floatArrayOf(0.0f, 0.0f, 0.0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f))
+            val hslConfig =
+                AdjustConfig(9, -1.0f, 0.0f, 1.0f, "@adjust hsl", 0.5f, false, EffectType.HSL, null)
+            hslConfig.hsl = arrayOf(
+                floatArrayOf(0.0f, 0.0f, 0.0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f)
+            )
+            hslConfig.tempHsl = arrayOf(
+                floatArrayOf(0.0f, 0.0f, 0.0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f)
+            )
 
-        mAdjustConfigs = mutableListOf(
-            AdjustConfig(0, -1.0f, 0.0f, 1.0f, "@adjust lut empty.png", 0.5f, false, EffectType.Lut, null),
-            AdjustConfig(1, -1.0f, 0.0f, 1.0f, "@adjust exposure", 0.5f, false, EffectType.Exposition, null),
-            AdjustConfig(2, -.5f, 0.0f, 0.5f, "@adjust brightness", 0.5f, false, EffectType.Brightness, null),
-            AdjustConfig(3, .0f, 1.0f, 2.0f, "@adjust contrast", 0.5f, false, EffectType.Contrast, null),
-            sh,
-            AdjustConfig(5, 0.0f, 1.0f, 2.0f, "@adjust saturation", 0.5f, false, EffectType.Saturation, null),
-            temperature,
-            AdjustConfig(7, .0f, 0.0f, 1.0f, "@blend sl oise_light.png", 0f, false, EffectType.Grain, null),
-            AdjustConfig(8, 0f, 0.0f, 2.5f, "@adjust sharpen", 0f, false, EffectType.Sharpness, null),
-            hslConfig,
-            AdjustConfig(10, 0f, 0.5f, 1f, "", 1f, false, EffectType.Texture, null)
-        )
+            mAdjustConfigs = mutableListOf(
+                AdjustConfig(
+                    0,
+                    -1.0f,
+                    0.0f,
+                    1.0f,
+                    "@adjust lut empty.png",
+                    0.5f,
+                    false,
+                    EffectType.Lut,
+                    null
+                ),
+                AdjustConfig(
+                    1,
+                    -1.0f,
+                    0.0f,
+                    1.0f,
+                    "@adjust exposure",
+                    0.5f,
+                    false,
+                    EffectType.Exposition,
+                    null
+                ),
+                AdjustConfig(
+                    2,
+                    -.5f,
+                    0.0f,
+                    0.5f,
+                    "@adjust brightness",
+                    0.5f,
+                    false,
+                    EffectType.Brightness,
+                    null
+                ),
+                AdjustConfig(
+                    3,
+                    .0f,
+                    1.0f,
+                    2.0f,
+                    "@adjust contrast",
+                    0.5f,
+                    false,
+                    EffectType.Contrast,
+                    null
+                ),
+                sh,
+                AdjustConfig(
+                    5,
+                    0.0f,
+                    1.0f,
+                    2.0f,
+                    "@adjust saturation",
+                    0.5f,
+                    false,
+                    EffectType.Saturation,
+                    null
+                ),
+                temperature,
+                AdjustConfig(
+                    7,
+                    .0f,
+                    0.0f,
+                    1.0f,
+                    "@blend sl oise_light.png",
+                    0f,
+                    false,
+                    EffectType.Grain,
+                    null
+                ),
+                AdjustConfig(
+                    8,
+                    0f,
+                    0.0f,
+                    2.5f,
+                    "@adjust sharpen",
+                    0f,
+                    false,
+                    EffectType.Sharpness,
+                    null
+                ),
+                hslConfig,
+                AdjustConfig(10, 0f, 0.5f, 1f, "", 1f, false, EffectType.Texture, null)
+            )
 
-        mAdjustConfigs!!.get(10).active = false
-        mAdjustConfigs!!.get(10).intensity = 1.0f
+            mAdjustConfigs!!.get(10).active = false
+            mAdjustConfigs!!.get(10).intensity = 1.0f
+        }
     }
 
     private fun copyArray(ar1: Array<FloatArray>, ar2: Array<FloatArray>) {

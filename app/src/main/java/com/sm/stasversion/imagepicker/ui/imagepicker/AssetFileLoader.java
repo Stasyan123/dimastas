@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.sm.stasversion.classes.AppDatabase;
+import com.sm.stasversion.classes.DBConfig;
 import com.sm.stasversion.imagepicker.listener.OnAssetLoaderListener;
 import com.sm.stasversion.imagepicker.model.Asset;
 import com.sm.stasversion.imagepicker.model.Folder;
@@ -54,6 +56,10 @@ public class AssetFileLoader {
         }
     }
 
+    public void loadConfigAssets(AppDatabase db, OnAssetLoaderListener listener) {
+        getExecutorService().execute(new DBLoadRunnable(listener, db));
+    }
+
     public void loadDeviceAssets(boolean includeVideos, boolean isFolderMode, OnAssetLoaderListener listener) {
         getExecutorService().execute(new AssetLoadRunnable(includeVideos, isFolderMode, listener));
     }
@@ -71,6 +77,52 @@ public class AssetFileLoader {
 //            executorService = Executors.newSingleThreadExecutor();
         }
         return executorService;
+    }
+
+    private class DBLoadRunnable implements Runnable {
+        private OnAssetLoaderListener listener;
+        private AppDatabase db;
+
+        public DBLoadRunnable(OnAssetLoaderListener listener, AppDatabase db) {
+            this.listener = listener;
+            this.db = db;
+        }
+
+        @Override
+        public void run() {
+            List<DBConfig> configs = db.configDao().getAll();
+            List<Asset> assets = new ArrayList<>(db.configDao().size());
+
+            Asset asset = null;
+
+            for (DBConfig config: configs) {
+
+                long id = config.getId();
+                String name = config.getName();
+                String path = config.getPath();
+                String correction = config.getCorrection();
+                String crop = config.getCrop();
+
+                File file = makeSafeFile(path);
+
+                try {
+                    if (file != null && file.exists()) {
+                        if (Extensions_FileKt.isImageFile(file)) { // If file is an Image
+                            asset = new Image(id, name, path, correction, crop, 0);
+
+                            assets.add(asset);
+                        } else if (Extensions_FileKt.isVideoFile(file)) { // If file is a Video
+                            asset = new Video(id, name, path, correction, crop, 0);
+                            assets.add(asset);
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.d(TAG, e.getMessage());
+                }
+            }
+
+            listener.onAssetLoaded(assets, null);
+        }
     }
 
     private class AssetLoadRunnable implements Runnable {
@@ -111,7 +163,6 @@ public class AssetFileLoader {
                 return;
             }
 
-            Integer t = cursor.getCount();
             List<Asset> assets = new ArrayList<>(cursor.getCount());
             Map<String, Folder> folderMap = isFolderMode ? new LinkedHashMap<String, Folder>() : null;
 
@@ -121,7 +172,7 @@ public class AssetFileLoader {
                     String name = cursor.getString(cursor.getColumnIndex(projection[1]));
                     String path = cursor.getString(cursor.getColumnIndex(projection[2]));
                     String bucket = cursor.getString(cursor.getColumnIndex(projection[3]));
-                    Log.d("Stas", path);
+
                     File file = makeSafeFile(path);
 
                     try {
@@ -130,10 +181,10 @@ public class AssetFileLoader {
                             // Check if file is an image or a video
                             Asset asset = null;
                             if (Extensions_FileKt.isImageFile(file)) { // If file is an Image
-                                asset = new Image(id, name, path);
+                                asset = new Image(id, name, path, "", "", 0);
                                 assets.add(asset);
                             } else if (Extensions_FileKt.isVideoFile(file)) { // If file is a Video
-                                asset = new Video(id, name, path);
+                                asset = new Video(id, name, path, "", "", 0);
                                 assets.add(asset);
                             }
 

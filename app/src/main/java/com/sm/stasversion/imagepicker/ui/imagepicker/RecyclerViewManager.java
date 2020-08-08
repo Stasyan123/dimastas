@@ -63,7 +63,7 @@ public class RecyclerViewManager {
             selectedAssets = config.getSelectedAssets();
         }
 
-        assetAdapter = new AssetPickerAdapter(context, mAssetLoader, selectedAssets, imageClickListener);
+        assetAdapter = new AssetPickerAdapter(context, mAssetLoader, selectedAssets, imageClickListener, config.getStudio());
         folderAdapter = new FolderPickerAdapter(context, mAssetLoader, new OnFolderClickListener() {
             @Override
             public void onFolderClick(Folder folder) {
@@ -91,8 +91,11 @@ public class RecyclerViewManager {
         if (itemOffsetDecoration != null) {
             recyclerView.removeItemDecoration(itemOffsetDecoration);
         }
+
+        int margin = config.getStudio() ? context.getResources().getDimensionPixelSize(R.dimen.menu_margin) : context.getResources().getDimensionPixelSize(R.dimen.imagepicker_item_padding);
+
         itemOffsetDecoration = new GridSpacingItemDecoration(columns,
-                context.getResources().getDimensionPixelSize(R.dimen.imagepicker_item_padding),
+                margin,
                 false
         );
         recyclerView.addItemDecoration(itemOffsetDecoration);
@@ -105,9 +108,30 @@ public class RecyclerViewManager {
         assetAdapter.setOnImageSelectionListener(imageSelectionListener);
     }
 
+    public void updateEl(int position, String correction) {
+        assetAdapter.updateEl(position, correction);
+    }
+
+
+    public void removeEl(int position) {
+        assetAdapter.removeEl(position);
+    }
+
+    public Asset getAsset(int position) {
+        return assetAdapter.getAsset(position);
+    }
+
+    public int getSelectedSize() {
+        return assetAdapter.getSelectedAssets().size();
+    }
+
     public List<Asset> getSelectedAssets() {
         checkAdapterIsInitialized();
         return assetAdapter.getSelectedAssets();
+    }
+
+    public void invalidate() {
+        assetAdapter.notifyDataSetChanged();
     }
 
     public void addSelectedAssets(List<Asset> assets) {
@@ -120,8 +144,12 @@ public class RecyclerViewManager {
         }
     }
 
+    public int getItemCount() {
+        return assetAdapter.getItemCount();
+    }
+
     public boolean selectImage() {
-        if (config.isMultipleMode()) {
+        /*if (config.isMultipleMode()) {
             if (assetAdapter.getSelectedAssets().size() >= config.getMaxSize()) {
                 String message = String.format(config.getLimitMessage(), config.getMaxSize());
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
@@ -131,7 +159,7 @@ public class RecyclerViewManager {
             if (assetAdapter.getItemCount() > 0) {
                 //assetAdapter.removeAllSelected();
             }
-        }
+        }*/
         return true;
     }
 

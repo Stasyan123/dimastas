@@ -19,11 +19,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        <activity android:name=".MainMenu">
-        </activity>
+        <activity android:name=".SubscribeActivity"></activity>
+        <activity android:name=".MenuActivity" />
+        <activity android:name=".MainMenu" />
         <activity
             android:name=".NewVideoOverviewActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".VideoOverviewActivity"
             android:screenOrientation="portrait" />
@@ -43,7 +44,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Mp4ComposeActivity"></activity>
+        <activity android:name=".Mp4ComposeActivity" />
         <activity
             android:name=".imagepicker.ui.imagepicker.ImagePickerActivity"
             android:configChanges="orientation|screenSize"

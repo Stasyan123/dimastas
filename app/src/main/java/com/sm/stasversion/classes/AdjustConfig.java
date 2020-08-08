@@ -6,6 +6,7 @@ import org.wysaid.view.ImageGLSurfaceView;
 import org.wysaid.view.VideoPlayerGLSurfaceView;
 
 import java.lang.reflect.Array;
+import java.util.List;
 
 public class AdjustConfig {
     private float minValue, originValue, maxValue;
@@ -14,7 +15,7 @@ public class AdjustConfig {
     public String mRule;
     public Boolean additional;
     public EffectType type;
-    public AdjustConfig additionaItem;
+    public transient AdjustConfig additionaItem;
     public float[][] hsl = null;
     public float[][] tempHsl = null;
     public int hslPos = 0;
@@ -22,7 +23,9 @@ public class AdjustConfig {
     public Boolean startEditing = false;
     public Boolean active = true;
 
-    public VideoPlayerGLSurfaceView mPlayerView;
+    public int parentId = -1;
+
+    public transient VideoPlayerGLSurfaceView mPlayerView;
 
     //texture settings
     public Float[] rotate = {0f, 0f};
@@ -30,6 +33,10 @@ public class AdjustConfig {
     public Float[] vertical = {1f, 1f};
     public Boolean[] diff = {false, false};
     public String name = "";
+
+    public AdjustConfig() {
+
+    }
 
     public AdjustConfig(int _index, float _minValue, float _originValue, float _maxValue,
                         String rule, float _slierIntensity, boolean _additional, EffectType _type, VideoPlayerGLSurfaceView _mPlayerView) {

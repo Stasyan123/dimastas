@@ -42,6 +42,8 @@ public class HorizontalProgressWheelView extends View {
     public int currentPercent = 0;
     private static final int percentMax = 30;
 
+    public boolean firstDraw = true;
+
     public HorizontalProgressWheelView(Context context) {
         this(context, null);
     }
@@ -114,8 +116,13 @@ public class HorizontalProgressWheelView extends View {
         canvas.getClipBounds(mCanvasClipBounds);
 
         lOffset = mProgressLineWidth / 2;
-
         linesCount = mCanvasClipBounds.width() / (mProgressLineWidth + mProgressLineMargin);
+
+        if(firstDraw) {
+            invalidateValue();
+            firstDraw = false;
+        }
+
         float deltaX = (mTotalScrollDistance) % (float) (mProgressLineMargin + mProgressLineWidth);
 
         if ((linesCount % 2) == 0) {
@@ -149,7 +156,6 @@ public class HorizontalProgressWheelView extends View {
 
     public void invalidateValue() {
         mTotalScrollDistance = ((currentPercentF * ((linesCount - 1) / 2)) / percentMax) * (mProgressLineWidth + mProgressLineMargin);
-        postInvalidate();
     }
 
     private void onScrollEvent(MotionEvent event, float distance) {

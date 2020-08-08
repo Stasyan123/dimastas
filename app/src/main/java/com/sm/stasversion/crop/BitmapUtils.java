@@ -334,7 +334,7 @@ public final class BitmapUtils {
    * Get a rectangle for the given 4 points (x0,y0,x1,y1,x2,y2,x3,y3) by finding the min/max 2
    * points that contains the given 4 points and is a straight rectangle.
    */
-  static Rect getRectFromPoints(
+  public static Rect getRectFromPoints(
       float[] points,
       int imageWidth,
       int imageHeight,

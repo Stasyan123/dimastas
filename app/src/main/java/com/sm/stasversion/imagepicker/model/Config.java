@@ -57,6 +57,7 @@ public class Config implements Parcelable {
     private boolean isAlwaysShowDoneButton;
     private boolean isKeepScreenOn;
     private int requestCode;
+    private Boolean isStudio = false;
     private ArrayList<Asset> selectedAssets;
 
 
@@ -208,6 +209,14 @@ public class Config implements Parcelable {
 
     public void setMaxSize(int maxSize) {
         this.maxSize = maxSize;
+    }
+
+    public boolean getStudio() {
+        return this.isStudio;
+    }
+
+    public void setIsStudio(Boolean _isStudio) {
+        this.isStudio = _isStudio;
     }
 
     public String getDoneTitle() {

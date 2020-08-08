@@ -24,6 +24,7 @@ import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 import com.daasuu.gpuv.composer.GPUMp4Composer
 import com.daasuu.gpuv.composer.Rotation
 import com.daasuu.gpuv.egl.filter.*
@@ -33,7 +34,10 @@ import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.android.exoplayer2.C
+import com.google.gson.Gson
 import com.sm.stasversion.classes.AdjustConfig
+import com.sm.stasversion.classes.AppDatabase
+import com.sm.stasversion.classes.serializedConfigs
 import com.sm.stasversion.crop.BitmapUtils
 import com.sm.stasversion.crop.CropImageOptions
 import com.sm.stasversion.crop.CropImageView
@@ -48,6 +52,7 @@ import org.wysaid.common.Common
 import org.wysaid.myUtils.FileUtil
 import org.wysaid.nativePort.CGEFFmpegNativeLibrary
 import org.wysaid.nativePort.CGENativeLibrary
+import org.wysaid.texUtils.CropInfo
 import org.wysaid.view.VideoPlayerGLSurfaceView
 import java.io.File
 import java.io.IOException
@@ -62,6 +67,11 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     EditingTextureAdapter.OnItemSelected, SeekBar.OnSeekBarChangeListener {
 
     private val TAG = "VideoOverview"
+
+    private var db: AppDatabase? = null
+    private var imgId: Int? = null
+    private var correction: String? = null
+    private var crop: String? = null
 
     private var canvasHeight: Float = 470.0f
     private var calculatedW: Float = 0.0f
@@ -181,7 +191,13 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         mSeekTexture = findViewById(R.id.seekBar_texture)
 
         mPlayerView = findViewById(R.id.videoGLSurfaceView)
+
+        val bundle = intent.extras
+
         uri = intent.getParcelableExtra<Uri>("file");
+        imgId = bundle!!.getInt("imgId")
+        correction = bundle.getString("configs")
+        crop = bundle.getString("crop")
 
         textIntensity = findViewById(R.id.text_intensity)
 
@@ -191,6 +207,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         CGENativeLibrary.setLoadImageCallback(mLoadImageCallback, 1);
         grainImage = BitmapFactory.decodeResource(this.getResources(), R.drawable.oise_light)
 
+        initDB()
         initEffectsNames()
         setPaddings()
         initEffectsArray()
@@ -213,6 +230,23 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         });
     }
 
+    fun initCropConfig() {
+        if(crop != null && !crop!!.isEmpty()) {
+            val cropInfo = Gson().fromJson(crop, CropInfo::class.java)
+
+            mPlayerView!!.cropInfo = cropInfo
+            mPlayerView!!.setCrop(true);
+            mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(), cropInfo.overlay.width().toInt(), cropInfo.overlay.height().toInt(), true)
+
+            mCropOverlayView!!.cancelCrop()
+        }
+    }
+
+    private fun initDB() {
+        db = Room.databaseBuilder(this.applicationContext, AppDatabase::class.java, "mood_v4")
+            .allowMainThreadQueries().build()
+    }
+
     private fun copyArray(ar1: Array<FloatArray>, ar2: Array<FloatArray>) {
         for (i in 0..ar1.size - 1) {
             ar2[i] = Arrays.copyOf(ar1[i], ar1[i].size);
@@ -220,32 +254,161 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     }
 
     private fun initEffectsArray() {
-        val temperature = AdjustConfig(6, -1.0f, 0.0f, 1.0f, "@adjust whitebalance", 0.5f, true, EffectType.Temperature, mPlayerView)
-        temperature.setAdditional(AdjustConfig(5, 0.0f, 1.0f, 2.0f, "", 0.5f, true, EffectType.Temperature, mPlayerView))
+        if(correction != null && !correction!!.isEmpty()) {
+            val gson = serializedConfigs()
+            gson.setPlayer(mPlayerView)
 
-        val sh = AdjustConfig(4, -100.0f, 0.0f, 100.0f, "@adjust shadowhighlight", 0.5f, true, EffectType.Shadow, mPlayerView)
-        sh.setAdditional(AdjustConfig(4, -100.0f, 0.0f, 100.0f, "", 0.5f, true, EffectType.Highlight, mPlayerView))
+            mAdjustConfigs = gson.decryptConfigs(correction)
+        } else {
+            val temperature = AdjustConfig(
+                6,
+                -1.0f,
+                0.0f,
+                1.0f,
+                "@adjust whitebalance",
+                0.5f,
+                true,
+                EffectType.Temperature,
+                null
+            )
+            val temp_add =
+                AdjustConfig(6, 0.0f, 1.0f, 2.0f, "", 0.5f, true, EffectType.Temperature, null)
+            temp_add.parentId = 6
+            temperature.setAdditional(temp_add)
 
-        val hslConfig = AdjustConfig(9, -1.0f, 0.0f, 1.0f, "@adjust hsl", 0.5f, false, EffectType.HSL, mPlayerView)
-        hslConfig.hsl = arrayOf(floatArrayOf(0.0f, 0.0f, 0.0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f))
-        hslConfig.tempHsl = arrayOf(floatArrayOf(0.0f, 0.0f, 0.0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f), floatArrayOf(0f, 0f, 0f))
+            val sh = AdjustConfig(
+                4,
+                -100.0f,
+                0.0f,
+                100.0f,
+                "@adjust shadowhighlight",
+                0.5f,
+                true,
+                EffectType.Shadow,
+                null
+            )
+            val sh_add =
+                AdjustConfig(4, -100.0f, 0.0f, 100.0f, "", 0.5f, true, EffectType.Highlight, null)
+            sh_add.parentId = 4
+            sh.setAdditional(sh_add)
 
-        mAdjustConfigs = mutableListOf(
-            AdjustConfig(0, -1.0f, 0.0f, 1.0f, "@adjust lut empty.png", 0.5f, false, EffectType.Lut, mPlayerView),
-            AdjustConfig(1, -1.0f, 0.0f, 1.0f, "@adjust exposure", 0.5f, false, EffectType.Exposition, mPlayerView),
-            AdjustConfig(2, -.5f, 0.0f, 0.5f, "@adjust brightness", 0.5f, false, EffectType.Brightness, mPlayerView),
-            AdjustConfig(3, .0f, 1.0f, 2.0f, "@adjust contrast", 0.5f, false, EffectType.Contrast, mPlayerView),
-            sh,
-            AdjustConfig(5, 0.0f, 1.0f, 2.0f, "@adjust saturation", 0.5f, false, EffectType.Saturation, mPlayerView),
-            temperature,
-            AdjustConfig(7, .0f, 0.0f, 1.0f, "@blend sl oise_light.png", 0f, false, EffectType.Grain, mPlayerView),
-            AdjustConfig(8, 0f, 0.0f, 2.5f, "@adjust sharpen", 0f, false, EffectType.Sharpness, mPlayerView),
-            hslConfig,
-            AdjustConfig(10, 0f, 0.5f, 1f, "", 1f, false, EffectType.Texture, mPlayerView)
-        )
+            val hslConfig = AdjustConfig(
+                9,
+                -1.0f,
+                0.0f,
+                1.0f,
+                "@adjust hsl",
+                0.5f,
+                false,
+                EffectType.HSL,
+                mPlayerView
+            )
+            hslConfig.hsl = arrayOf(
+                floatArrayOf(0.0f, 0.0f, 0.0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f)
+            )
+            hslConfig.tempHsl = arrayOf(
+                floatArrayOf(0.0f, 0.0f, 0.0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f),
+                floatArrayOf(0f, 0f, 0f)
+            )
 
-        mAdjustConfigs!!.get(10).active = false
-        mAdjustConfigs!!.get(10).intensity = 1.0f
+            mAdjustConfigs = mutableListOf(
+                AdjustConfig(
+                    0,
+                    -1.0f,
+                    0.0f,
+                    1.0f,
+                    "@adjust lut empty.png",
+                    0.5f,
+                    false,
+                    EffectType.Lut,
+                    mPlayerView
+                ),
+                AdjustConfig(
+                    1,
+                    -1.0f,
+                    0.0f,
+                    1.0f,
+                    "@adjust exposure",
+                    0.5f,
+                    false,
+                    EffectType.Exposition,
+                    mPlayerView
+                ),
+                AdjustConfig(
+                    2,
+                    -.5f,
+                    0.0f,
+                    0.5f,
+                    "@adjust brightness",
+                    0.5f,
+                    false,
+                    EffectType.Brightness,
+                    mPlayerView
+                ),
+                AdjustConfig(
+                    3,
+                    .0f,
+                    1.0f,
+                    2.0f,
+                    "@adjust contrast",
+                    0.5f,
+                    false,
+                    EffectType.Contrast,
+                    mPlayerView
+                ),
+                sh,
+                AdjustConfig(
+                    5,
+                    0.0f,
+                    1.0f,
+                    2.0f,
+                    "@adjust saturation",
+                    0.5f,
+                    false,
+                    EffectType.Saturation,
+                    mPlayerView
+                ),
+                temperature,
+                AdjustConfig(
+                    7,
+                    .0f,
+                    0.0f,
+                    1.0f,
+                    "@blend sl oise_light.png",
+                    0f,
+                    false,
+                    EffectType.Grain,
+                    mPlayerView
+                ),
+                AdjustConfig(
+                    8,
+                    0f,
+                    0.0f,
+                    2.5f,
+                    "@adjust sharpen",
+                    0f,
+                    false,
+                    EffectType.Sharpness,
+                    mPlayerView
+                ),
+                hslConfig,
+                AdjustConfig(10, 0f, 0.5f, 1f, "", 1f, false, EffectType.Texture, mPlayerView)
+            )
+
+            mAdjustConfigs!!.get(10).active = false
+            mAdjustConfigs!!.get(10).intensity = 1.0f
+        }
     }
 
     override fun onEffectSelected(eType: EffectType, position: Int) {
@@ -300,6 +463,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         if(pos != position) {
             intensity = 1.0f
             mAdjustConfigs!!.get(0).mRule = rule
+            mAdjustConfigs!!.get(0).intensity = intensity
         }
 
         setFilters()
@@ -664,7 +828,6 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         mSeekSat!!.setOnSeekBarChangeListener(this)
         mSeekLum!!.setOnSeekBarChangeListener(this)
 
-        initToolsCrop()
         textureEvents()
 /*
         val all = findViewById<View>(R.id.custom)
@@ -758,10 +921,12 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         val percentTextView = findViewById<TextView>(R.id.text_straightening)
         percentTextView.text = getString(R.string.percent, 0.toString())
 
-        var progressF = 0f
-        var progress = 0
+        var progressF = mPlayerView!!.cropInfo.currentPercentF
+        var progress = mPlayerView!!.cropInfo.currentPercent
 
         val straightening = findViewById<HorizontalProgressWheelView>(R.id.rotate_scroll_wheel)
+        straightening.setValue(progress, progressF)
+
         straightening.setScrollingListener(object: HorizontalProgressWheelView.ScrollingListener {
             override fun onScrollStart() {
 
@@ -775,12 +940,12 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 val angl = percent.toFloat() / 2
 //h = 439.4949f
 //w = 1400.551f
-                var width = calculatedW;//bm!!.width
-                var height = calculatedH;//bm!!.height
+                var width = gpuWrapper!!.width.toFloat();//bm!!.width
+                var height = gpuWrapper!!.height.toFloat();//bm!!.height
 
                 if (width > height) {
-                    width = calculatedH
-                    height = calculatedW
+                    width = gpuWrapper!!.height.toFloat()
+                    height = gpuWrapper!!.width.toFloat()
                 }
 
                 val a = Math.atan((height / width).toDouble()).toFloat()
@@ -871,13 +1036,26 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             val y = gpuWrapper!!.height - overlay.bottom
 
             val cropInfo = floatArrayOf(overlay.width() * gpuWrapper!!.scaleX, overlay.height() * gpuWrapper!!.scaleX, y, overlay.left, scaleX, scaleY,
-                gpuWrapper!!.rotation, mCropOverlayView!!.mPostRotate, gpuWrapper!!.scaleX)
+                gpuWrapper!!.rotation, mCropOverlayView!!.mPostRotate, mCropOverlayView!!.mPostScale)
 
             mPlayerView!!.cropInfo.flipHor = mCropOverlayView!!.mFlipHorizontally
             mPlayerView!!.cropInfo.flipVert = mCropOverlayView!!.mFlipVertically
 
             straightening.setValue(progress, progressF)
             mPlayerView!!.setCroppedInfo(cropInfo)
+
+            mPlayerView!!.cropInfo.originalScaleX = gpuWrapper!!.width / overlay.width()
+            mPlayerView!!.cropInfo.originalScaleY = gpuWrapper!!.height / overlay.height()
+            mPlayerView!!.cropInfo.originalH = gpuWrapper!!.height
+            mPlayerView!!.cropInfo.originalW = gpuWrapper!!.width
+
+            val points = mCropOverlayView!!.getPoints(mPlayerView!!.matrix)
+
+            mPlayerView!!.cropInfo.instaMode = mCropOverlayView!!.instaMode
+            mPlayerView!!.cropInfo.currentPercent = straightening.currentPercent
+            mPlayerView!!.cropInfo.currentPercentF = straightening.currentPercentF
+            mPlayerView!!.cropInfo.overlay = overlay
+            mPlayerView!!.cropInfo.points = points
 
             initCropBar(false)
             toggleTopBar(false)
@@ -895,6 +1073,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
             percentTextView.text = getString(R.string.percent, straightening.currentPercent.toString())
             straightening.invalidateValue()
+            straightening.postInvalidate()
 
             mPlayerView!!.setCrop(true)
             mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(), mPlayerView!!.cropInfo.width,
@@ -1035,12 +1214,20 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
     private fun initSavebutton() {
         findViewById<TextView>(R.id.topSave).setOnClickListener { v ->
-            val outputFilename1 = FileUtil.getPath() + "/blendVideo777.mp4";
+            val gsonStr = serializedConfigs.encryptConfigs(mAdjustConfigs)
+            val gsonCrop = Gson().toJson(mPlayerView!!.cropInfo)
+
+            db!!.configDao().updateConfig(imgId, gsonStr, gsonCrop)
+
+            mPlayerView!!.releasePlayer()
+            finish()
+
+            /*val outputFilename1 = FileUtil.getPath() + "/blendVideo777.mp4";
             editVideo(outputFilename1)
 
 
 
-            /*threadSync()
+            threadSync()
 
             mThread = Thread(Runnable {
                 //String outputFilename = "/sdcard/libCGE/blendVideo.mp4";
@@ -1238,6 +1425,8 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         object: VideoPlayerGLSurfaceView.PlayPreparedCallback {
             override fun playPrepared(player: MediaPlayer) {
                 calculateDimens()
+                initToolsCrop()
+                initCropConfig()
 
                 player.start();
                 mPlayerView!!.setFilterWithConfig(calculateRules())
@@ -1384,6 +1573,10 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 parentLp.width,
                 parentLp.height
             )
+
+            if(crop != null && !crop!!.isEmpty() && mPlayerView!!.cropInfo.overlay != null) {
+                mCropOverlayView!!.cropWindowRect = mPlayerView!!.cropInfo.overlay
+            }
         }
         //mCropOverlayView!!.setInitialCropWindowRect(null)
         mCropOverlayView!!.visibility = VISIBLE

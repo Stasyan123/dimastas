@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark"
+    tools:context=".MenuActivity">
+
+    <ImageView
+        android:id="@+id/topClose"
+        android:layout_width="17.5dp"
+        android:layout_height="17.5dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:scaleType="fitCenter"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_cross_top">
+
+    </ImageView>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@+id/topClose"
+        app:layout_constraintBottom_toTopOf="@+id/version"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_width="match_parent">
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:textAppearance="@style/intensity"
+                    android:textSize="14sp"
+                    android:text="@string/feedback"
+                    android:textColor="@color/menu_title"
+                    style="@style/menu_title"
+                    android:layout_marginTop="5dp"
+                    >
+                </TextView>
+
+                <View
+                    android:id="@+id/border1"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/title">
+
+                </View>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/rate"
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:background="@color/lGray"
+                    app:layout_constraintTop_toBottomOf="@+id/border1">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:gravity="center"
+                        android:textAppearance="@style/intensity"
+                        android:textSize="18sp"
+                        android:text="@string/rate"
+                        android:layout_marginStart="17dp"
+                        >
+                    </TextView>
+
+                    <View
+                        android:layout_width="7.5dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="19dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:background="@drawable/ic_right_arrow">
+
+                    </View>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <View
+                    android:id="@+id/border2"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/rate">
+
+                </View>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/contact"
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:background="@color/lGray"
+                    app:layout_constraintTop_toBottomOf="@+id/border2">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:gravity="center"
+                        android:textAppearance="@style/intensity"
+                        android:textSize="18sp"
+                        android:text="@string/contact"
+                        android:layout_marginStart="17dp"
+                        >
+                    </TextView>
+
+                    <View
+                        android:layout_width="7.5dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="19dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:background="@drawable/ic_right_arrow">
+
+                    </View>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <View
+                    android:id="@+id/border3"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/contact">
+
+                </View>
+
+                <TextView
+                    android:id="@+id/title2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/border3"
+                    android:textAppearance="@style/intensity"
+                    android:textSize="14sp"
+                    android:text="@string/dev"
+                    android:textColor="@color/menu_title"
+                    style="@style/menu_title"
+                    >
+                </TextView>
+
+                <View
+                    android:id="@+id/border4"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/title2">
+
+                </View>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/inst"
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:background="@color/lGray"
+                    app:layout_constraintTop_toBottomOf="@+id/border4">
+
+                    <View
+                        android:id="@+id/inst_icon"
+                        style="@style/menu_icon"
+                        android:layout_marginStart="@dimen/menu_icon_margin"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:background="@drawable/icon_xs">
+
+                    </View>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/inst_icon"
+                        android:gravity="center"
+                        android:textAppearance="@style/intensity"
+                        android:textSize="18sp"
+                        android:text="@string/app_inst"
+                        android:layout_marginStart="@dimen/menu_icon_margin"
+                        >
+                    </TextView>
+
+                    <View
+                        android:layout_width="7.5dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="19dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:background="@drawable/ic_right_arrow">
+
+                    </View>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <View
+                    android:id="@+id/border5"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/inst">
+
+                </View>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/my"
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:background="@color/lGray"
+                    app:layout_constraintTop_toBottomOf="@+id/border5">
+
+                    <View
+                        android:id="@+id/inst_icon2"
+                        style="@style/menu_icon"
+                        android:layout_marginStart="@dimen/menu_icon_margin"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:background="@drawable/ic_icon_inst">
+
+                    </View>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/inst_icon2"
+                        android:layout_marginStart="@dimen/menu_icon_margin"
+                        android:gravity="center"
+                        android:textAppearance="@style/intensity"
+                        android:textSize="18sp"
+                        android:text="@string/my"
+                        >
+                    </TextView>
+
+                    <View
+                        android:layout_width="7.5dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="19dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:background="@drawable/ic_right_arrow">
+
+                    </View>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <View
+                    android:id="@+id/border7"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/my">
+                </View>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/boar"
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:background="@color/lGray"
+                    app:layout_constraintTop_toBottomOf="@+id/border7">
+
+                    <View
+                        android:id="@+id/inst_icon3"
+                        style="@style/menu_icon"
+                        android:layout_marginStart="@dimen/menu_icon_margin"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:background="@drawable/ic_icon_inst">
+
+                    </View>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/inst_icon3"
+                        android:layout_marginStart="@dimen/menu_icon_margin"
+                        android:gravity="center"
+                        android:textAppearance="@style/intensity"
+                        android:textSize="18sp"
+                        android:text="@string/boar"
+                        >
+                    </TextView>
+
+                    <View
+                        android:layout_width="7.5dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="19dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:background="@drawable/ic_right_arrow">
+
+                    </View>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <View
+                    android:id="@+id/border6"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/boar">
+                </View>
+
+                <TextView
+                    android:id="@+id/title3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/border6"
+                    android:textAppearance="@style/intensity"
+                    android:textSize="14sp"
+                    android:text="@string/other"
+                    android:textColor="@color/menu_title"
+                    style="@style/menu_title"
+                    >
+                </TextView>
+
+                <View
+                    android:id="@+id/border8"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/title3">
+
+                </View>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/other"
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:background="@color/lGray"
+                    app:layout_constraintTop_toBottomOf="@+id/border8">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:gravity="center"
+                        android:textAppearance="@style/intensity"
+                        android:textSize="18sp"
+                        android:text="@string/terms"
+                        android:layout_marginStart="17dp"
+                        >
+                    </TextView>
+
+                    <View
+                        android:layout_width="7.5dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="19dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:background="@drawable/ic_right_arrow">
+
+                    </View>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <View
+                    android:id="@+id/border9"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/other">
+
+                </View>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/policy"
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:background="@color/lGray"
+                    app:layout_constraintTop_toBottomOf="@+id/border9">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:gravity="center"
+                        android:textAppearance="@style/intensity"
+                        android:textSize="18sp"
+                        android:text="@string/policy"
+                        android:layout_marginStart="17dp"
+                        >
+                    </TextView>
+
+                    <View
+                        android:layout_width="7.5dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="19dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:background="@drawable/ic_right_arrow">
+
+                    </View>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <View
+                    android:id="@+id/border10"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/menu_border"
+                    app:layout_constraintTop_toBottomOf="@+id/policy">
+
+                </View>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+</ScrollView>
+
+    <TextView
+        android:id="@+id/version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center"
+        android:textAppearance="@style/intensity"
+        android:textSize="18sp"
+        android:text="@string/version"
+        android:layout_marginBottom="12dp"
+        >
+    </TextView>
+</androidx.constraintlayout.widget.ConstraintLayout>

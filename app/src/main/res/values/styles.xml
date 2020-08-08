@@ -152,6 +152,15 @@
         </item>
     </style>
 
+    <style name="main_menu_horizontal">
+        <item name="android:layout_marginStart">
+            17.5dp
+        </item>
+        <item name="android:layout_marginEnd">
+            17.5dp
+        </item>
+    </style>
+
     <style name="filter_param">
         <item name="android:textSize">
             10sp
@@ -173,6 +182,27 @@
         </item>
         <item name="android:fontFamily">
             @font/masiva
+        </item>
+    </style>
+
+    <style name="menu_title">
+        <item name="android:layout_marginStart">
+            17dp
+        </item>
+        <item name="android:layout_marginTop">
+            17.5dp
+        </item>
+        <item name="android:layout_marginBottom">
+            10dp
+        </item>
+    </style>
+
+    <style name="menu_icon">
+        <item name="android:layout_width">
+            23.7dp
+        </item>
+        <item name="android:layout_height">
+            23.7dp
         </item>
     </style>
 

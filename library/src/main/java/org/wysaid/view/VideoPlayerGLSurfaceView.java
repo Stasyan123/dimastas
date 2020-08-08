@@ -582,7 +582,7 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
         int vHeight, vWidth, parentHeight, parentWidth;
 
         if(isCrop) {
-            vHeight = (int)cropInfo.height;
+                vHeight = (int)cropInfo.height;
             vWidth = (int)cropInfo.width;
 
             parentHeight = (int)mWrapperHeight;

@@ -408,12 +408,12 @@ public class ImagePickerActivity extends AppCompatActivity implements ImagePicke
         }
     }
 
-    @Override
+    /*@Override
     public void onBackPressed() {
         moveTaskToBack(true);
         finish();
         System.exit(-1);
-    }
+    }*/
 
     /**
      * MVP view methods

@@ -9,4 +9,7 @@ interface Asset: Parcelable {
     val id: Long
     val name: String
     val path: String
+    var correction: String
+    val crop: String
+    var position: Long
 }

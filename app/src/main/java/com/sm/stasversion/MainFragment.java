@@ -76,6 +76,12 @@ public final class MainFragment extends Fragment
       return mCropImageView.mBitmap != null;
   }
 
+  public void setConfigImage(Bitmap bm) {
+    mCropImageView.setConfigImage(bm);
+    //        CropImage.activity(imageUri)
+    //                .start(getContext(), this);
+  }
+
   public void setImageBm(Bitmap bm, FrameLayout f) {
     mCropImageView.setImageBitmap(bm);
     //        CropImage.activity(imageUri)
@@ -124,6 +130,10 @@ public final class MainFragment extends Fragment
      return mCropImageView.getRotate();
   }
 
+  public void applyCustom() {
+    mCropImageView.applyCustom();
+  }
+
   public Float getScaleX() {
     return mCropImageView.postScaleX();
   }
@@ -132,8 +142,8 @@ public final class MainFragment extends Fragment
     return mCropImageView.postScaleY();
   }
 
-  public void cancelCropInfo() {
-      mCropImageView.cancelCropInfo();
+  public void cancelCropInfo(Boolean withCrop) {
+      mCropImageView.cancelCropInfo(withCrop);
   }
 
   public boolean checkRemainder() {
@@ -210,7 +220,7 @@ public final class MainFragment extends Fragment
     mCropImageView.setOnCropImageCompleteListener(this);
 
     updateCurrentCropViewOptions();
-
+    mCropImageView.mBitmapReady = mBitmapReady;
     //Bitmap bm = BitmapFactory.decodeResource(this.getResources(), R.drawable.b);
 
     //Bitmap.createScaledBitmap(bm, 120, 120, false)
@@ -271,6 +281,7 @@ public final class MainFragment extends Fragment
 
   public interface OnBitmapReady {
     void onBitmapCropped(Bitmap image);
+    void onAreaReady();
   }
 
   private void handleCropResult(CropImageView.CropResult result) {
