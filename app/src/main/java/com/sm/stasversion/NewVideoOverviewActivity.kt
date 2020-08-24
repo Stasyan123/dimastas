@@ -18,8 +18,7 @@ import android.util.Log
 import android.util.Size
 import android.util.TypedValue
 import android.view.*
-import android.view.View.GONE
-import android.view.View.VISIBLE
+import android.view.View.*
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -122,7 +121,9 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
     private var mActiveConfig: AdjustConfig? = null
     private var mAdjustConfigs: MutableList<AdjustConfig>? = null
+    private var mEditingToolsAdapter: EditingToolsAdapter? = null
 
+    var isEdited = booleanArrayOf(false, false, false)
     private var videoPath: String? = null
 
     private var uri: Uri? = null;
@@ -130,7 +131,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     val playCompletionCallback: VideoPlayerGLSurfaceView.PlayCompletionCallback =
         object: VideoPlayerGLSurfaceView.PlayCompletionCallback {
             override fun playComplete(player: MediaPlayer) {
-                player.start();
+                player.start()
             }
 
             override fun playFailed(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
@@ -154,7 +155,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                     return null
                 }
 
-                if(mActiveConfig != null && name.equals(mActiveConfig!!.name)) {
+                if(name.equals(mAdjustConfigs!!.get(10).name)) {
                     return BitmapFactory.decodeStream(`is`).changeBmp(mActiveConfig!!.horizontal[1], mActiveConfig!!.vertical[1], mActiveConfig!!.rotate[1])
                 } else {
                     return BitmapFactory.decodeStream(`is`)
@@ -211,9 +212,9 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         initEffectsNames()
         setPaddings()
         initEffectsArray()
-        setUpViews()
         initSavebutton()
         initClosebutton()
+        setUpViews()
         colorsEvents(true)
 
         mPlayerView!!.setParentView(gpuWrapper)
@@ -231,15 +232,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     }
 
     fun initCropConfig() {
-        if(crop != null && !crop!!.isEmpty()) {
-            val cropInfo = Gson().fromJson(crop, CropInfo::class.java)
 
-            mPlayerView!!.cropInfo = cropInfo
-            mPlayerView!!.setCrop(true);
-            mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(), cropInfo.overlay.width().toInt(), cropInfo.overlay.height().toInt(), true)
-
-            mCropOverlayView!!.cancelCrop()
-        }
     }
 
     private fun initDB() {
@@ -259,12 +252,15 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             gson.setPlayer(mPlayerView)
 
             mAdjustConfigs = gson.decryptConfigs(correction)
+
+            intensity = mAdjustConfigs!!.get(0).intensity
+            position = mAdjustConfigs!!.get(0).position
         } else {
             val temperature = AdjustConfig(
                 6,
-                -1.0f,
+                -0.5f,
                 0.0f,
-                1.0f,
+                0.5f,
                 "@adjust whitebalance",
                 0.5f,
                 true,
@@ -272,7 +268,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 null
             )
             val temp_add =
-                AdjustConfig(6, 0.0f, 1.0f, 2.0f, "", 0.5f, true, EffectType.Temperature, null)
+                AdjustConfig(6, 0.5f, 1.0f, 1.5f, "", 0.5f, true, EffectType.Temperature, null)
             temp_add.parentId = 6
             temperature.setAdditional(temp_add)
 
@@ -336,9 +332,9 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 ),
                 AdjustConfig(
                     1,
-                    -1.0f,
+                    -0.5f,
                     0.0f,
-                    1.0f,
+                    0.5f,
                     "@adjust exposure",
                     0.5f,
                     false,
@@ -358,9 +354,9 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 ),
                 AdjustConfig(
                     3,
-                    .0f,
+                    .5f,
                     1.0f,
-                    2.0f,
+                    1.5f,
                     "@adjust contrast",
                     0.5f,
                     false,
@@ -457,7 +453,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     }
 
     override fun onFilterSelected(fType: FilterType, pos: Int, rule: String, color: Int) {
-        //changeMargin(true)
+        changeMargin(true)
         mActiveConfig = null;
 
         if(pos != position) {
@@ -473,7 +469,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
         if(pos == position) {
             if(pos != 0) {
-                //textIntensity!!.text = ((intensity * 100.0f).toInt()).toString()
+                textIntensity!!.text = ((intensity * 100.0f).toInt()).toString()
                 mSeekBar!!.setProgress((intensity * 100.0f).toInt())
 
                 findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = GONE
@@ -483,27 +479,30 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 toggleTopBar(true)
             }
         } else {
-            item!!.findViewById<View>(R.id.viewBorder).visibility = GONE
-            item.findViewById<ImageView>(R.id.intensity_icon).visibility = GONE
+            if(position != 0) {
+                mEditingToolsAdapter!!.switchBorderStatus(position, false)
+            }
+
+            if(item != null) {
+                item.findViewById<View>(R.id.viewBorder).visibility = View.GONE
+                item.findViewById<ImageView>(R.id.intensity_icon).visibility = View.GONE
+            }
 
             if(pos != 0) {
+                mEditingToolsAdapter!!.switchBorderStatus(pos, true)
                 val itemNew = rec.getLayoutManager()!!.findViewByPosition(pos);
                 val intens_new = itemNew!!.findViewById<ImageView>(R.id.intensity_icon)
                 intens_new.visibility = View.VISIBLE
 
                 val viewBorder = itemNew.findViewById<View>(R.id.viewBorder)
+                viewBorder.visibility = VISIBLE
 
-                if(viewBorder.tag != 1) {
-                    val border = viewBorder.background as LayerDrawable
-                    val shape = border.findDrawableByLayerId(R.id.shapeBorder) as GradientDrawable
-                    shape.setStroke(4 * getScale().toInt(), color)
-                    viewBorder.background = shape
-                    viewBorder.tag = 1
-                }
-
-                viewBorder.visibility = View.VISIBLE
+                isEdited[0] = true
+            } else {
+                isEdited[0] = false
             }
 
+            mEditingToolsAdapter!!.notifyDataSetChanged()
             position = pos
         }
     }
@@ -522,6 +521,8 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             mActiveConfig!!.textureConfig(0f, 1f, 1f, false)
             mActiveConfig!!.active = false
             mActiveConfig!!.mRule = ""
+
+            isEdited[2] = false
         } else {
             mActiveConfig!!.active = true
             mActiveConfig!!.name = name
@@ -529,6 +530,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
             mSeekTexture!!.setProgress((mActiveConfig!!.slierIntensity * mSeekTexture!!.max).toInt())
 
+            isEdited[2] = true
             toggleTopBar(true)
             showTexture()
         }
@@ -672,6 +674,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 scaleArea(false)
             }
 
+            isEdited[1] = true
             toggleTopBar(false)
             hideIntensity(false)
         }
@@ -822,6 +825,8 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         initToolsEvents()
         setUpSeek()
 
+        mCropOverlayView!!.setPlayer(mPlayerView)
+
         mSeekTemp!!.setOnSeekBarChangeListener(this)
         mSeekTint!!.setOnSeekBarChangeListener(this)
         mSeekHue!!.setOnSeekBarChangeListener(this)
@@ -915,11 +920,13 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         initRvTools();
     }
 
-    private fun initToolsCrop() {
-        mCropOverlayView!!.setPlayer(mPlayerView)
-
+    private fun setPercent() {
         val percentTextView = findViewById<TextView>(R.id.text_straightening)
-        percentTextView.text = getString(R.string.percent, 0.toString())
+        percentTextView.text = getString(R.string.percent, mPlayerView!!.cropInfo.currentPercent.toString())
+    }
+
+    private fun initToolsCrop() {
+        val percentTextView = findViewById<TextView>(R.id.text_straightening)
 
         var progressF = mPlayerView!!.cropInfo.currentPercentF
         var progress = mPlayerView!!.cropInfo.currentPercent
@@ -1056,6 +1063,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             mPlayerView!!.cropInfo.currentPercentF = straightening.currentPercentF
             mPlayerView!!.cropInfo.overlay = overlay
             mPlayerView!!.cropInfo.points = points
+            mPlayerView!!.cropInfo.isCropped = true
 
             initCropBar(false)
             toggleTopBar(false)
@@ -1080,6 +1088,10 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                                         mPlayerView!!.cropInfo.height, true)
 
             mCropOverlayView!!.cancelCrop()
+
+            if(mPlayerView!!.cropInfo.rotation != gpuWrapper!!.rotation) {
+                mPlayerView!!.rotateView(mPlayerView!!.cropInfo.rotation - gpuWrapper!!.rotation)
+            }
 
             toggleTopBar(false)
         }
@@ -1180,7 +1192,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
         val llmTools = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         val mTools = findViewById<RecyclerView>(R.id.rvTools)
-        val mEditingToolsAdapter = EditingToolsAdapter(this, Bitmap.createScaledBitmap(bmp, w.toInt(), h.toInt(), false), this)
+        mEditingToolsAdapter = EditingToolsAdapter(this, Bitmap.createScaledBitmap(bmp, w.toInt(), h.toInt(), false), this, position)
 
         mTools.layoutManager = llmTools
         mTools.setAdapter(mEditingToolsAdapter);
@@ -1214,8 +1226,19 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
     private fun initSavebutton() {
         findViewById<TextView>(R.id.topSave).setOnClickListener { v ->
-            val gsonStr = serializedConfigs.encryptConfigs(mAdjustConfigs)
-            val gsonCrop = Gson().toJson(mPlayerView!!.cropInfo)
+            mPlayerView!!.releasePlayer()
+
+            mAdjustConfigs!!.get(0).intensity = intensity
+            mAdjustConfigs!!.get(0).position = position
+            mAdjustConfigs!!.get(0).isEdited = isEdited
+
+            var gsonStr = ""
+
+            if(isEdited[0] != false || isEdited[1] != false || isEdited[2] != false) {
+                gsonStr = serializedConfigs.encryptConfigs(mAdjustConfigs)
+            }
+
+            val gsonCrop = if(mPlayerView!!.cropInfo.isCropped) Gson().toJson(mPlayerView!!.cropInfo) else ""
 
             db!!.configDao().updateConfig(imgId, gsonStr, gsonCrop)
 
@@ -1322,7 +1345,8 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
     private fun initClosebutton() {
         findViewById<View>(R.id.topClose).setOnClickListener { v ->
-
+            mPlayerView!!.releasePlayer()
+            finish()
         }
     }
 
@@ -1396,7 +1420,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
     fun calculateDimens() {
         val group = findViewById<ConstraintLayout>(R.id.groupLayout)
-        val tools = findViewById<ConstraintLayout>(R.id.toolsLayout)
+        val tools = findViewById<ConstraintLayout>(R.id.crop_area)
 
         val oneRect = calculeRectOnScreen(group);
         val secondRect = calculeRectOnScreen(tools);
@@ -1411,11 +1435,21 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
         mPlayerView!!.aetWrapper(oneRect.right - oneRect.left, distance)
 
-        val size = mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(),
-                                    mPlayerView!!.mVideoWidth, mPlayerView!!.mVideoHeight, true)
+        var size: IntArray? = null
 
-        mPlayerView!!.cropInfo.width = size[0]
-        mPlayerView!!.cropInfo.height = size[1]
+        if(crop != null && !crop!!.isEmpty()) {
+            val cropInfo = Gson().fromJson(crop, CropInfo::class.java)
+
+            mPlayerView!!.cropInfo = cropInfo
+            mPlayerView!!.setCrop(true);
+            mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(), cropInfo.overlay.width().toInt(), cropInfo.overlay.height().toInt(), true)
+        } else {
+            size = mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(),
+                mPlayerView!!.mVideoWidth, mPlayerView!!.mVideoHeight, true)
+
+            mPlayerView!!.cropInfo.width = size[0]
+            mPlayerView!!.cropInfo.height = size[1]
+        }
     }
 
     override fun onResume() {
@@ -1425,11 +1459,21 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         object: VideoPlayerGLSurfaceView.PlayPreparedCallback {
             override fun playPrepared(player: MediaPlayer) {
                 calculateDimens()
-                initToolsCrop()
-                initCropConfig()
 
-                player.start();
-                mPlayerView!!.setFilterWithConfig(calculateRules())
+                player.start()
+                setFilters()
+
+                mPlayerView!!.initCalculate = true
+            }
+
+            override fun onDimensionCalculated() {
+                mCropOverlayView!!.cancelCrop()
+
+                if(mPlayerView!!.cropInfo.rotation != 0.0f) {
+                    mPlayerView!!.rotateView(mPlayerView!!.cropInfo.rotation)
+                }
+
+                initToolsCrop()
             }
         }
 
@@ -1450,13 +1494,9 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         return Size(width, height)
     }
 
-    private fun calculateDimension() {
-        val overlay = mCropOverlayView!!.getCropWindowRect()
-        val h = mCropOverlayView!!.height
-        val w = mCropOverlayView!!.width
-        val h2 = gpuPlayerView!!.height;
-        val w2 = gpuPlayerView!!.width
-        val f = 1;
+    override fun onDestroy() {
+        super.onDestroy()
+        mPlayerView!!.releasePlayer()
     }
 
     override fun onPause() {
@@ -1526,6 +1566,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         mPlayerView!!.calcDimension(mPlayerView!!.mWrapperWidth.toInt(), mPlayerView!!.mWrapperHeight.toInt(),
             mPlayerView!!.mVideoWidth, mPlayerView!!.mVideoHeight, true)
 
+        setPercent()
         initCropBar(true)
         initOverlay()
     }
@@ -1539,7 +1580,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             crop.visibility = VISIBLE
         } else {
             tools.visibility = VISIBLE
-            crop.visibility = GONE
+            crop.visibility = INVISIBLE
         }
     }
 

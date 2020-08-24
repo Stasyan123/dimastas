@@ -26,16 +26,16 @@ public class EditingEffectsAdapter extends RecyclerView.Adapter<EditingEffectsAd
         mOnItemSelected = onItemSelected;
 
         mToolList.add(new EffectModel("Exposure", EffectType.Exposition, R.drawable.ic_exposure, 1));
-        mToolList.add(new EffectModel("Crop", EffectType.Crop, R.drawable.ic_crop, -1));
         mToolList.add(new EffectModel("Brightness", EffectType.Brightness, R.drawable.ic_brightness, 2));
         mToolList.add(new EffectModel("Contrast", EffectType.Contrast, R.drawable.ic_contrast, 3));
-        mToolList.add(new EffectModel("Shadows", EffectType.Shadow, R.drawable.ic_shadow, 4));
+        mToolList.add(new EffectModel("Shadows", EffectType.Shadow, R.drawable.ic_shadows, 4));
         mToolList.add(new EffectModel("Highlights", EffectType.Highlight, R.drawable.ic_highlights, 4));
         mToolList.add(new EffectModel("Saturation", EffectType.Saturation, R.drawable.ic_saturation, 5));
         mToolList.add(new EffectModel("Temperature", EffectType.Temperature, R.drawable.ic_temperature, 6));
         mToolList.add(new EffectModel("Grain", EffectType.Grain, R.drawable.ic_grain, 7));
         mToolList.add(new EffectModel("Sharpen", EffectType.Sharpness, R.drawable.ic_sharpen, 8));
         mToolList.add(new EffectModel("HSL", EffectType.HSL, R.drawable.ic_hsl, 9));
+        mToolList.add(new EffectModel("Crop", EffectType.Crop, R.drawable.ic_crop, -1));
     }
 
     public interface OnItemSelected {

@@ -31,8 +31,7 @@
     <View
         android:id="@+id/viewBorder"
         android:layout_width="@dimen/editor_width"
-        android:layout_height="@dimen/editor_height"
-        android:background="@drawable/preview_border">
+        android:layout_height="@dimen/editor_height">
 
     </View>
 

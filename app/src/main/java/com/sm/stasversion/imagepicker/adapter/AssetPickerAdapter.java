@@ -1,6 +1,8 @@
 package com.sm.stasversion.imagepicker.adapter;
 
 import android.content.Context;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -10,7 +12,9 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.exoplayer2.util.Log;
 import com.sm.stasversion.R;
+import com.sm.stasversion.classes.DoubleClickListener;
 import com.sm.stasversion.imagepicker.helper.ImageHelper;
 import com.sm.stasversion.imagepicker.listener.OnAssetClickListener;
 import com.sm.stasversion.imagepicker.listener.OnAssetSelectionListener;
@@ -92,24 +96,18 @@ public class AssetPickerAdapter extends BaseRecyclerViewAdapter<AssetPickerAdapt
             viewHolder.alphaView.setAlpha(0.0f);
         }
 
-        viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+        viewHolder.itemView.setOnClickListener(new DoubleClickListener() {
             @Override
-            public boolean onLongClick(View v) {
+            public void onDoubleClick() {
                 if(studio) {
                     List<Asset> assets = new ArrayList<>();
                     assets.add(asset);
 
                     assetSelectionListener.onSelectionUpdate(assets);
-                    return true;
                 }
-
-                return true;
             }
-        });
-
-        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick() {
                 //boolean shouldSelect = itemClickListener.onAssetClick(view, viewHolder.getAdapterPosition(), !isSelected);
 
                 if(viewHolder.border != null) {
@@ -124,7 +122,22 @@ public class AssetPickerAdapter extends BaseRecyclerViewAdapter<AssetPickerAdapt
                     addSelected(asset, position);
                 }
 
-                itemClickListener.onAssetClick(view, viewHolder.getAdapterPosition(), !isSelected);
+                itemClickListener.onAssetClick(null, viewHolder.getAdapterPosition(), !isSelected);
+            }
+        });
+
+        viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(studio) {
+                    List<Asset> assets = new ArrayList<>();
+                    assets.add(asset);
+
+                    assetSelectionListener.onSelectionUpdate(assets);
+                    return true;
+                }
+
+                return true;
             }
         });
     }

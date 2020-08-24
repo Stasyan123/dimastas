@@ -41,7 +41,7 @@
             <org.wysaid.view.VideoPlayerGLSurfaceView
                 android:id="@+id/videoGLSurfaceView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent" />
 
             <com.sm.stasversion.crop.CropOverlayView
                 android:id="@+id/CropOverlayView"
@@ -575,7 +575,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:visibility="gone"
+        android:visibility="invisible"
         >
 
         <androidx.constraintlayout.widget.ConstraintLayout

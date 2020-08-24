@@ -395,7 +395,7 @@ public class CropImageView extends FrameLayout {
   }
 
   public boolean checkRemainder() {
-      return ((cropInfo.rotation - mDegreesRotated) / 90) % 2 == 1;
+      return Math.abs(((cropInfo.rotation - mDegreesRotated) / 90) % 2) == 1;
   }
 
   public void cancelCropInfo(Boolean withCrop) {

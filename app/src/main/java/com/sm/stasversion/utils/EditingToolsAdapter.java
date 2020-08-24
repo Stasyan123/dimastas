@@ -3,6 +3,7 @@ package com.sm.stasversion.utils;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,10 +39,12 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
     private List<ToolModel> mToolList = new ArrayList<>();
     private OnItemSelected mOnItemSelected;
     private Bitmap image;
+    private Context context;
 
-    public EditingToolsAdapter(OnItemSelected onItemSelected, Bitmap img, Context ctx) {
+    public EditingToolsAdapter(OnItemSelected onItemSelected, Bitmap img, Context ctx, int position) {
         mOnItemSelected = onItemSelected;
         image = img.copy(Bitmap.Config.ARGB_8888,true);
+        context = ctx;
 
         mToolList.add(new ToolModel("Default", 0, FilterType.DEFAULT, "@adjust lut empty.png"));
         mToolList.add(new ToolModel("Vintage", ContextCompat.getColor(ctx, R.color.filter1), FilterType.FILTER1, "@adjust lut ping.png"));
@@ -53,10 +56,23 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
         mToolList.add(new ToolModel("Filter7", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut filmstock.png"));
         mToolList.add(new ToolModel("Filter8", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut late_sunset.png"));
         mToolList.add(new ToolModel("Filter9", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut wildbird.png"));
+        mToolList.add(new ToolModel("Filter10", ContextCompat.getColor(ctx, R.color.filter5), FilterType.FILTER3, "@adjust lut wildbird.png"));
+
+        if(position > 0) {
+            mToolList.get(position).showBorder = true;
+        }
     }
 
     public interface OnItemSelected {
         void onFilterSelected(FilterType filterType, Integer position, String rule, Integer color);
+    }
+
+    public int getScale() {
+        return (int)context.getResources().getDisplayMetrics().density;
+    }
+
+    public void invalidate() {
+
     }
 
     class ToolModel {
@@ -64,6 +80,7 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
         private Integer mColor;
         private FilterType fType;
         private String mRule;
+        private boolean showBorder = false;
 
         ToolModel(String toolName, Integer color, FilterType type, String rule) {
             mToolName = toolName;
@@ -88,16 +105,36 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
         if(item.mToolName.equals("Default")) {
             holder.txtTool.setVisibility(View.GONE);
             holder.viewEmpty.setVisibility(View.VISIBLE);
+            holder.viewBorder.setVisibility(View.GONE);
+            holder.intensityIcon.setVisibility(View.GONE);
         } else {
             holder.txtTool.setVisibility(View.VISIBLE);
             holder.viewEmpty.setVisibility(View.GONE);
 
             holder.txtTool.setText(item.mToolName);
+
+            GradientDrawable border = new GradientDrawable();
+            border.setStroke(2 * getScale(), item.mColor);
+
+            holder.txtTool.setBackgroundColor(item.mColor);
+            holder.viewBorder.setBackground(border);
+
+            if(!item.showBorder) {
+                holder.viewBorder.setVisibility(View.GONE);
+                holder.intensityIcon.setVisibility(View.GONE);
+            } else {
+                holder.viewBorder.setVisibility(View.VISIBLE);
+                holder.intensityIcon.setVisibility(View.VISIBLE);
+            }
         }
 
-        holder.txtTool.setBackgroundColor(item.mColor);
-
         holder.imgToolIcon.setImageBitmap(CGENativeLibrary.filterImage_MultipleEffects(image, item.mRule, 1.0f));
+    }
+
+    public void switchBorderStatus(int position, boolean status) {
+        ToolModel item = mToolList.get(position);
+
+        item.showBorder = status;
     }
 
     @Override
@@ -110,6 +147,7 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
         TextView txtTool;
         View viewEmpty;
         View viewBorder;
+        ImageView intensityIcon;
 
         ViewHolder(View itemView) {
             super(itemView);
@@ -117,6 +155,7 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
             txtTool = itemView.findViewById(R.id.txtTool);
             viewEmpty = itemView.findViewById(R.id.viewEmpty);
             viewBorder = itemView.findViewById(R.id.viewBorder);
+            intensityIcon = itemView.findViewById(R.id.intensity_icon);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

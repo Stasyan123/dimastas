@@ -114,7 +114,7 @@ namespace CGE
     // A simple-slow offscreen video rendering function.
     bool cgeGenerateVideoWithFilter(const char* outputFilename, const char* inputFilename, const char* filterConfig, float filterIntensity, GLuint texID, CGETextureBlendMode blendMode, float blendIntensity, bool mute, CGETexLoadArg* loadArg)
     {
-        static const int ENCODE_FPS = 60;
+        static const int ENCODE_FPS = 30;
         int bitrate = 0;
         
         CGEVideoDecodeHandler* decodeHandler = new CGEVideoDecodeHandler();
@@ -133,7 +133,7 @@ namespace CGE
         unsigned char* cacheBuffer = nullptr;
         int cacheBufferSize = 0;
 
-        bitrate = 0.25 * 30 * videoWidth * videoHeight;
+        bitrate = 0.25 * 15 * videoWidth * videoHeight;
         
         CGEVideoPlayerYUV420P videoPlayer;
         videoPlayer.initWithDecodeHandler(decodeHandler);

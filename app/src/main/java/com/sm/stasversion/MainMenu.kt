@@ -2,9 +2,12 @@ package com.sm.stasversion
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -20,17 +23,32 @@ import com.sm.stasversion.imagepicker.model.SavePath
 import androidx.room.Room
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.media.ExifInterface
 import android.net.Uri
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.gson.Gson
+import com.sm.stasversion.classes.AdjustConfig
 import com.sm.stasversion.classes.DBConfig
+import com.sm.stasversion.classes.serializedConfigs
 import com.sm.stasversion.imagepicker.listener.OnAssetSelectionListener
 import com.sm.stasversion.imagepicker.ui.imagepicker.*
 import com.sm.stasversion.imagepicker.util.isVideoFile
 import org.wysaid.common.Common
+import org.wysaid.myUtils.FileUtil
+import org.wysaid.myUtils.ImageUtil
+import org.wysaid.myUtils.MsgUtil
+import org.wysaid.nativePort.CGEFFmpegNativeLibrary
 import org.wysaid.nativePort.CGENativeLibrary
+import org.wysaid.texUtils.CropInfo
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -59,29 +77,19 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
 
     private var presenter: ImagePickerPresenter? = null
 
+    protected var mThread: Thread? = null
+    protected var mShouldStopThread = false
+
+    protected var textureConfig: AdjustConfig? = null
+    protected var test = ""
+
     private val imageClickListener =
         OnAssetClickListener { view, position, isSelected ->
                 val size = recyclerViewManager!!.getSelectedSize()
 
                 if(size == 0) {
-                    copy!!.background = getResources().getDrawable(R.drawable.ic_copy_edit)
-                    paste!!.background = getResources().getDrawable(R.drawable.ic_paste_edit)
-                    save!!.background = getResources().getDrawable(R.drawable.ic_save)
-                    delete!!.background = getResources().getDrawable(R.drawable.ic_delete)
-
-                    copy!!.setTag(-1)
-                    paste!!.setTag(-1)
-                    save!!.setTag(-1)
-                    delete!!.setTag(-1)
+                    deactivateBar()
                 } else {
-                    if(size == 1 && !recyclerViewManager!!.getAsset(0).correction.isEmpty()) {
-                        copy!!.background = getResources().getDrawable(R.drawable.ic_copy_edit_colored)
-                        copy!!.setTag(1)
-                    } else {
-                        copy!!.background = getResources().getDrawable(R.drawable.ic_copy_edit)
-                        copy!!.setTag(-1)
-                    }
-
                     delete!!.background = getResources().getDrawable(R.drawable.ic_delete_colored)
                     save!!.background = getResources().getDrawable(R.drawable.ic_save_colored)
 
@@ -92,6 +100,19 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
 
                     save!!.setTag(1)
                     delete!!.setTag(1)
+
+                    if(size == 1 && !isNullOrEmpty(recyclerViewManager!!.getAsset(0).correction)) {
+                        copy!!.background = getResources().getDrawable(R.drawable.ic_copy_edit_colored)
+                        copy!!.setTag(1)
+                    } else {
+                        copy!!.background = getResources().getDrawable(R.drawable.ic_copy_edit)
+                        copy!!.setTag(-1)
+                    }
+
+                    if(size == 1 && isNullOrEmpty(recyclerViewManager!!.getAsset(0).correction)) {
+                        save!!.background = getResources().getDrawable(R.drawable.ic_save)
+                        save!!.setTag(-1)
+                    }
                 }
 
                 recyclerViewManager!!.selectImage()
@@ -106,6 +127,8 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
             //Notice: the 'name' passed in is just what you write in the rule, e.g: 1.jpg
             override fun loadImage(name: String, arg: Any?): Bitmap? {
 
+                Log.d(LOG_TAG, " Loading " + test)
+                Log.d(Common.LOG_TAG, " Loading " + test)
                 Log.i(Common.LOG_TAG, "Loading file: $name")
                 val am = assets
                 val `is`: InputStream
@@ -125,6 +148,8 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
             }
         }
 
+    val LOG_TAG = "mood"
+
     override fun onCreate(savedInstanceState: Bundle?)  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_menu)
@@ -140,6 +165,24 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
     override fun onResume() {
         super.onResume()
         getDataWithPermission()
+    }
+
+    fun isNullOrEmpty(str: String?): Boolean {
+        if (str != null && !str.isEmpty())
+            return false
+        return true
+    }
+
+    private fun deactivateBar() {
+        copy!!.background = getResources().getDrawable(R.drawable.ic_copy_edit)
+        paste!!.background = getResources().getDrawable(R.drawable.ic_paste_edit)
+        save!!.background = getResources().getDrawable(R.drawable.ic_save)
+        delete!!.background = getResources().getDrawable(R.drawable.ic_delete)
+
+        copy!!.setTag(-1)
+        paste!!.setTag(-1)
+        save!!.setTag(-1)
+        delete!!.setTag(-1)
     }
 
     private fun initDB() {
@@ -198,8 +241,6 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
 
         val add = findViewById<ImageView>(R.id.topAdd)
         add.setOnClickListener{
-            val t = db!!.configDao().size()
-
             AssetPicker.with(this)
                 .setFolderMode(true)
                 .setIncludeVideos(true)
@@ -264,7 +305,26 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         }
 
         save!!.setOnClickListener{
+            val selected = recyclerViewManager!!.getSelectedAssets()
 
+            if (selected.size >= 1) {
+                selected.forEach() { el ->
+                    threadSync()
+
+                    mThread = Thread(Runnable {
+                        test = "Start id - " + el.id
+                        Log.d(LOG_TAG, "Start id - " + el.id)
+
+                        if (File(el.path).isVideoFile) {
+                            saveVideo(el)
+                        } else {
+                            saveImage(el)
+                        }
+                    })
+
+                    mThread!!.start()
+                }
+            }
         }
 
         delete!!.setOnClickListener{
@@ -280,11 +340,235 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
 
                 recyclerViewManager!!.invalidate()
 
+                deactivateBar()
+
                 if(recyclerViewManager!!.getItemCount() == 0) {
                     showEmpty()
                 }
             }
         }
+    }
+
+    private fun saveImage(el: Asset) {
+        val futureBitmap = Glide.with(applicationContext)
+            .asBitmap()
+            .load(el.path)
+            .submit()
+
+        var bmp = futureBitmap.get()
+
+        if(!el.crop.isEmpty()) {
+            val cropInfo = Gson().fromJson(el.crop, CropInfo::class.java)
+            bmp = serializedConfigs.cropImage(bmp, cropInfo)
+        }
+
+        if(!el.correction.isEmpty()) {
+            val _configs = serializedConfigs.decryptConfigsStatic(el.correction)
+            val rules = serializedConfigs.calculateRules(_configs)
+
+            bmp = CGENativeLibrary.filterImage_MultipleEffects(bmp, rules, _configs.get(0).intensity)
+        }
+
+        val s = ImageUtil.saveBitmap(bmp);
+
+        showMsg("The filter is applied! See it: /sdcard/mood/rec_*.jpg")
+        sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://$s")))
+
+        /*Glide.with(this)
+            .asBitmap()
+            .load(el.path)
+            .into(object : CustomTarget<Bitmap>(){
+                override fun onResourceReady(bmp: Bitmap, transition: Transition<in Bitmap>?) {
+                    var bitmap: Bitmap? = null
+                    var dstImage: Bitmap? = null
+
+                    if(!el.crop.isEmpty()) {
+                        val cropInfo = Gson().fromJson(el.crop, CropInfo::class.java)
+                        bitmap = serializedConfigs.cropImage(bmp, cropInfo)
+                    } else {
+                        bitmap = bmp
+                    }
+
+                    if(el.correction.isEmpty()) {
+                        dstImage = bitmap
+                    } else {
+                        val _configs = serializedConfigs.decryptConfigsStatic(el.correction)
+                        val rules = serializedConfigs.calculateRules(_configs)
+
+                        dstImage = CGENativeLibrary.filterImage_MultipleEffects(bitmap, rules, _configs.get(0).intensity)
+                    }
+
+                    val s = ImageUtil.saveBitmap(dstImage);
+
+                    showMsg("The filter is applied! See it: /sdcard/mood/rec_*.jpg")
+                    sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://$s")))
+                }
+                override fun onLoadCleared(placeholder: Drawable?) {
+                }
+            })*/
+    }
+
+    private fun saveVideo(el: Asset) {
+        val _configs = serializedConfigs.decryptConfigsStatic(el.correction)
+        val rules = serializedConfigs.calculateRules(_configs)
+
+        //String outputFilename = "/sdcard/libCGE/blendVideo.mp4";
+        //String inputFileName = "android.resource://" + getPackageName() + "/" + R.raw.fish;
+        val outputFilename = FileUtil.getPath() + ".mp4"
+        //String inputFileName = FileUtil.getTextContent(CameraDemoActivity.lastVideoPathFileName);
+        //String inputFileName = "/storage/9016-4EF8/DCIM/Camera/20200402_124813.mp4";
+        //String inputFileName = "/storage/9016-4EF8/DCIM/Camera/20200402_124813_001.mp4"; // 2 sec
+
+        //bmp is used for watermark, (just pass null if you don't want that)
+        //and ususally the blend mode is CGE_BLEND_ADDREV for watermarks.
+        CGEFFmpegNativeLibrary.generateVideoWithFilter(
+            outputFilename,
+            el.path,
+            rules,
+            _configs.get(0).intensity,
+            null,
+            CGENativeLibrary.TextureBlendMode.CGE_BLEND_ADDREV,
+            1.0f,
+            false
+        )
+        Log.d(LOG_TAG, "Done! The file is generated at: \$outputFilename")
+
+        sendBroadcast(
+            Intent(
+                Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                Uri.parse("file://$outputFilename")
+            )
+        )
+
+            /*if(el.crop.isEmpty()) {
+                sendBroadcast(
+                    Intent(
+                        Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                        Uri.parse("file://$outputFilename")
+                    )
+                )
+                showMsg("The filter is applied! See it: /sdcard/mood/rec_*.jpg")
+            } else {
+                editVideo(outputFilename, el)
+            }*/
+
+    }
+
+    private fun editVideo(name: String, el: Asset) {
+        val cmdArray = ArrayList<String>();
+        val empty = arrayOf("","","")
+
+        val outputFilename = FileUtil.getPath() + "/blendVideo4.mp4";
+        //val outputFilename = "/storage/emulated/0/Pictures/Telegram/VID_20200626_125043_721.mp4";
+        val outputFilename1 = FileUtil.getPath() + "/blendVideo7797.mp4";
+
+        val file = File(outputFilename)
+        file.delete()
+
+        cmdArray.add("-i");
+        cmdArray.add(outputFilename);
+        cmdArray.add("-c");
+        cmdArray.add("copy");
+        cmdArray.add("-metadata:s:v:0");
+        cmdArray.add("rotate=270");
+        cmdArray.add(outputFilename1);
+
+        val ffmpeg = FFmpeg.getInstance(this)
+
+        try {
+            ffmpeg.execute(arrayOf("-i", name, "-filter:v", "rotate=35*PI/180", "-c:a", "copy", outputFilename1), object: ExecuteBinaryResponseHandler() {
+                override fun onStart() {
+                    super.onStart()
+                    Log.d("Stas", "onStart")
+                }
+
+                override fun onProgress(message: String?) {
+                    super.onProgress(message)
+                    Log.d(LOG_TAG, message)
+                }
+
+                override fun onFailure(message: String?) {
+                    super.onFailure(message)
+                    Log.d(LOG_TAG, "onFailure")
+                }
+
+                override fun onSuccess(message: String?) {
+                    super.onSuccess(message)
+                    //File(name).delete()
+
+                    sendBroadcast(
+                        Intent(
+                            Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                            Uri.parse("file://$outputFilename1")
+                        )
+                    )
+                }
+
+                override fun onFinish() {
+                    super.onFinish()
+                    Log.d(LOG_TAG, "onFinish")
+                }
+            })
+        } catch (e: FFmpegCommandAlreadyRunningException) {
+            Log.d(LOG_TAG, "onFinish")
+        }
+    }
+
+    protected fun threadSync() {
+
+        if (mThread != null && mThread!!.isAlive()) {
+            mShouldStopThread = true
+
+            try {
+                mThread!!.join()
+                mThread = null
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+        }
+
+        mShouldStopThread = false
+    }
+
+    private fun getCameraPhotoOrientation(context: Context, imageUri: String): Float{
+        var rotate = 0.0f
+        try {
+            var exif = ExifInterface(imageUri);
+            val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_270 -> {
+                    rotate = 270.0f;
+                }
+                ExifInterface.ORIENTATION_ROTATE_180 -> {
+                    rotate = 180.0f;
+                }
+                ExifInterface.ORIENTATION_ROTATE_90 -> {
+                    rotate = 90.0f;
+                }
+                else -> { // Note the block
+
+                }
+            }
+
+            Log.i(LOG_TAG, "Exif orientation: " + orientation);
+            Log.i(LOG_TAG, "Rotate value: " + rotate);
+        } catch (e: Exception) {
+            e.printStackTrace();
+        }
+        return rotate;
+    }
+
+    protected fun showMsg(msg: String) {
+
+        this@MainMenu.runOnUiThread(Runnable {
+            MsgUtil.toastMsg(
+                this@MainMenu,
+                msg,
+                Toast.LENGTH_SHORT
+            )
+        })
     }
 
     private fun setupComponents() {
@@ -303,10 +587,6 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
 
                 if (f.isVideoFile) { // If file is an Image
                     intent = Intent(this@MainMenu, NewVideoOverviewActivity::class.java)
-                }
-
-                if(!assets[0].correction.isEmpty()) {
-
                 }
 
                 intent.putExtra("file", uri)

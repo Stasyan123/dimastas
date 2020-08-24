@@ -4,7 +4,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 
 public class CropInfo {
-    public boolean isCrop = false;
+    public boolean isCropped = false;
 
     public int width = 0;
     public int height = 0;

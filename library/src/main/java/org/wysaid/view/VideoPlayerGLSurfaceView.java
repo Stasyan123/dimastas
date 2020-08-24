@@ -70,7 +70,7 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
         return mViewHeight;
     }
 
-    public Boolean stopCalculate = false;
+    public Boolean initCalculate = false;
     public int mVideoWidth = 1000;
     public int mVideoHeight = 1000;
 
@@ -130,6 +130,7 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
 
     public interface PlayPreparedCallback {
         void playPrepared(MediaPlayer player);
+        void onDimensionCalculated();
     }
 
     PlayPreparedCallback mPreparedCallback;
@@ -388,11 +389,7 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
         mViewWidth = width;
         mViewHeight = height;
 
-        if(stopCalculate) {
-            stopCalculate = false;
-        } else {
-            calcViewport();
-        }
+        calcViewport();
     }
 
     //must be in the OpenGL thread!
@@ -470,7 +467,11 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
 
             mSurfaceTexture.updateTexImage();
 
-            if (!mPlayer.isPlaying()) {
+            try{
+                if (mPlayer == null || !mPlayer.isPlaying()) {
+                    return;
+                }
+            } catch (Exception e) {
                 return;
             }
 
@@ -535,17 +536,21 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
 
         rotation = (rotation + degrees) % 360;
 
+        ViewGroup.LayoutParams lp = parentView.getLayoutParams();
+
         if(rotation == 90 || rotation == 270) {
             size = calcDimension((int) mWrapperWidth, (int) mWrapperHeight, mVideoHeight, mVideoWidth, false);
 
-            scaleX = (float)size[0] / parentView.getHeight();
-            scaleY = (float)size[1] / parentView.getWidth();
+            scaleX = (float)size[0] / lp.height;
+            scaleY = (float)size[1] / lp.width;
         } else {
             size = calcDimension((int) mWrapperWidth, (int) mWrapperHeight, mVideoWidth, mVideoHeight, false);
 
-            scaleX = (float)size[0] / parentView.getWidth();
-            scaleY = (float)size[1] / parentView.getHeight();
+            scaleX = (float)size[0] / lp.width;
+            scaleY = (float)size[1] / lp.height;
         }
+
+        //Log.d("Stas", size[0] + " size[0]");
 
         scale = min(scaleX, scaleY);
 
@@ -582,8 +587,8 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
         int vHeight, vWidth, parentHeight, parentWidth;
 
         if(isCrop) {
-                vHeight = (int)cropInfo.height;
-            vWidth = (int)cropInfo.width;
+            vHeight = cropInfo.height;
+            vWidth = cropInfo.width;
 
             parentHeight = (int)mWrapperHeight;
             parentWidth = (int)mWrapperWidth;
@@ -611,6 +616,11 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
             mRenderViewport.y = (mViewHeight - mRenderViewport.height) / 2;
 
             Log.i(LOG_TAG, String.format("View port: %d, %d, %d, %d", mRenderViewport.x, mRenderViewport.y, mRenderViewport.width, mRenderViewport.height));
+        }
+
+        if(initCalculate) {
+            mPreparedCallback.onDimensionCalculated();
+            initCalculate = false;
         }
     }
 

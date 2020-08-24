@@ -11,6 +11,7 @@ import java.util.List;
 public class AdjustConfig {
     private float minValue, originValue, maxValue;
     private int index;
+    public int position;
     public float intensity, slierIntensity;
     public String mRule;
     public Boolean additional;
@@ -33,6 +34,8 @@ public class AdjustConfig {
     public Float[] vertical = {1f, 1f};
     public Boolean[] diff = {false, false};
     public String name = "";
+
+    public boolean[] isEdited;
 
     public AdjustConfig() {
 

@@ -18,9 +18,7 @@ import android.provider.MediaStore
 import android.text.TextUtils
 import android.util.Log
 import android.util.TypedValue
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
@@ -46,6 +44,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import com.sm.stasversion.videoUtils.FilterType
 import com.sm.stasversion.widget.HorizontalProgressWheelView
+import kotlinx.android.synthetic.main.activity_edit_image.*
 import org.wysaid.common.Common
 import org.wysaid.myUtils.FileUtil
 import org.wysaid.nativePort.CGEFFmpegNativeLibrary
@@ -59,15 +58,13 @@ import java.io.InputStream
 class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToolsAdapter.OnItemSelected, EditingEffectsAdapter.OnItemSelected,
     EditingTextureAdapter.OnItemSelected, MainFragment.OnBitmapReady, SeekBar.OnSeekBarChangeListener {
 
-    protected var BASIC_FILTER_CONFIG: String = "@adjust lut edgy_amber.png";
-    protected var CONFIG_RULES: String = "";
-    protected var LOG_TAG: String = "DimaStas";
-
     private var db: AppDatabase? = null
     private var imgId: Int? = null
+    private var uri: Uri? = null
     private var correction: String? = null
     private var crop: String? = null
 
+    private var mEditingToolsAdapter: EditingToolsAdapter? = null
     private var mCurrentFragment: MainFragment? = null
     private var mImageView: ImageView? = null
     private var glImageView: ImageGLSurfaceView? = null
@@ -113,6 +110,8 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     var mThread: Thread? = null
     var mShouldStopThread = false
 
+    var isEdited = booleanArrayOf(false, false, false)
+
     var mLoadImageCallback: CGENativeLibrary.LoadImageCallback =
         object : CGENativeLibrary.LoadImageCallback {
 
@@ -129,12 +128,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                     return null
                 }
 
-                if(mActiveConfig != null && name.equals(mActiveConfig!!.name)) {
+                if(name.equals(mAdjustConfigs!!.get(10).name)) {
                     return BitmapFactory.decodeStream(`is`).changeBmp(mActiveConfig!!.horizontal[1], mActiveConfig!!.vertical[1], mActiveConfig!!.rotate[1])
                 } else {
                     return BitmapFactory.decodeStream(`is`)
                 }
-
             }
 
             override fun loadImageOK(bmp: Bitmap, arg: Any) {
@@ -142,6 +140,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 bmp.recycle()
             }
         }
+
+    override fun onResume() {
+        super.onResume()
+        showSingleImage(uri)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -159,10 +162,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         textIntensity = findViewById(R.id.text_intensity)
 
         grainImage = BitmapFactory.decodeResource(this.getResources(), R.drawable.oise_light)
+        glImageView = findViewById(R.id.gpuimageview) as ImageGLSurfaceView
 
         val bundle = intent.extras
 
-        val uri = intent.getParcelableExtra<Uri>("file")
+        uri = intent.getParcelableExtra<Uri>("file")
         imgId = bundle!!.getInt("imgId")
         correction = bundle.getString("configs")
         crop = bundle.getString("crop")
@@ -177,7 +181,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         setPaddings()
         initEffectsNames()
         initEffectsArray()
-        showSingleImage(uri)
         initSavebutton()
         initClosebutton()
         initCrop()
@@ -224,7 +227,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             fragmentManager
                 .beginTransaction()
                 .replace(R.id.container, MainFragment.newInstance(CropDemoPreset.RECT))
-                .commit();
+                .commit()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -313,7 +316,8 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         val hor = findViewById<View>(R.id.horizontal);
         hor.setOnClickListener{
-            rotateImage()
+            //rotateImage()
+            mCurrentFragment!!.toolsSelect(hor)
         }
 
         val vert = findViewById<View>(R.id.vertical);
@@ -376,13 +380,22 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
             mCurrentFragment!!.mCropImageView.cropInfo.currentPercent = progress
             mCurrentFragment!!.mCropImageView.cropInfo.currentPercentF = progressF
+            mCurrentFragment!!.mCropImageView.cropInfo.isCropped = true
 
             straightening.setValue(progress, progressF)
+
             toggleTopBar(false)
         }
 
         val cancel = findViewById<View>(R.id.cancel_crop)
         cancel.setOnClickListener{
+            if(mCurrentFragment!!.checkRemainder()) {
+                rotateEvent(false)
+            }
+
+            mCurrentFragment!!.cancelCropInfo(true)
+            mCurrentFragment!!.applyCustom()
+
             val crop = findViewById<ConstraintLayout>(R.id.crop_area)
             crop.visibility = View.GONE
 
@@ -392,15 +405,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             percentTextView.text = getString(R.string.percent, mCurrentFragment!!.mCropImageView.cropInfo.currentPercent.toString())
             straightening.invalidateValue()
             straightening.postInvalidate()
-
-            mCurrentFragment!!.cancelCropInfo(false)
-            mCurrentFragment!!.applyCustom()
-
-            if(mCurrentFragment!!.checkRemainder()) {
-                rotateEvent(false)
-            }
-
-            mCurrentFragment!!.cancelCropInfo(true)
 
             toggleTopBar(false)
         }
@@ -452,9 +456,16 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         v.setOnClickListener{
             mAdjustConfigs!!.get(0).intensity = intensity
+            mAdjustConfigs!!.get(0).position = position
+            mAdjustConfigs!!.get(0).isEdited = isEdited
 
-            val gsonConfig = serializedConfigs.encryptConfigs(mAdjustConfigs)
-            val gsonCrop = Gson().toJson(mCurrentFragment!!.mCropImageView.getCropInfo())
+            var gsonConfig = ""
+
+            if(isEdited[0] != false || isEdited[1] != false || isEdited[2] != false) {
+                gsonConfig = serializedConfigs.encryptConfigs(mAdjustConfigs)
+            }
+
+            val gsonCrop = if(mCurrentFragment!!.mCropImageView.getCropInfo().isCropped) Gson().toJson(mCurrentFragment!!.mCropImageView.getCropInfo()) else ""
 
             db!!.configDao().updateConfig(imgId, gsonConfig, gsonCrop)
             finish()
@@ -472,7 +483,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         view.setOnClickListener{
             //glImageView!!.setFilterWithConfig("@adjust lut ping.png 0.0 @adjust exposure 0.0 @adjust brightness 0.0 @adjust contrast 1.0 @adjust shadowhighlight 0.0 0.0 @adjust saturation 1.0 @adjust whitebalance 0.0 1.0 @blend sl oise_light.png 0.0 @adjust sharpen 0.0 @adjust hsl 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
-            initOverlay()
+            finish()
         }
     }
 
@@ -571,19 +582,46 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         }
     }
 
+    private fun before_afterEvent() {
+        var shouldStop = false
+        //val parent = findViewById<RelativeLayout>(R.id.parentView)
+
+        glImageView!!.setOnTouchListener(object : View.OnTouchListener {
+            override fun onTouch(v: View?, event: MotionEvent): Boolean {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if(!shouldStop) {
+                        setFilters()
+                    }
+                    shouldStop = true
+                } else if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                    shouldStop = false
+
+                    android.os.Handler().postDelayed(object : Runnable {
+                        override fun run() {
+                            if(!shouldStop) {
+                                glImageView!!.setFilterWithConfig("")
+                            }
+                        }
+                    }, 0, 400)
+                }
+
+                return true
+            }
+        })
+    }
+
     private fun initView(res: Bitmap) {
         updateView()
         initToolsEvents()
+        before_afterEvent()
 
         try {
-            glImageView = findViewById(R.id.gpuimageview) as ImageGLSurfaceView
-
             val img = initCropConfig(res)
             cropSurface(img, true)
 
             glImageView!!.setSurfaceCreatedCallback( {
                 glImageView!!.setImageBitmap(img)
-                glImageView!!.setFilterWithConfig(calculateRules())
+                setFilters()
             })
 
             glImageView!!.setDisplayMode(ImageGLSurfaceView.DisplayMode.DISPLAY_ASPECT_FIT)
@@ -795,6 +833,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 scaleArea(false)
             }
 
+            isEdited[1] = true
             toggleTopBar(false)
             hideIntensity(false)
         }
@@ -835,6 +874,16 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
             toggleTopBar(false)
             hideIntensity(false)
+        }
+    }
+
+    private fun checkEffectChanged() {
+        var rule = "";
+
+        mAdjustConfigs!!.forEachIndexed() { index, config ->
+            if(config.active) {
+                rule += " " + config.getRule()
+            }
         }
     }
 
@@ -879,7 +928,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     private fun initRvTools(res: Bitmap) {
         val llmTools = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         val mTools = findViewById<RecyclerView>(R.id.rvTools)
-        val mEditingToolsAdapter = EditingToolsAdapter(this, res, this)
+        mEditingToolsAdapter = EditingToolsAdapter(this, res, this, position)
 
         mTools.layoutManager = llmTools
         mTools.setAdapter(mEditingToolsAdapter);
@@ -1029,27 +1078,30 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 toggleTopBar(true)
             }
         } else {
-            item!!.findViewById<View>(R.id.viewBorder).visibility = View.GONE
-            item.findViewById<ImageView>(R.id.intensity_icon).visibility = View.GONE
+            if(position != 0) {
+                mEditingToolsAdapter!!.switchBorderStatus(position, false)
+            }
+
+            if(item != null) {
+                item.findViewById<View>(R.id.viewBorder).visibility = View.GONE
+                item.findViewById<ImageView>(R.id.intensity_icon).visibility = View.GONE
+            }
 
             if(pos != 0) {
+                mEditingToolsAdapter!!.switchBorderStatus(pos, true)
                 val itemNew = rec.getLayoutManager()!!.findViewByPosition(pos);
                 val intens_new = itemNew!!.findViewById<ImageView>(R.id.intensity_icon)
                 intens_new.visibility = View.VISIBLE
 
                 val viewBorder = itemNew.findViewById<View>(R.id.viewBorder)
-
-                if(viewBorder.tag != 1) {
-                    val border = viewBorder.background as LayerDrawable
-                    val shape = border.findDrawableByLayerId(R.id.shapeBorder) as GradientDrawable
-                    shape.setStroke(4 * getScale().toInt(), color)
-                    viewBorder.background = shape
-                    viewBorder.tag = 1
-                }
-
                 viewBorder.visibility = View.VISIBLE
+
+                isEdited[0] = true
+            } else {
+                isEdited[0] = false
             }
 
+            mEditingToolsAdapter!!.notifyDataSetChanged()
             position = pos
         }
     }
@@ -1074,14 +1126,20 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             frame.setLayoutParams(l)
         }
 
-        if(mCurrentFragment!!.isBmInit()) {
-            mImageView!!.setImageBitmap(arr)
-        } else {
-            mCurrentFragment!!.setFrame(findViewById<FrameLayout>(R.id.container))
-            mCurrentFragment!!.setImageBm(arr, findViewById<FrameLayout>(R.id.container))
+        try{
+            if(mCurrentFragment!!.isBmInit()) {
+                mImageView!!.setImageBitmap(arr)
+            } else {
+                mCurrentFragment!!.setFrame(findViewById<FrameLayout>(R.id.container))
+                mCurrentFragment!!.setImageBm(arr, findViewById<FrameLayout>(R.id.container))
 
-            mImageView = findViewById<ImageView>(R.id.ImageView_image)
+                mImageView = findViewById<ImageView>(R.id.ImageView_image)
+            }
+        } catch (e: java.lang.Exception) {
+            val t1 = 1;
+            val t = 1;
         }
+
 
         if(initCrop && crop != null && !crop!!.isEmpty() && !initOnly) {
             initCrop = false
@@ -1249,12 +1307,13 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         if(correction != null &&!correction!!.isEmpty()) {
             mAdjustConfigs = serializedConfigs.decryptConfigsStatic(correction)
             intensity = mAdjustConfigs!!.get(0).intensity
+            position = mAdjustConfigs!!.get(0).position
         } else {
             val temperature = AdjustConfig(
                 6,
-                -1.0f,
+                -0.5f,
                 0.0f,
-                1.0f,
+                0.5f,
                 "@adjust whitebalance",
                 0.5f,
                 true,
@@ -1262,7 +1321,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 null
             )
             val temp_add =
-                AdjustConfig(6, 0.0f, 1.0f, 2.0f, "", 0.5f, true, EffectType.Temperature, null)
+                AdjustConfig(6, 0.5f, 1.0f, 1.5f, "", 0.5f, true, EffectType.Temperature, null)
             temp_add.parentId = 6
             temperature.setAdditional(temp_add)
 
@@ -1317,9 +1376,9 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 ),
                 AdjustConfig(
                     1,
-                    -1.0f,
+                    -0.5f,
                     0.0f,
-                    1.0f,
+                    0.5f,
                     "@adjust exposure",
                     0.5f,
                     false,
@@ -1339,9 +1398,9 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 ),
                 AdjustConfig(
                     3,
-                    .0f,
+                    0.5f,
                     1.0f,
-                    2.0f,
+                    1.5f,
                     "@adjust contrast",
                     0.5f,
                     false,
@@ -1412,12 +1471,15 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             mActiveConfig!!.textureConfig(0f, 1f, 1f, false)
             mActiveConfig!!.active = false
             mActiveConfig!!.mRule = ""
+
+            isEdited[2] = false
         } else {
             mActiveConfig!!.active = true
             mActiveConfig!!.name = name
             mActiveConfig!!.setRule(mActiveConfig!!.diff[0])
 
             mSeekTexture!!.setProgress((mActiveConfig!!.slierIntensity * mSeekTexture!!.max).toInt())
+            isEdited[2] = true
 
             toggleTopBar(true)
             showTexture()

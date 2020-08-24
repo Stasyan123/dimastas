@@ -17,8 +17,7 @@ public class ImageUtil extends FileUtil {
 
     public static String saveBitmap(Bitmap bmp) {
         String path = getPath();
-        long currentTime = System.currentTimeMillis();
-        String filename = path + "/" + currentTime + ".jpg";
+        String filename = path + ".jpg";
         return saveBitmap(bmp, filename);
     }
 

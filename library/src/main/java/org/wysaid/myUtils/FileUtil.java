@@ -19,14 +19,15 @@ public class FileUtil {
     public static final File externalStorageDirectory = Environment.getExternalStorageDirectory();
     public static String packageFilesDirectory = null;
     public static String storagePath = null;
-    private static String mDefaultFolder = "libCGE";
+    private static String mDefaultFolder = "mood";
 
     public static void setDefaultFolder(String defaultFolder) {
         mDefaultFolder = defaultFolder;
     }
 
     public static String getPath() {
-        return getPath(null);
+        long currentTime = System.currentTimeMillis();
+        return getPath(null) + "/mood_" + currentTime;
     }
 
     public static String getPath(Context context) {

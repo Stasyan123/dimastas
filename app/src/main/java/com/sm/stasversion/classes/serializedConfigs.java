@@ -122,11 +122,12 @@ public class serializedConfigs {
         m.postRotate(crop.postRotate, dstBmp.getWidth() / 2, dstBmp.getHeight() / 2);
 
         Canvas canvas = new Canvas(dstBmp);
-        canvas.drawBitmap(resource, m, new Paint());
+        canvas.drawBitmap(dstBmp, m, new Paint());
 
         Matrix matrixNew = new Matrix();
         matrixNew.setRotate(crop.rotation, dstBmp.getWidth() / 2, dstBmp.getHeight() / 2);
 
         return Bitmap.createBitmap(dstBmp, 0, 0, (int)width, (int)height, matrixNew, true);
+        //return dstBmp;
     }
 }

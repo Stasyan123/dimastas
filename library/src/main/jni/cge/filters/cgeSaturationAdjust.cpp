@@ -18,6 +18,7 @@ const float VIOLET_HUE = 0.83;
 const float ORANGE_HUE = 0.036;
 
 const float MAX_HUE_SHIFT = 0.04;
+const float MAX_HUE_SHIFT_INCREASE = 0.12;
 const float MAX_LUM_SHIFT = 0.09;
 const float MAX_SATURATION_SHIFT = 0.25;
 
@@ -220,7 +221,7 @@ vec3 adjustColor(vec3 src, vec4 all, vec4 red, vec4 orange, vec4 yellow, vec4 gr
 		float weight = exp(-dist*dist*50.0);
 		weight = clamp(weight, 0.0, 1.0);
 
-		src.x += (green.x * weight * MAX_HUE_SHIFT);
+		src.x += (green.x * weight * MAX_HUE_SHIFT_INCREASE);
 		src.y += (green.y * weight * MAX_SATURATION_SHIFT);
 		src.z += (green.z * weight * MAX_LUM_SHIFT);
 	}
@@ -236,7 +237,7 @@ vec3 adjustColor(vec3 src, vec4 all, vec4 red, vec4 orange, vec4 yellow, vec4 gr
 		float weight = exp(-dist*dist*50.0);
 		weight = clamp(weight, 0.0, 1.0);
 
-		src.x += (blue.x * weight * MAX_HUE_SHIFT);
+		src.x += (blue.x * weight * MAX_HUE_SHIFT_INCREASE);
 		src.y += (blue.y * weight * MAX_SATURATION_SHIFT);
 		src.z += (blue.z * weight * MAX_LUM_SHIFT);
 	}
