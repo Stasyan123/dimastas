@@ -1204,8 +1204,8 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             civ.layoutParams = imageLayoutParams
         }
 
-        if (crop.rotation != mCurrentFragment!!.mCropImageView.mDegreesRotated.toFloat()) {
-            mCurrentFragment!!.mCropImageView.rotateImage(crop.rotation.toInt() - mCurrentFragment!!.mCropImageView.mDegreesRotated)
+        if (crop.rotation != mCurrentFragment!!.mCropImageView.mDegreesRotated) {
+            mCurrentFragment!!.mCropImageView.rotateImage(crop.rotation - mCurrentFragment!!.mCropImageView.mDegreesRotated)
         }
     }
 

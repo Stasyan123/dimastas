@@ -52,7 +52,7 @@ public class AssetLoader {
         //if(asset.getCorrection().isEmpty() && asset.getCrop().isEmpty()) {
         CropInfo crop = new Gson().fromJson(asset.getCrop(), CropInfo.class);
 
-        if(asset.getCorrection().isEmpty() && (asset.getCrop().isEmpty() || (crop != null && crop.isCropped()))) {
+        if(asset.getCorrection().isEmpty() && (asset.getCrop().isEmpty() || (crop != null && crop.isCropped()) || (crop != null && !crop.isCropped))) {
             loadAsset(asset, imageView);
         } else {
             Glide.with(imageView.getContext())
@@ -64,15 +64,23 @@ public class AssetLoader {
                     .into(new CustomTarget<Bitmap>(480, 800) {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            List<AdjustConfig> _configs = serializedConfigs.decryptConfigsStatic(asset.getCorrection());
-                            String rules = serializedConfigs.calculateRules(_configs);
+                            Bitmap bmp;
 
                             if(crop != null && !crop.isCropped()) {
-                                imageView.setImageBitmap(CGENativeLibrary.filterImage_MultipleEffects(serializedConfigs.cropImage(resource, crop), rules, _configs.get(0).intensity));
-
+                                bmp = serializedConfigs.cropImage(resource, crop);
                                 //imageView.setImageBitmap(CGENativeLibrary.filterImage_MultipleEffects(resource, rules, _configs.get(0).intensity));
                             } else {
-                                imageView.setImageBitmap(CGENativeLibrary.filterImage_MultipleEffects(resource, rules, _configs.get(0).intensity));
+                                bmp = resource;
+                                //imageView.setImageBitmap(CGENativeLibrary.filterImage_MultipleEffects(resource, rules, _configs.get(0).intensity));
+                            }
+
+                            if(asset.getCorrection().isEmpty()) {
+                                imageView.setImageBitmap(bmp);
+                            } else {
+                                List<AdjustConfig> _configs = serializedConfigs.decryptConfigsStatic(asset.getCorrection());
+                                String rules = serializedConfigs.calculateRules(_configs);
+
+                                imageView.setImageBitmap(CGENativeLibrary.filterImage_MultipleEffects(bmp, rules, _configs.get(0).intensity));
                             }
                         }
 

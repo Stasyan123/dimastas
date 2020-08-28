@@ -47,16 +47,31 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
         context = ctx;
 
         mToolList.add(new ToolModel("Default", 0, FilterType.DEFAULT, "@adjust lut empty.png"));
-        mToolList.add(new ToolModel("Vintage", ContextCompat.getColor(ctx, R.color.filter1), FilterType.FILTER1, "@adjust lut ping.png"));
-        mToolList.add(new ToolModel("Filter2", ContextCompat.getColor(ctx, R.color.filter2), FilterType.FILTER2, "@adjust lut gazon_filter.JPG"));
-        mToolList.add(new ToolModel("Filter3", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut lookup_pink.JPG"));
-        mToolList.add(new ToolModel("Filter4", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut soft_warming.png"));
-        mToolList.add(new ToolModel("Filter5", ContextCompat.getColor(ctx, R.color.filter5), FilterType.FILTER3, "@adjust lut foggy_night.png"));
-        mToolList.add(new ToolModel("Filter6", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut edgy_amber.png"));
-        mToolList.add(new ToolModel("Filter7", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut filmstock.png"));
-        mToolList.add(new ToolModel("Filter8", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut late_sunset.png"));
-        mToolList.add(new ToolModel("Filter9", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut wildbird.png"));
-        mToolList.add(new ToolModel("Filter10", ContextCompat.getColor(ctx, R.color.filter5), FilterType.FILTER3, "@adjust lut wildbird.png"));
+        mToolList.add(new ToolModel("Azure", ContextCompat.getColor(ctx, R.color.filter1), FilterType.FILTER1, "@adjust lut Azure.JPG"));
+        mToolList.add(new ToolModel("Balmy", ContextCompat.getColor(ctx, R.color.filter2), FilterType.FILTER2, "@adjust lut Balmy.JPG"));
+        mToolList.add(new ToolModel("Basic", ContextCompat.getColor(ctx, R.color.filter3), FilterType.FILTER3, "@adjust lut Basic.JPG"));
+        mToolList.add(new ToolModel("Christmas", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Christmas.JPG"));
+        mToolList.add(new ToolModel("Cinematic", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Cinematic.JPG"));
+        mToolList.add(new ToolModel("Crimson", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Crimson.jpg"));
+        mToolList.add(new ToolModel("Ginger", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Ginger.JPG"));
+        mToolList.add(new ToolModel("Infra Aquatic", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Infra_Aquatic.JPG"));
+        mToolList.add(new ToolModel("Infra F", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Infra_F.JPG"));
+        mToolList.add(new ToolModel("Infra O", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Infra_O.JPG"));
+        mToolList.add(new ToolModel("Infra P", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Infra_P.JPG"));
+        mToolList.add(new ToolModel("Infra R", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Infra_R.JPG"));
+        mToolList.add(new ToolModel("Infra Y", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Infra_Y.JPG"));
+        mToolList.add(new ToolModel("Lagoon", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Lagoon.JPG"));
+        mToolList.add(new ToolModel("Lilac", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Lilac.JPG"));
+        mToolList.add(new ToolModel("Lomo", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Lomo.JPG"));
+        mToolList.add(new ToolModel("Infra B", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Infra_B.JPG"));
+        mToolList.add(new ToolModel("Pop", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Pop.JPG"));
+        mToolList.add(new ToolModel("Rose Gold", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut RoseGold.jpg"));
+        mToolList.add(new ToolModel("Skin", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Skin.JPG"));
+        mToolList.add(new ToolModel("Springles", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Springles.JPG"));
+        mToolList.add(new ToolModel("Sunset", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Sunset.JPG"));
+        mToolList.add(new ToolModel("Travel", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Travel.JPG"));
+        mToolList.add(new ToolModel("Warm", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut Warm.JPG"));
+        mToolList.add(new ToolModel("White", ContextCompat.getColor(ctx, R.color.filter4), FilterType.FILTER3, "@adjust lut White.JPG"));
 
         if(position > 0) {
             mToolList.get(position).showBorder = true;

@@ -103,10 +103,10 @@ public class serializedConfigs {
                         1
                 );
 
-        float left = rect.left * (w / crop.originalW);
-        float top = rect.top * (h / crop.originalH);
-        float width = rect.width() * (w / crop.originalW);
-        float height = rect.height() * (h / crop.originalH);
+        float left = rect.left * (w / (float)crop.originalW);
+        float top = rect.top * (h / (float)crop.originalH);
+        float width = rect.width() * (w / (float)crop.originalW);
+        float height = rect.height() * (h / (float)crop.originalH);
 
         Bitmap dstBmp = Bitmap.createBitmap(
                 resource,
@@ -122,7 +122,7 @@ public class serializedConfigs {
         m.postRotate(crop.postRotate, dstBmp.getWidth() / 2, dstBmp.getHeight() / 2);
 
         Canvas canvas = new Canvas(dstBmp);
-        canvas.drawBitmap(dstBmp, m, new Paint());
+        canvas.drawBitmap(resource, m, new Paint());
 
         Matrix matrixNew = new Matrix();
         matrixNew.setRotate(crop.rotation, dstBmp.getWidth() / 2, dstBmp.getHeight() / 2);

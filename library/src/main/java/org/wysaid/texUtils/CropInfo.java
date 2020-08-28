@@ -20,7 +20,10 @@ public class CropInfo {
     public int currentPercent = 0;
     public float currentPercentF = 0f;
 
-    public float rotation = 0;
+    public int videoWidth = 0;
+    public int videoHeight = 0;
+
+    public int rotation = 0;
     public boolean flipHor = false;
     public boolean flipVert = false;
     public float postRotate = 0.0f;

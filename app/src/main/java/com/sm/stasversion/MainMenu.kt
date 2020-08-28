@@ -39,6 +39,7 @@ import com.google.gson.Gson
 import com.sm.stasversion.classes.AdjustConfig
 import com.sm.stasversion.classes.DBConfig
 import com.sm.stasversion.classes.serializedConfigs
+import com.sm.stasversion.crop.BitmapUtils
 import com.sm.stasversion.imagepicker.listener.OnAssetSelectionListener
 import com.sm.stasversion.imagepicker.ui.imagepicker.*
 import com.sm.stasversion.imagepicker.util.isVideoFile
@@ -109,9 +110,10 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
                         copy!!.setTag(-1)
                     }
 
-                    if(size == 1 && isNullOrEmpty(recyclerViewManager!!.getAsset(0).correction)) {
-                        save!!.background = getResources().getDrawable(R.drawable.ic_save)
-                        save!!.setTag(-1)
+                    if(size == 1 && isNullOrEmpty(recyclerViewManager!!.getAsset(0).correction)
+                        && isNullOrEmpty(recyclerViewManager!!.getAsset(0).crop)) {
+                            save!!.background = getResources().getDrawable(R.drawable.ic_save)
+                            save!!.setTag(-1)
                     }
                 }
 
@@ -316,7 +318,8 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
                         Log.d(LOG_TAG, "Start id - " + el.id)
 
                         if (File(el.path).isVideoFile) {
-                            saveVideo(el)
+                            //saveVideo(el)
+                            editVideo(el, true)
                         } else {
                             saveImage(el)
                         }
@@ -328,6 +331,28 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         }
 
         delete!!.setOnClickListener{
+            val selected = recyclerViewManager!!.getSelectedAssets()
+
+            /*if (selected.size >= 1) {
+                selected.forEach() { el ->
+                    threadSync()
+
+                    mThread = Thread(Runnable {
+                        test = "Start id - " + el.id
+                        Log.d(LOG_TAG, "Start id - " + el.id)
+
+                        if (File(el.path).isVideoFile) {
+                            //saveVideo(el)
+                            editVideo(el, false)
+                        } else {
+                            saveImage(el)
+                        }
+                    })
+
+                    mThread!!.start()
+                }
+            }*/
+
             if(delete!!.getTag() == 1) {
                 val selected = recyclerViewManager!!.getSelectedAssets()
 
@@ -454,63 +479,149 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
 
     }
 
-    private fun editVideo(name: String, el: Asset) {
-        val cmdArray = ArrayList<String>();
-        val empty = arrayOf("","","")
+    private fun editVideo(el: Asset, check: Boolean) {
+        var scaleRule = ""
+        var rotateRule = ""
+        var straighteningRule = ""
+        var mainRule = ""
+        var cropRule = ""
+        var flipRule = ""
 
-        val outputFilename = FileUtil.getPath() + "/blendVideo4.mp4";
+        var cropInfo: CropInfo? = null;
+
+        val outputFilename = FileUtil.getPath() + ".mp4"
+        //val outputFilename = FileUtil.getPath() + "/blendVideo4.mp4";
         //val outputFilename = "/storage/emulated/0/Pictures/Telegram/VID_20200626_125043_721.mp4";
-        val outputFilename1 = FileUtil.getPath() + "/blendVideo7797.mp4";
+        //val outputFilename1 = FileUtil.getPath() + "/blendVideo7797.mp4";
 
-        val file = File(outputFilename)
-        file.delete()
+        /*
+        angl = 15
+scale = 1.4269915
+         */
 
-        cmdArray.add("-i");
-        cmdArray.add(outputFilename);
-        cmdArray.add("-c");
-        cmdArray.add("copy");
-        cmdArray.add("-metadata:s:v:0");
-        cmdArray.add("rotate=270");
-        cmdArray.add(outputFilename1);
+        if(!el.crop.isEmpty()) {
+            cropInfo = Gson().fromJson(el.crop, CropInfo::class.java)
+        }
 
         val ffmpeg = FFmpeg.getInstance(this)
 
-        try {
-            ffmpeg.execute(arrayOf("-i", name, "-filter:v", "rotate=35*PI/180", "-c:a", "copy", outputFilename1), object: ExecuteBinaryResponseHandler() {
-                override fun onStart() {
-                    super.onStart()
-                    Log.d("Stas", "onStart")
+        //510:720
+        //"rotate=15*PI/180"
+        //"crop=out_w:out_h:x:y"
+        //hflip
+        //vflip
+        //"-filter:v", "scale=" + newWidth + ":" + newHeight + ",rotate=15*PI/180"
+        //"-i " + el.path + " rotate=PI/2 -c:a copy " + outputFilename
+        //"rotate=15*PI/180:510:1280",
+        //"scale=1743.18:980.6,rotate=15*PI/180:1280:720"
+        //"scale=1566:882,rotate=7.5*PI/180:1280:720"
+        //crop=720:720:0:230
+
+        val b = if(check) "rotate=15*PI/180:hypot(iw,ih):ow" else "rotate=2*PI*t:ow='min(iw,ih)/sqrt(2)':oh=ow:c=none"
+
+        val newWidth = cropInfo!!.videoWidth * cropInfo.scale + cropInfo.postRotate
+        val newHeight = cropInfo.videoHeight * cropInfo.scale + cropInfo.postRotate
+
+        val rect =
+            BitmapUtils.getRectFromPoints(
+                cropInfo.points,
+                cropInfo.originalW,
+                cropInfo.originalH,
+                false,
+                1,
+                1
+            );
+
+        val left = rect.left * (cropInfo.videoWidth / cropInfo.originalW.toFloat())
+        val top = rect.top * (cropInfo.videoHeight / cropInfo.originalH.toFloat())
+        var width = rect.width() * (cropInfo.videoWidth / cropInfo.originalW.toFloat())
+        var height = rect.height() * (cropInfo.videoHeight / cropInfo.originalH.toFloat())
+
+        if(cropInfo.width != width.toInt() || cropInfo.height != height.toInt()) {
+            cropRule = "crop=" + width + ":" + height + ":" + left + ":" + top
+        }
+
+        if(cropInfo.rotation != 0 || cropInfo.rotation != 360) {
+            when (cropInfo.rotation) {
+                90 -> {
+                    rotateRule = "transpose=1"
+                    height = width
                 }
-
-                override fun onProgress(message: String?) {
-                    super.onProgress(message)
-                    Log.d(LOG_TAG, message)
+                180 -> rotateRule = "transpose=1,transpose=1"
+                270 -> {
+                    rotateRule = "transpose=1,transpose=1,transpose=1"
+                    width = rect.height() * (cropInfo.videoHeight / cropInfo.originalH.toFloat())
                 }
+            }
+        }
 
-                override fun onFailure(message: String?) {
-                    super.onFailure(message)
-                    Log.d(LOG_TAG, "onFailure")
-                }
+        if(cropInfo.postRotate != 0.0f) {
+            scaleRule = "scale=" + width * cropInfo.scale + ":" + height * cropInfo.scale
+            straighteningRule = "rotate=" + cropInfo.postRotate + "*PI/180:" + width + ":" + height
+        }
+        if(!isNullOrEmpty(scaleRule)) {
+            mainRule += if(isNullOrEmpty(mainRule)) "" else ","
+            mainRule += scaleRule + "," + straighteningRule
+        }
+        if(!isNullOrEmpty(cropRule)) {
+            mainRule += if(isNullOrEmpty(mainRule)) "" else "," + cropRule
+        }
+        if(!isNullOrEmpty(rotateRule)) {
+            mainRule += rotateRule
+        }
+        if(cropInfo.flipVert) {
+            flipRule += if(isNullOrEmpty(mainRule)) "" else ",vflip"
+        }
+        if(cropInfo.flipHor) {
+            flipRule += if(isNullOrEmpty(mainRule)) "" else ",hflip"
+        }
 
-                override fun onSuccess(message: String?) {
-                    super.onSuccess(message)
-                    //File(name).delete()
+        if(!isNullOrEmpty(mainRule)) {
+            try {
+                ffmpeg.execute(arrayOf("-i", el.path, "-filter:v", mainRule, "-c:a", "copy", outputFilename), object: ExecuteBinaryResponseHandler() {
+                    override fun onStart() {
+                        super.onStart()
+                        Log.d(LOG_TAG, "onStart")
+                    }
 
-                    sendBroadcast(
-                        Intent(
-                            Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-                            Uri.parse("file://$outputFilename1")
+                    override fun onProgress(message: String?) {
+                        super.onProgress(message)
+                        Log.d(LOG_TAG, message)
+                    }
+
+                    override fun onFailure(message: String?) {
+                        super.onFailure(message)
+                        Log.d(LOG_TAG, "onFailure")
+                    }
+
+                    override fun onSuccess(message: String?) {
+                        super.onSuccess(message)
+                        Log.d(LOG_TAG, "onOkey")
+                        //File(name).delete()
+
+                        sendBroadcast(
+                            Intent(
+                                Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                                Uri.parse("file://$outputFilename")
+                            )
                         )
-                    )
-                }
+                    }
 
-                override fun onFinish() {
-                    super.onFinish()
-                    Log.d(LOG_TAG, "onFinish")
-                }
-            })
-        } catch (e: FFmpegCommandAlreadyRunningException) {
-            Log.d(LOG_TAG, "onFinish")
+                    override fun onFinish() {
+                        super.onFinish()
+                        Log.d(LOG_TAG, "onFinish")
+                    }
+                })
+            } catch (e: FFmpegCommandAlreadyRunningException) {
+                Log.d(LOG_TAG, "onFinish")
+            }
+        } else {
+            sendBroadcast(
+                Intent(
+                    Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                    Uri.parse("file://$outputFilename")
+                )
+            )
         }
     }
 

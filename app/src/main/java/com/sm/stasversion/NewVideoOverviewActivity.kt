@@ -925,6 +925,39 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         percentTextView.text = getString(R.string.percent, mPlayerView!!.cropInfo.currentPercent.toString())
     }
 
+    private fun applyAlignment(angle: Float) {
+        val angl = angle / 2
+//h = 439.4949f
+//w = 1400.551f
+        var width = gpuWrapper!!.width.toFloat();//bm!!.width
+        var height = gpuWrapper!!.height.toFloat();//bm!!.height
+
+        if (width > height) {
+            width = gpuWrapper!!.height.toFloat()
+            height = gpuWrapper!!.width.toFloat()
+        }
+
+        val a = Math.atan((height / width).toDouble()).toFloat()
+
+        // the length from the center to the corner of the green
+        val len1 =
+            width / 2 / Math.cos(a - Math.abs(Math.toRadians(angl.toDouble()))).toFloat()
+        // the length from the center to the corner of the black
+        val len2 = Math.sqrt(
+            Math.pow(
+                (width / 2).toDouble(),
+                2.0
+            ) + Math.pow((height / 2).toDouble(), 2.0)
+        ).toFloat()
+        // compute the scaling factor
+        scale = (len2 / len1)
+
+        mCropOverlayView!!.mPostRotate = angl
+        mCropOverlayView!!.mPostScale = scale
+
+        mCropOverlayView!!.applyCustom()
+    }
+
     private fun initToolsCrop() {
         val percentTextView = findViewById<TextView>(R.id.text_straightening)
 
@@ -944,36 +977,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 progressF = percentF
                 progress = percent
 
-                val angl = percent.toFloat() / 2
-//h = 439.4949f
-//w = 1400.551f
-                var width = gpuWrapper!!.width.toFloat();//bm!!.width
-                var height = gpuWrapper!!.height.toFloat();//bm!!.height
-
-                if (width > height) {
-                    width = gpuWrapper!!.height.toFloat()
-                    height = gpuWrapper!!.width.toFloat()
-                }
-
-                val a = Math.atan((height / width).toDouble()).toFloat()
-
-                // the length from the center to the corner of the green
-                val len1 =
-                    width / 2 / Math.cos(a - Math.abs(Math.toRadians(angl.toDouble()))).toFloat()
-                // the length from the center to the corner of the black
-                val len2 = Math.sqrt(
-                    Math.pow(
-                        (width / 2).toDouble(),
-                        2.0
-                    ) + Math.pow((height / 2).toDouble(), 2.0)
-                ).toFloat()
-                // compute the scaling factor
-                scale = (len2 / len1)
-
-                mCropOverlayView!!.mPostRotate = angl
-                mCropOverlayView!!.mPostScale = scale
-
-                mCropOverlayView!!.applyCustom()
+                applyAlignment(percent.toFloat())
             }
 
             override fun onScrollEnd() {
@@ -1065,6 +1069,9 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             mPlayerView!!.cropInfo.points = points
             mPlayerView!!.cropInfo.isCropped = true
 
+            mPlayerView!!.cropInfo.videoWidth = mPlayerView!!.mVideoWidth
+            mPlayerView!!.cropInfo.videoHeight = mPlayerView!!.mVideoHeight
+
             initCropBar(false)
             toggleTopBar(false)
 
@@ -1089,7 +1096,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
             mCropOverlayView!!.cancelCrop()
 
-            if(mPlayerView!!.cropInfo.rotation != gpuWrapper!!.rotation) {
+            if(mPlayerView!!.cropInfo.rotation != gpuWrapper!!.rotation.toInt()) {
                 mPlayerView!!.rotateView(mPlayerView!!.cropInfo.rotation - gpuWrapper!!.rotation)
             }
 
@@ -1469,8 +1476,8 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             override fun onDimensionCalculated() {
                 mCropOverlayView!!.cancelCrop()
 
-                if(mPlayerView!!.cropInfo.rotation != 0.0f) {
-                    mPlayerView!!.rotateView(mPlayerView!!.cropInfo.rotation)
+                if(mPlayerView!!.cropInfo.rotation != 0) {
+                    mPlayerView!!.rotateView(mPlayerView!!.cropInfo.rotation.toFloat())
                 }
 
                 initToolsCrop()
