@@ -141,7 +141,11 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
                     return null
                 }
 
-                return BitmapFactory.decodeStream(`is`)
+                if(textureConfig != null && name.equals(textureConfig!!.name)) {
+                    return BitmapFactory.decodeStream(`is`).changeBmp(textureConfig!!.horizontal[1], textureConfig!!.vertical[1], textureConfig!!.rotate[1])
+                } else {
+                    return BitmapFactory.decodeStream(`is`)
+                }
             }
 
             override fun loadImageOK(bmp: Bitmap, arg: Any) {
@@ -166,6 +170,8 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
 
     override fun onResume() {
         super.onResume()
+
+        CGENativeLibrary.setLoadImageCallback(mLoadImageCallback, 1)
         getDataWithPermission()
     }
 
@@ -173,6 +179,12 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         if (str != null && !str.isEmpty())
             return false
         return true
+    }
+
+    private fun Bitmap.changeBmp(x: Float, y: Float, degrees: Float): Bitmap {
+        val matrix = Matrix().apply { postScale(x, y, width / 2f, height / 2f) }
+        matrix.apply { postRotate(degrees) }
+        return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
     }
 
     private fun deactivateBar() {
@@ -263,7 +275,7 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
 
         val menu = findViewById<ImageView>(R.id.topMenu)
         menu.setOnClickListener{
-            val intent = Intent(this@MainMenu, SubscribeActivity::class.java)
+            val intent = Intent(this@MainMenu, MenuActivity::class.java)
             startActivity(intent)
         }
 
@@ -392,6 +404,8 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
             val rules = serializedConfigs.calculateRules(_configs)
 
             bmp = CGENativeLibrary.filterImage_MultipleEffects(bmp, rules, _configs.get(0).intensity)
+
+            textureConfig = _configs.get(10)
         }
 
         val s = ImageUtil.saveBitmap(bmp);
@@ -399,53 +413,17 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         showMsg("The filter is applied! See it: /sdcard/mood/rec_*.jpg")
         sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://$s")))
 
-        /*Glide.with(this)
-            .asBitmap()
-            .load(el.path)
-            .into(object : CustomTarget<Bitmap>(){
-                override fun onResourceReady(bmp: Bitmap, transition: Transition<in Bitmap>?) {
-                    var bitmap: Bitmap? = null
-                    var dstImage: Bitmap? = null
-
-                    if(!el.crop.isEmpty()) {
-                        val cropInfo = Gson().fromJson(el.crop, CropInfo::class.java)
-                        bitmap = serializedConfigs.cropImage(bmp, cropInfo)
-                    } else {
-                        bitmap = bmp
-                    }
-
-                    if(el.correction.isEmpty()) {
-                        dstImage = bitmap
-                    } else {
-                        val _configs = serializedConfigs.decryptConfigsStatic(el.correction)
-                        val rules = serializedConfigs.calculateRules(_configs)
-
-                        dstImage = CGENativeLibrary.filterImage_MultipleEffects(bitmap, rules, _configs.get(0).intensity)
-                    }
-
-                    val s = ImageUtil.saveBitmap(dstImage);
-
-                    showMsg("The filter is applied! See it: /sdcard/mood/rec_*.jpg")
-                    sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://$s")))
-                }
-                override fun onLoadCleared(placeholder: Drawable?) {
-                }
-            })*/
+        textureConfig = null
     }
 
     private fun saveVideo(el: Asset) {
         val _configs = serializedConfigs.decryptConfigsStatic(el.correction)
         val rules = serializedConfigs.calculateRules(_configs)
 
-        //String outputFilename = "/sdcard/libCGE/blendVideo.mp4";
-        //String inputFileName = "android.resource://" + getPackageName() + "/" + R.raw.fish;
-        val outputFilename = FileUtil.getPath() + ".mp4"
-        //String inputFileName = FileUtil.getTextContent(CameraDemoActivity.lastVideoPathFileName);
-        //String inputFileName = "/storage/9016-4EF8/DCIM/Camera/20200402_124813.mp4";
-        //String inputFileName = "/storage/9016-4EF8/DCIM/Camera/20200402_124813_001.mp4"; // 2 sec
+        textureConfig = _configs.get(10)
 
-        //bmp is used for watermark, (just pass null if you don't want that)
-        //and ususally the blend mode is CGE_BLEND_ADDREV for watermarks.
+        val outputFilename = FileUtil.getPath() + ".mp4"
+
         CGEFFmpegNativeLibrary.generateVideoWithFilter(
             outputFilename,
             el.path,
@@ -457,6 +435,8 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
             false
         )
         Log.d(LOG_TAG, "Done! The file is generated at: \$outputFilename")
+
+        textureConfig = null
 
         sendBroadcast(
             Intent(
@@ -494,37 +474,15 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         //val outputFilename = "/storage/emulated/0/Pictures/Telegram/VID_20200626_125043_721.mp4";
         //val outputFilename1 = FileUtil.getPath() + "/blendVideo7797.mp4";
 
-        /*
-        angl = 15
-scale = 1.4269915
-         */
-
         if(!el.crop.isEmpty()) {
             cropInfo = Gson().fromJson(el.crop, CropInfo::class.java)
         }
 
         val ffmpeg = FFmpeg.getInstance(this)
 
-        //510:720
-        //"rotate=15*PI/180"
-        //"crop=out_w:out_h:x:y"
-        //hflip
-        //vflip
-        //"-filter:v", "scale=" + newWidth + ":" + newHeight + ",rotate=15*PI/180"
-        //"-i " + el.path + " rotate=PI/2 -c:a copy " + outputFilename
-        //"rotate=15*PI/180:510:1280",
-        //"scale=1743.18:980.6,rotate=15*PI/180:1280:720"
-        //"scale=1566:882,rotate=7.5*PI/180:1280:720"
-        //crop=720:720:0:230
-
-        val b = if(check) "rotate=15*PI/180:hypot(iw,ih):ow" else "rotate=2*PI*t:ow='min(iw,ih)/sqrt(2)':oh=ow:c=none"
-
-        val newWidth = cropInfo!!.videoWidth * cropInfo.scale + cropInfo.postRotate
-        val newHeight = cropInfo.videoHeight * cropInfo.scale + cropInfo.postRotate
-
         val rect =
             BitmapUtils.getRectFromPoints(
-                cropInfo.points,
+                cropInfo!!.points,
                 cropInfo.originalW,
                 cropInfo.originalH,
                 false,
@@ -687,26 +645,22 @@ scale = 1.4269915
             RecyclerViewManager(recyclerView, config, resources.configuration.orientation)
 
         recyclerViewManager!!.setupAdapters(imageClickListener, folderClickListener)
-        recyclerViewManager!!.setOnImageSelectionListener(OnAssetSelectionListener { assets ->
-            val selected = recyclerViewManager!!.getSelectedAssets()
+        recyclerViewManager!!.setOnImageSelectionListener(OnAssetSelectionListener { assets, asset ->
+            var intent = Intent(this@MainMenu, EditImageActivity::class.java)
 
-            if(selected.size == 0 || (selected.size == 1 && assets[0].id == selected[0].id)) {
-                var intent = Intent(this@MainMenu, EditImageActivity::class.java)
+            val f = File(asset.path)
+            val uri = Uri.fromFile(f)
 
-                val f = File(assets[0].path)
-                val uri = Uri.fromFile(f)
-
-                if (f.isVideoFile) { // If file is an Image
-                    intent = Intent(this@MainMenu, NewVideoOverviewActivity::class.java)
-                }
-
-                intent.putExtra("file", uri)
-                intent.putExtra("imgId", assets[0].id.toInt())
-                intent.putExtra("configs", assets[0].correction)
-                intent.putExtra("crop", assets[0].crop)
-
-                startActivity(intent)
+            if (f.isVideoFile) { // If file is an Image
+                intent = Intent(this@MainMenu, NewVideoOverviewActivity::class.java)
             }
+
+            intent.putExtra("file", uri)
+            intent.putExtra("imgId", asset.id.toInt())
+            intent.putExtra("configs", asset.correction)
+            intent.putExtra("crop", asset.crop)
+
+            startActivity(intent)
         })
 
         presenter = ImagePickerPresenter(AssetFileLoader(this))

@@ -23,12 +23,14 @@ namespace CGE
 
 		inline void setLookupTexture(GLuint tex) { m_lookupTexture = tex; };
 
+        void setIntensity(float value);
 		void render2Texture(CGEImageHandlerInterface* handler, GLuint srcTexture, GLuint vertexBufferID);
 
 		inline GLuint& lookupTexture() { return m_lookupTexture; }
 
 	protected: 
 		GLuint m_lookupTexture;
+		static CGEConstString paramIntensityName;
 	};
 
 }

@@ -16,6 +16,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import org.wysaid.common.Common;
 import org.wysaid.nativePort.CGEFrameRenderer;
@@ -41,6 +42,7 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
     private CGEFrameRenderer mFrameRenderer;
 
     public FrameLayout parentView;
+    public ImageView waterMark;
 
     public TextureRenderer.Viewport mRenderViewport = new TextureRenderer.Viewport();
     private float[] mTransformMatrix = new float[16];
@@ -519,6 +521,10 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
         lp.height = h;
 
         parentView.setLayoutParams(lp);
+
+        ViewGroup.LayoutParams lp_image = waterMark.getLayoutParams();
+        lp_image.width = w;
+        waterMark.setLayoutParams(lp_image);
     }
 
     public void rotateView(float degrees) {
@@ -690,7 +696,7 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
                             mFrameRenderer = new CGEFrameRenderer();
                         }
 
-                        if (mFrameRenderer.init(mVideoWidth, mVideoHeight, (int)(mVideoWidth / 2.5f), (int)(mVideoHeight / 2.5f))) {
+                        if (mFrameRenderer.init(mVideoWidth, mVideoHeight, (int)(mVideoWidth / 1.5f), (int)(mVideoHeight / 1.5f))) {
                             //Keep right orientation for source texture blending
                             mFrameRenderer.setSrcFlipScale(1.0f, 1.0f);
                             mFrameRenderer.setRenderFlipScale(1.0f, 1.0f);
@@ -741,8 +747,9 @@ public class VideoPlayerGLSurfaceView extends GLTextureView implements GLTexture
 
     }
 
-    public void setParentView(FrameLayout fl) {
+    public void setParentView(FrameLayout fl, ImageView iv) {
         parentView = fl;
+        waterMark = iv;
     }
 
     public interface TakeShotCallback {

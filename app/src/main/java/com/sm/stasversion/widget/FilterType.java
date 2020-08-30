@@ -147,9 +147,6 @@ public enum FilterType {
                 return new GlHueFilter();
             case INVERT:
                 return new GlInvertFilter();
-            case LOOK_UP_TABLE_SAMPLE:
-                Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.test_lp);
-                return new GlLookUpTableFilter(bitmap);
             case LUMINANCE:
                 return new GlLuminanceFilter();
             case LUMINANCE_THRESHOLD:

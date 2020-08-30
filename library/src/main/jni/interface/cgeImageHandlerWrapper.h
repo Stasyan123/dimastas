@@ -43,6 +43,9 @@ JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetFilte
 JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetFilterIntensity
   (JNIEnv *, jobject, jlong, jfloat, jboolean);
 
+JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetLutIntensity
+  (JNIEnv *, jobject, jlong, jfloat);
+
 JNIEXPORT jboolean JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetParamAtIndex
   (JNIEnv *, jobject, jlong, jint, jfloat, jfloat, jfloat, jint);
 

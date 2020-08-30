@@ -103,7 +103,7 @@ public class AssetPickerAdapter extends BaseRecyclerViewAdapter<AssetPickerAdapt
                     List<Asset> assets = new ArrayList<>();
                     assets.add(asset);
 
-                    assetSelectionListener.onSelectionUpdate(assets);
+                    assetSelectionListener.onSelectionUpdate(assets, asset);
                 }
             }
             @Override
@@ -133,7 +133,7 @@ public class AssetPickerAdapter extends BaseRecyclerViewAdapter<AssetPickerAdapt
                     List<Asset> assets = new ArrayList<>();
                     assets.add(asset);
 
-                    assetSelectionListener.onSelectionUpdate(assets);
+                    assetSelectionListener.onSelectionUpdate(assets, asset);
                     return true;
                 }
 
@@ -233,7 +233,7 @@ public class AssetPickerAdapter extends BaseRecyclerViewAdapter<AssetPickerAdapt
 
     private void notifySelectionChanged() {
         if (assetSelectionListener != null) {
-            assetSelectionListener.onSelectionUpdate(selectedAssets);
+            assetSelectionListener.onSelectionUpdate(selectedAssets, null);
         }
     }
 

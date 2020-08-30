@@ -86,6 +86,10 @@ public class CGEImageHandler {
         return nativeSetFilterIntensityAtIndex(mNativeAddress, intensity, index, shouldProcess, isSharpen);
     }
 
+    public boolean setLutIntensity(float intensity) {
+        return nativeSetLutIntensity(mNativeAddress, intensity);
+    }
+
     public boolean setParamAtIndex(float intensity, float intensity2, float intensity3, int index, int config) {
         return nativeSetParamAtIndex(mNativeAddress, config, intensity, intensity2, intensity3, index);
     }
@@ -146,6 +150,7 @@ public class CGEImageHandler {
     protected native void nativeSetFilterWithAddress(long holder, long filter);
     protected native void nativeSetFilterIntensity(long holder, float value, boolean shouldProcess);
     protected native boolean nativeSetFilterIntensityAtIndex(long holder, float value, int index, boolean shouldProcess, int isSharpen);
+    protected native boolean nativeSetLutIntensity(long holder, float value);
     protected native boolean nativeSetParamAtIndex(long holder, int config, float intensity, float intensity2, float intensity3, int index);
 
     protected native void nativeDrawResult(long holder);

@@ -24,11 +24,16 @@ public class EditingTextureAdapter extends RecyclerView.Adapter<EditingTextureAd
         mOnItemSelected = onItemSelected;
 
         mToolList.add(new TextureModel("", "def", null));
-        mToolList.add(new TextureModel("Dust 001", "grain_1.jpg", R.drawable.d1));
-        mToolList.add(new TextureModel("Dust 002", "grain_2.jpg", R.drawable.d2));
-        mToolList.add(new TextureModel("Dust 003", "grain_3.jpg", R.drawable.d3));
-        mToolList.add(new TextureModel("Dust 004", "grain_4.jpg", R.drawable.d4));
-        mToolList.add(new TextureModel("Dust 005", "grain_5.jpg", R.drawable.d5));
+        mToolList.add(new TextureModel("Dust 001", "01.png", R.drawable.mini_1));
+        mToolList.add(new TextureModel("Dust 002", "02.png", R.drawable.mini_2));
+        mToolList.add(new TextureModel("Dust 003", "03.png", R.drawable.mini_3));
+        mToolList.add(new TextureModel("Dust 004", "04.png", R.drawable.mini_4));
+        mToolList.add(new TextureModel("Dust 005", "05.png", R.drawable.mini_5));
+        mToolList.add(new TextureModel("Dust 006", "06.png", R.drawable.mini_6));
+        mToolList.add(new TextureModel("Dust 007", "07.png", R.drawable.mini_7));
+        mToolList.add(new TextureModel("Dust 008", "08.png", R.drawable.mini_8));
+        mToolList.add(new TextureModel("Dust 009", "09.png", R.drawable.mini_9));
+        mToolList.add(new TextureModel("Dust 010", "09.png", R.drawable.mini_9));
     }
 
     public interface OnItemSelected {

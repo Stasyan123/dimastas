@@ -33,6 +33,7 @@ public class ImageGLSurfaceView extends GLSurfaceView implements Renderer {
 
     protected CGEImageHandler mImageHandler;
     protected float mFilterIntensity = 1.0f;
+    protected float mLutIntensity = 1.0f;
 
     public CGEImageHandler getImageHandler() {
         return mImageHandler;
@@ -95,10 +96,45 @@ public class ImageGLSurfaceView extends GLSurfaceView implements Renderer {
         setFilterIntensityForIndex(intensity, index, true, 0);
     }
 
+    public void setLutIntensity(final float intensity) {
+        if (mImageHandler == null) {
+            return;
+        }
+
+        mLutIntensity = intensity;
+
+        synchronized (mSettingIntensityLock) {
+
+            if (mSettingIntensityCount <= 0) {
+                Log.i(LOG_TAG, "Too fast, skipping...");
+                return;
+            }
+            --mSettingIntensityCount;
+        }
+
+        queueEvent(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mImageHandler == null) {
+                    Log.e(LOG_TAG, "set intensity after release!!");
+                } else {
+                    mImageHandler.setLutIntensity(mLutIntensity);
+                    requestRender();
+                }
+
+                synchronized (mSettingIntensityLock) {
+                    ++mSettingIntensityCount;
+                }
+            }
+        });
+    }
+
     //See: CGEImageHandler.setFilterIntensityAtIndex
     public void setFilterIntensityForIndex(final float intensity, final int index, final  boolean shouldProcess, final int isSharpen) {
-        if (mImageHandler == null)
+        if (mImageHandler == null) {
             return;
+        }
 
         mFilterIntensity = intensity;
 

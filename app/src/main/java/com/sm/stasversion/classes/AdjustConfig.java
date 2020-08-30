@@ -1,5 +1,7 @@
 package com.sm.stasversion.classes;
 
+import android.util.Log;
+
 import com.sm.stasversion.utils.EffectType;
 
 import org.wysaid.view.ImageGLSurfaceView;
@@ -8,11 +10,13 @@ import org.wysaid.view.VideoPlayerGLSurfaceView;
 import java.lang.reflect.Array;
 import java.util.List;
 
+import static org.wysaid.view.ImageGLSurfaceView.LOG_TAG;
+
 public class AdjustConfig {
     private float minValue, originValue, maxValue;
     private int index;
     public int position;
-    public float intensity, slierIntensity;
+    public float intensity, slierIntensity, tempIntensity;
     public String mRule;
     public Boolean additional;
     public EffectType type;
@@ -22,9 +26,12 @@ public class AdjustConfig {
     public int hslPos = 0;
     public int isSharpen = 0;
     public Boolean startEditing = false;
-    public Boolean active = true;
-
     public int parentId = -1;
+
+    public Boolean editorOpen = false;
+
+    public Boolean active = false;
+    public int filterPosition = 0;
 
     public transient VideoPlayerGLSurfaceView mPlayerView;
 
@@ -105,11 +112,35 @@ public class AdjustConfig {
 
         if(shouldProcess) {
             if (mImageView != null) {
-                mImageView.setFilterIntensityForIndex(intensity, index, shouldProcess, isSharpen);
+                mImageView.setFilterIntensityForIndex(intensity, filterPosition, shouldProcess, isSharpen);
             } else if (mPlayerView != null) {
-                mPlayerView.setFilterIntensityAtIndex(intensity, index, isSharpen);
+                mPlayerView.setFilterIntensityAtIndex(intensity, filterPosition, isSharpen);
             }
         }
+    }
+
+    public boolean checkEmptyHSL() {
+        for (float[] config : hsl) {
+            if(config[0] != 0.0f || config[1] != 0.0f ||config[2] != 0.0f) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public boolean checkOriginal() {
+        Boolean result;
+
+        if(type == EffectType.HSL) {
+            result = checkEmptyHSL();
+        } else if(type == EffectType.Highlight || type == EffectType.Shadow || type == EffectType.Temperature) {
+            result = intensity == originValue && additionaItem.intensity == additionaItem.originValue;
+        } else {
+            result = intensity == originValue;
+        }
+
+        return result;
     }
 
     public void setIntensityWithParam(int config, float _intensity, float _intensity2, ImageGLSurfaceView mImageView, boolean shouldProcess) {
@@ -123,32 +154,38 @@ public class AdjustConfig {
 
         if(shouldProcess) {
             if (mImageView != null) {
-                mImageView.setParamAtIndex(config, intensity, additionaItem.intensity, 0.0f, index);
+                mImageView.setParamAtIndex(config, intensity, additionaItem.intensity, 0.0f, filterPosition);
             } else if (mPlayerView != null) {
-                mPlayerView.setParamAtIndex(config, intensity, additionaItem.intensity, 0.0f, index);
+                mPlayerView.setParamAtIndex(config, intensity, additionaItem.intensity, 0.0f, filterPosition);
             }
         }
     }
 
     public void setTempIntensity(float _intensity, boolean shouldProcess, ImageGLSurfaceView mImageView) {
+        tempIntensity = calcIntensity(_intensity);
+
         if (mImageView != null) {
-            mImageView.setFilterIntensityForIndex(calcIntensity(_intensity), index, shouldProcess, isSharpen);
+            mImageView.setFilterIntensityForIndex(tempIntensity, filterPosition, shouldProcess, isSharpen);
         } else if(mPlayerView != null) {
-            mPlayerView.setFilterIntensityAtIndex(calcIntensity(_intensity), index, isSharpen);
+            mPlayerView.setFilterIntensityAtIndex(tempIntensity, filterPosition, isSharpen);
         }
     }
 
     public void setTempIntensityWithParam(int config, float _intensity, float _intensity2, float _intensity3, ImageGLSurfaceView mImageView) {
+        tempIntensity = calcIntensity(_intensity);
+
         if(type == EffectType.HSL) {
-            tempHsl[hslPos][0] = calcIntensity(_intensity);
+            tempHsl[hslPos][0] = tempIntensity;
             tempHsl[hslPos][1] = _intensity2;
             tempHsl[hslPos][2] = _intensity3;
+        } else {
+            additionaItem.tempIntensity = _intensity2;
         }
 
         if (mImageView != null) {
-            mImageView.setParamAtIndex(config, calcIntensity(_intensity), _intensity2, _intensity3, index);
+            mImageView.setParamAtIndex(config, tempIntensity, _intensity2, _intensity3, filterPosition);
         } else if(mPlayerView != null) {
-            mPlayerView.setParamAtIndex(config, calcIntensity(_intensity), _intensity2, _intensity3, index);
+            mPlayerView.setParamAtIndex(config, tempIntensity, _intensity2, _intensity3, filterPosition);
         }
     }
 
@@ -187,6 +224,26 @@ public class AdjustConfig {
         diff[1] = dif;
     }
 
+    public String getRuleTemporary() {
+        String rule = mRule;
+
+        if(additional) {
+            rule += " " + tempIntensity + " " + additionaItem.tempIntensity;
+        } else if(hsl != null) {
+            for (float[] config : tempHsl) {
+                rule += " " + config[0];
+                rule += " " + config[1];
+                rule += " " + config[2];
+            }
+        } else if(type == EffectType.Texture || type == EffectType.Grain) {
+            rule += " " + tempIntensity * 100;
+        } else {
+            rule += " " + tempIntensity;
+        }
+
+        return rule;
+    }
+
     public String getRule() {
         String rule = mRule;
 
@@ -198,7 +255,7 @@ public class AdjustConfig {
                 rule += " " + config[1];
                 rule += " " + config[2];
             }
-        } else if(type == EffectType.Texture) {
+        } else if(type == EffectType.Texture || type == EffectType.Grain) {
             rule += " " + intensity * 100;
         } else {
             rule += " " + intensity;

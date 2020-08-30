@@ -13,6 +13,7 @@ static CGEConstString s_fsh = CGE_SHADER_STRING_PRECISION_M
 varying vec2 textureCoordinate;
 uniform sampler2D inputImageTexture;
 uniform sampler2D lookupTexture;
+uniform float intensity;
 
 const float stepDis = 1.0 / 8.0;
 const float perPixel = 1.0 / 512.0;
@@ -38,9 +39,10 @@ void main()
     
     vec3 lutColor1 = texture2D(lookupTexture, coord1).rgb;
     vec3 lutColor2 = texture2D(lookupTexture, coord2).rgb;
-    
-	gl_FragColor.rgb = mix(lutColor1, lutColor2, fract(blue));
-	gl_FragColor.a = color.a;
+
+	vec3 newColor = mix(lutColor1, lutColor2, fract(blue));
+
+    gl_FragColor = mix(color, vec4(newColor.rgb, color.a), intensity);
 }
 );
 
@@ -56,16 +58,25 @@ namespace CGE
 		glDeleteTextures(1, &m_lookupTexture);
 	}
 
+    CGEConstString CGELookupFilter::paramIntensityName = "intensity";
+
 	bool CGELookupFilter::init()
 	{
 		if(initShadersFromString(g_vshDefaultWithoutTexCoord, s_fsh))
 		{
 			m_program.bind();
+			setIntensity(1.0f);
 			m_program.sendUniformi("lookupTexture", 1);
 			return true;
 		}
 		return false;
 	}
+
+    void CGELookupFilter::setIntensity(float value)
+    {
+        m_program.bind();
+        m_program.sendUniformf(paramIntensityName, value);
+    }
 
 	void CGELookupFilter::render2Texture(CGEImageHandlerInterface* handler, GLuint srcTexture, GLuint vertexBufferID)
 	{

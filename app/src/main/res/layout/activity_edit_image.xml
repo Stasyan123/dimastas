@@ -43,20 +43,6 @@
                 android:layout_marginStart="17dp"
                 >
 
-                <ImageView
-                    android:id="@+id/tr"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_centerVertical="true"
-                    android:visibility="gone"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                </ImageView>
-
                 <org.wysaid.view.ImageGLSurfaceView
                     android:id="@+id/gpuimageview"
                     android:layout_width="match_parent"
@@ -68,6 +54,22 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     />
+
+                <ImageView
+                    android:id="@+id/waterMark"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:visibility="invisible"
+                    android:scaleType="centerInside"
+                    android:alpha="0.7"
+                    android:src="@drawable/ic_mood"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+                </ImageView>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/crop_area_test"
@@ -638,6 +640,16 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <include
+            android:id="@+id/join_mood"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="17dp"
+            android:visibility="invisible"
+            app:layout_constraintTop_toTopOf="parent"
+            layout="@layout/license">
+        </include>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -666,7 +678,35 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
             </FrameLayout>
+
+            <ImageView
+                android:id="@+id/waterMark_crop"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:visibility="gone"
+                android:scaleType="centerInside"
+                android:alpha="0.7"
+                android:src="@drawable/ic_mood"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+            </ImageView>
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <include
+            android:id="@+id/join_mood_crop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="17dp"
+            android:layout_marginBottom="7dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/crop_tools"
+            layout="@layout/license">
+        </include>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/crop_tools"

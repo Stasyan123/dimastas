@@ -10,5 +10,5 @@ import java.util.List;
  */
 
 public interface OnAssetSelectionListener {
-    void onSelectionUpdate(List<Asset> assets);
+    void onSelectionUpdate(List<Asset> assets, Asset asset);
 }

@@ -607,7 +607,9 @@ do{\
 		else if(strcmp(buffer, "lut") == 0)
 		{
 			char lutName[128];
-			if(sscanf(pstr, "%127s", lutName) != 1)
+			float intensity;
+
+			if(sscanf(pstr, "%127s%*c%f", lutName, &intensity) != 2)
 			{
 				LOG_ERROR_PARAM(pstr);
 				return nullptr;
@@ -618,6 +620,7 @@ do{\
 			if(filter != nullptr && tex != 0)
 			{
 				filter->setLookupTexture(tex);
+				filter->setIntensity(intensity);
 				proc = filter;
 			}
 			else

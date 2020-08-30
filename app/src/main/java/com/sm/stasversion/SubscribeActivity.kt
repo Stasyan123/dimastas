@@ -24,8 +24,7 @@ class SubscribeActivity : AppCompatActivity() {
 
         val restore = findViewById<TextView>(R.id.restore)
         restore.setOnClickListener {
-            val intent = Intent(this@SubscribeActivity, MenuActivity::class.java)
-            startActivity(intent)
+
         }
 
         val p_month = findViewById<ConstraintLayout>(R.id.p_month)

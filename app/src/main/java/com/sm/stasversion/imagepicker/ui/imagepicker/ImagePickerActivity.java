@@ -187,7 +187,7 @@ public class ImagePickerActivity extends AppCompatActivity implements ImagePicke
         recyclerViewManager.setupAdapters(imageClickListener, folderClickListener);
         recyclerViewManager.setOnImageSelectionListener(new OnAssetSelectionListener() {
             @Override
-            public void onSelectionUpdate(List<Asset> assets) {
+            public void onSelectionUpdate(List<Asset> assets, Asset asset) {
                 invalidateToolbar();
                 if (!config.isMultipleMode() && !assets.isEmpty()) {
                     onDone();

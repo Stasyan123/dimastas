@@ -248,6 +248,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/bottom_bar"
             app:layout_constraintStart_toStartOf="@+id/bottom_bar"
             android:background="@color/menu_bottom"
+            android:fontFamily="@font/masiva"
             android:textColor="@color/white"
             android:text="@string/copy"
             android:textSize="22sp"

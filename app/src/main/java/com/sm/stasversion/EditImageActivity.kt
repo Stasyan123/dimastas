@@ -12,6 +12,7 @@ import android.graphics.drawable.VectorDrawable
 import android.media.ExifInterface
 import android.net.Uri
 import android.opengl.GLSurfaceView
+import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
@@ -21,6 +22,7 @@ import android.util.TypedValue
 import android.view.*
 import android.widget.*
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.children
 import androidx.core.view.forEachIndexed
@@ -67,6 +69,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     private var mEditingToolsAdapter: EditingToolsAdapter? = null
     private var mCurrentFragment: MainFragment? = null
     private var mImageView: ImageView? = null
+
+    private var waterMark: ImageView? = null
+    private var joinMood: ConstraintLayout? = null
+    private var mainArea: ConstraintLayout? = null
+
     private var glImageView: ImageGLSurfaceView? = null
 
     private var canvasHeight: Float = 470.0f
@@ -97,13 +104,14 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     var image: Bitmap? = null
     var transImage: Bitmap? = null
-    var grainImage: Bitmap? = null
     var position: Int = 0
     var mOnPhotoEditorListener: OnPhotoEditorListener? = null
 
     var intensity: Float = 1.0f
     val tag: String = "DimaStas"
+
     var initCrop: Boolean = true
+    var licenseBlock: Boolean = false
 
     var imgHandler: CGEImageHandler = CGEImageHandler()
 
@@ -129,7 +137,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 }
 
                 if(name.equals(mAdjustConfigs!!.get(10).name)) {
-                    return BitmapFactory.decodeStream(`is`).changeBmp(mActiveConfig!!.horizontal[1], mActiveConfig!!.vertical[1], mActiveConfig!!.rotate[1])
+                    return BitmapFactory.decodeStream(`is`).changeBmp(mAdjustConfigs!!.get(10).horizontal[1], mAdjustConfigs!!.get(10).vertical[1], mAdjustConfigs!!.get(10).rotate[1])
                 } else {
                     return BitmapFactory.decodeStream(`is`)
                 }
@@ -161,8 +169,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         textIntensity = findViewById(R.id.text_intensity)
 
-        grainImage = BitmapFactory.decodeResource(this.getResources(), R.drawable.oise_light)
         glImageView = findViewById(R.id.gpuimageview) as ImageGLSurfaceView
+
+        waterMark = findViewById(R.id.waterMark)
+        joinMood = findViewById(R.id.join_mood)
+        mainArea = findViewById<ConstraintLayout>(R.id.main_area)
 
         val bundle = intent.extras
 
@@ -209,7 +220,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun setPaddings() {
-        val padding = (6.5 * getScale()).toInt()
+        val padding = (8.5 * getScale()).toInt()
 
         mSeekHue!!.setPadding(padding, 0,  padding, 0)
         mSeekSat!!.setPadding(padding, 0, padding, 0)
@@ -217,7 +228,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         mSeekBar!!.setPadding(padding, 0, padding, 0)
         mSeekTemp!!.setPadding(padding, 0, padding, 0)
         mSeekTint!!.setPadding(padding, 0, padding, 0)
-        mSeekTexture!!.setPadding(padding, 0, padding, 0)
+        mSeekTexture!!.setPadding(padding, 0, padding + 7, 0)
     }
 
     private fun initCrop() {
@@ -399,8 +410,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             val crop = findViewById<ConstraintLayout>(R.id.crop_area)
             crop.visibility = View.GONE
 
-            val main = findViewById<ConstraintLayout>(R.id.main_area)
-            main.visibility = View.VISIBLE
+            mainArea!!.visibility = View.VISIBLE
 
             percentTextView.text = getString(R.string.percent, mCurrentFragment!!.mCropImageView.cropInfo.currentPercent.toString())
             straightening.invalidateValue()
@@ -411,7 +421,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun Bitmap.changeBmp(x: Float, y: Float, degrees: Float): Bitmap {
-
         val matrix = Matrix().apply { postScale(x, y, width / 2f, height / 2f) }
         matrix.apply { postRotate(degrees) }
         return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
@@ -455,22 +464,26 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val v = findViewById<TextView>(R.id.topSave)
 
         v.setOnClickListener{
-            mAdjustConfigs!!.get(0).intensity = intensity
-            mAdjustConfigs!!.get(0).position = position
-            mAdjustConfigs!!.get(0).isEdited = isEdited
+           // glImageView!!.setFilterWithConfig("@adjust lut 1.png")
 
-            var gsonConfig = ""
+            if(licenseBlock) {
+                licenseOpen()
+            } else {
+                mAdjustConfigs!!.get(0).intensity = intensity
+                mAdjustConfigs!!.get(0).position = position
+                mAdjustConfigs!!.get(0).isEdited = isEdited
 
-            if(isEdited[0] != false || isEdited[1] != false || isEdited[2] != false) {
-                gsonConfig = serializedConfigs.encryptConfigs(mAdjustConfigs)
+                var gsonConfig = ""
+
+                if(isEdited[0] != false || isEdited[1] != false || isEdited[2] != false) {
+                    gsonConfig = serializedConfigs.encryptConfigs(mAdjustConfigs)
+                }
+
+                val gsonCrop = if(mCurrentFragment!!.mCropImageView.getCropInfo().isCropped) Gson().toJson(mCurrentFragment!!.mCropImageView.getCropInfo()) else ""
+
+                db!!.configDao().updateConfig(imgId, gsonConfig, gsonCrop)
+                finish()
             }
-
-            val gsonCrop = if(mCurrentFragment!!.mCropImageView.getCropInfo().isCropped) Gson().toJson(mCurrentFragment!!.mCropImageView.getCropInfo()) else ""
-
-            db!!.configDao().updateConfig(imgId, gsonConfig, gsonCrop)
-            finish()
-            //val listType = object : TypeToken<MutableList<AdjustConfig>?>(){}.getType();
-            //glImageView!!.setFilterWithConfig("@adjust sharpen 1.0")
         }
     }
 
@@ -482,6 +495,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val view = findViewById<ImageView>(R.id.topClose)
 
         view.setOnClickListener{
+            //glImageView!!.setFilterIntensityForIndex(0.5f, 0)
             //glImageView!!.setFilterWithConfig("@adjust lut ping.png 0.0 @adjust exposure 0.0 @adjust brightness 0.0 @adjust contrast 1.0 @adjust shadowhighlight 0.0 0.0 @adjust saturation 1.0 @adjust whitebalance 0.0 1.0 @blend sl oise_light.png 0.0 @adjust sharpen 0.0 @adjust hsl 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0");
             finish()
         }
@@ -513,10 +527,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 override fun onLoadCleared(placeholder: Drawable?) {
                 }
             })
-    }
-
-    private fun updateView() {
-        //rootView?.invalidate()
     }
 
     private fun hideIntensity(texture: Boolean) {
@@ -611,7 +621,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun initView(res: Bitmap) {
-        updateView()
         initToolsEvents()
         before_afterEvent()
 
@@ -747,28 +756,24 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     private fun effectsEvents() {
         mSeekBar!!.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, progress: Int, p2: Boolean) {
-                if(mActiveConfig != null) {
-                    if (mActiveConfig!!.type == EffectType.Shadow) {
-                        mActiveConfig!!.setTempIntensityWithParam(
-                            8,
-                            mSeekBar!!.progress / 100f,
-                            mActiveConfig!!.calcIntensity(mActiveConfig!!.additionaItem.slierIntensity),
-                            0.0f,
-                            glImageView
-                        )
-                    } else if (mActiveConfig!!.type == EffectType.Highlight) {
-                        mActiveConfig!!.setTempIntensityWithParam(
-                            8,
-                            mActiveConfig!!.slierIntensity,
-                            mActiveConfig!!.calcIntensity(mSeekBar!!.progress / 100f),
-                            0.0f,
-                            glImageView
-                        )
-                    } else {
-                        mActiveConfig!!.setTempIntensity(mSeekBar!!.progress / 100f, true, glImageView)
-                    }
+                if (mActiveConfig!!.type == EffectType.Shadow) {
+                    mActiveConfig!!.setTempIntensityWithParam(
+                        8,
+                        mSeekBar!!.progress / 100f,
+                        mActiveConfig!!.calcIntensity(mActiveConfig!!.additionaItem.slierIntensity),
+                        0.0f,
+                        glImageView
+                    )
+                } else if (mActiveConfig!!.type == EffectType.Highlight) {
+                    mActiveConfig!!.setTempIntensityWithParam(
+                        8,
+                        mActiveConfig!!.slierIntensity,
+                        mActiveConfig!!.calcIntensity(mSeekBar!!.progress / 100f),
+                        0.0f,
+                        glImageView
+                    )
                 } else {
-                    glImageView!!.setFilterIntensity(mSeekBar!!.progress / 100f)
+                    mActiveConfig!!.setTempIntensity(mSeekBar!!.progress / 100f, true, glImageView)
                 }
 
                 textIntensity!!.text = progress.toString()
@@ -791,7 +796,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         mSeekLum!!.setOnSeekBarChangeListener(this)
 
         apply_effect.setOnClickListener {
-            if(mActiveConfig != null) {
+            if(mActiveConfig!!.type != EffectType.Lut) {
                 if (mActiveConfig!!.type == EffectType.Temperature) {
                     mActiveConfig!!.setIntensityWithParam(
                         7,
@@ -824,22 +829,32 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                     mActiveConfig!!.setIntensity(mSeekBar!!.progress / 100f, false, glImageView)
                 }
 
+                if(mActiveConfig!!.checkOriginal()) {
+                    mActiveConfig!!.active = false
+                    setFilters()
+                }
+
                 mActiveConfig!!.startEditing = false
                 scaleArea(false)
             } else {
                 intensity = mSeekBar!!.progress / 100f
                 mAdjustConfigs!!.get(0).intensity = intensity
 
+                mActiveConfig!!.setIntensity(intensity, false, glImageView)
                 scaleArea(false)
             }
 
             isEdited[1] = true
             toggleTopBar(false)
             hideIntensity(false)
+
+            if(licenseBlock) {
+                toggleLicense(true, false)
+            }
         }
 
         cancel_effect.setOnClickListener {
-            if(mActiveConfig != null) {
+            if(mActiveConfig!!.type != EffectType.Lut) {
                 if (mActiveConfig!!.type == EffectType.Temperature) {
                     mActiveConfig!!.setIntensityWithParam(
                         7,
@@ -864,25 +879,25 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                     mActiveConfig!!.setIntensity(mActiveConfig!!.slierIntensity, true, glImageView)
                 }
 
+                if(mActiveConfig!!.checkOriginal()) {
+                    mActiveConfig!!.active = false
+                    setFilters()
+                }
+
                 mActiveConfig!!.startEditing = false
                 scaleArea(false)
             } else {
-                glImageView!!.setFilterIntensity(intensity)
+                //glImageView!!.setLutIntensity(intensity)
+                mActiveConfig!!.setIntensity(intensity, true, glImageView)
 
                 scaleArea(false)
             }
 
             toggleTopBar(false)
             hideIntensity(false)
-        }
-    }
 
-    private fun checkEffectChanged() {
-        var rule = "";
-
-        mAdjustConfigs!!.forEachIndexed() { index, config ->
-            if(config.active) {
-                rule += " " + config.getRule()
+            if(licenseBlock) {
+                toggleLicense(true, false)
             }
         }
     }
@@ -953,8 +968,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     override fun onEffectSelected(eType: EffectType, position: Int) {
-        toggleTopBar(true)
-
         if(eType == EffectType.Crop) {
             startCropping(CGENativeLibrary.filterImage_MultipleEffects(transImage, calculateRules(), intensity), false)
             return
@@ -965,13 +978,23 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         mActiveConfig = mAdjustConfigs!!.get(position)
         mActiveConfig!!.type = eType
 
+        if(!mActiveConfig!!.active) {
+            mActiveConfig!!.active = true
+            setFilters()
+        }
+
+        toggleTopBar(true)
         showEffects(eType)
-		
+
         if(eType == EffectType.HSL) {
             initHslSeek(false)
             mActiveConfig!!.startEditing = true
 
             changeMargin(false)
+
+            if(licenseBlock) {
+                toggleLicense(true, true)
+            }
             return;
         }
 
@@ -988,6 +1011,10 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             tint_container!!.findViewById<TextView>(R.id.effect_value).text = ((mActiveConfig!!.additionaItem.slierIntensity * seek_tint.max).toInt()).toString()
 
             mActiveConfig!!.startEditing = true
+
+            if(licenseBlock) {
+                toggleLicense(true, true)
+            }
         } else if(eType == EffectType.Highlight) {
             textIntensity!!.text = ((mActiveConfig!!.additionaItem.slierIntensity * mSeekBar!!.max).toInt()).toString()
             mSeekBar!!.setProgress((mActiveConfig!!.additionaItem.slierIntensity * mSeekBar!!.max).toInt())
@@ -1051,14 +1078,18 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         return currentBar.toInt()
     }
 
-    override fun onFilterSelected(fType: FilterType, pos: Int, rule: String, color: Int) {
+    override fun onFilterSelected(fType: FilterType, pos: Int, rule: String, color: Int, byLicense: Boolean) {
         changeMargin(true)
-        mActiveConfig = null;
+        mActiveConfig = mAdjustConfigs!!.get(0)
+
+        licenseBlock = byLicense
+        toggleLicense(byLicense, false)
 
         if(pos != position) {
             intensity = 1.0f
-            mAdjustConfigs!!.get(0).mRule = rule
-            mAdjustConfigs!!.get(0).intensity = intensity
+            mActiveConfig!!.mRule = rule
+            mActiveConfig!!.intensity = intensity
+            mActiveConfig!!.active = true
         }
 
         setFilters()
@@ -1098,6 +1129,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
                 isEdited[0] = true
             } else {
+                mAdjustConfigs!!.get(0).active = false
                 isEdited[0] = false
             }
 
@@ -1108,11 +1140,14 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     private fun startCropping(arr: Bitmap, initOnly: Boolean) {
         if(!initOnly) {
-            val main = findViewById<ConstraintLayout>(R.id.main_area)
             val cropArea = findViewById<ConstraintLayout>(R.id.crop_area)
 
-            main.visibility = View.GONE
+            mainArea!!.visibility = View.GONE
             cropArea.visibility = View.VISIBLE
+
+            val join = findViewById<ConstraintLayout>(R.id.join_mood_crop)
+            join.visibility = if(licenseBlock) View.VISIBLE else View.GONE
+            findViewById<ImageView>(R.id.waterMark_crop).visibility = if(licenseBlock) View.VISIBLE else View.GONE
         }
 
         //val bitmap = getInitialImage(arr)
@@ -1136,8 +1171,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 mImageView = findViewById<ImageView>(R.id.ImageView_image)
             }
         } catch (e: java.lang.Exception) {
-            val t1 = 1;
-            val t = 1;
+            Log.d(tag, e.message.toString())
         }
 
 
@@ -1216,8 +1250,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         val crop = findViewById<ConstraintLayout>(R.id.crop_area)
         crop.visibility = View.GONE
 
-        val main = findViewById<ConstraintLayout>(R.id.main_area)
-        main.visibility = View.VISIBLE
+        mainArea!!.visibility = View.VISIBLE
 
         cropSurface(bm, false)
         image = bm
@@ -1269,6 +1302,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         layoutParams.height = height.toInt()
         layoutParams.width = width.toInt()
         glImageView!!.layoutParams = layoutParams
+
+        val layoutParamsW = waterMark!!.layoutParams
+        layoutParamsW.height = height.toInt()
+        layoutParamsW.width = width.toInt()
+        waterMark!!.layoutParams = layoutParamsW
     }
 
     fun setCurrentFragment(fragment: MainFragment) {
@@ -1293,10 +1331,14 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     private fun calculateRules(): String {
         var rule = "";
+        var i = 0
 
         mAdjustConfigs!!.forEachIndexed() { index, config ->
             if(config.active) {
-                rule += " " + config.getRule()
+                rule += " " + if(config.editorOpen) config.getRuleTemporary() else config.getRule()
+
+                mAdjustConfigs!!.get(index).filterPosition = i
+                i++
             }
         }
 
@@ -1306,8 +1348,10 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     private fun initEffectsArray() {
         if(correction != null &&!correction!!.isEmpty()) {
             mAdjustConfigs = serializedConfigs.decryptConfigsStatic(correction)
+
             intensity = mAdjustConfigs!!.get(0).intensity
             position = mAdjustConfigs!!.get(0).position
+            isEdited = mAdjustConfigs!!.get(0).isEdited
         } else {
             val temperature = AdjustConfig(
                 6,
@@ -1365,11 +1409,11 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             mAdjustConfigs = mutableListOf(
                 AdjustConfig(
                     0,
-                    -1.0f,
                     0.0f,
+                    0.5f,
                     1.0f,
                     "@adjust lut empty.png",
-                    0.5f,
+                    1.0f,
                     false,
                     EffectType.Lut,
                     null
@@ -1425,7 +1469,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                     .0f,
                     0.0f,
                     1.0f,
-                    "@blend sl oise_light.png",
+                    "@blend sl noise.JPG",
                     0f,
                     false,
                     EffectType.Grain,
@@ -1481,13 +1525,15 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             mSeekTexture!!.setProgress((mActiveConfig!!.slierIntensity * mSeekTexture!!.max).toInt())
             isEdited[2] = true
 
-            toggleTopBar(true)
             showTexture()
         }
 
         mActiveConfig!!.startEditing = true
-
         setFilters()
+
+        if(!name.equals("def", true)) {
+            toggleTopBar(true)
+        }
     }
 
     private fun getMultiTouchListener(): MultiTouchListener {
@@ -1582,6 +1628,18 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
             textures.background = getResources().getDrawable(R.drawable.ic_textures_check)
         }
+
+        joinMood!!.setOnClickListener{
+            licenseOpen()
+        }
+        findViewById<ConstraintLayout>(R.id.join_mood_crop).setOnClickListener{
+            licenseOpen()
+        }
+    }
+
+    private fun licenseOpen() {
+        val intent = Intent(this@EditImageActivity, SubscribeActivity::class.java)
+        startActivity(intent)
     }
 
     private fun hideButtons(filter: View, effect: View, textures: View) {
@@ -1594,6 +1652,43 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         effectsRV.visibility = View.GONE
         toolsRV.visibility = View.GONE
         texturesRV.visibility = View.GONE
+    }
+
+    private fun toggleLicense(show: Boolean, effect: Boolean) {
+        if(show) {
+            var rect: RectF? = null
+
+            joinMood!!.visibility = View.VISIBLE
+            waterMark!!.visibility = View.VISIBLE
+
+            val constraintSet = ConstraintSet()
+            constraintSet.clone(mainArea)
+
+            if(effect) {
+                val intensityLayout = findViewById<ConstraintLayout>(R.id.intensityLayout_effect)
+
+                constraintSet.clear(joinMood!!.id, ConstraintSet.TOP)
+                constraintSet.connect(joinMood!!.id, ConstraintSet.BOTTOM, intensityLayout.id, ConstraintSet.TOP, 7 * getScale().toInt())
+            } else {
+                val block = if (effect) findViewById<ConstraintLayout>(R.id.intensityLayout_effect) else findViewById<ConstraintLayout>(R.id.toolsLayout)
+                rect = calculeRectOnScreen(block)
+
+                constraintSet.connect(joinMood!!.id, ConstraintSet.TOP, mainArea!!.id, ConstraintSet.TOP, rect.top.toInt() - joinMood!!.height - 32 * getScale().toInt())
+                constraintSet.clear(joinMood!!.id, ConstraintSet.BOTTOM)
+            }
+
+            constraintSet.applyTo(mainArea);
+        } else {
+            joinMood!!.visibility = View.GONE
+            waterMark!!.visibility = View.GONE
+        }
+    }
+
+    fun calculeRectOnScreen(view: View ): RectF {
+        val location = IntArray(2)
+        view.getLocationInWindow(location);
+
+        return RectF(location[0].toFloat(), location[1].toFloat(), location[0].toFloat() + view.getMeasuredWidth(), location[1].toFloat() + view.getMeasuredHeight());
     }
 
     private fun changeMargin(grow: Boolean) {
@@ -1627,7 +1722,10 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     private fun setFilters() {
         glImageView!!.setFilterWithConfig(calculateRules())
-        glImageView!!.setFilterIntensity(intensity)
+        /*if(mAdjustConfigs!!.get(0).active && mAdjustConfigs!!.get(0).type == EffectType.Lut) {
+            glImageView!!.setLutIntensity(intensity)
+            //glImageView!!.setFilterIntensity(intensity)
+        }*/
     }
 
     private fun toggleTopBar(hide: Boolean) {
@@ -1637,9 +1735,17 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         if(hide) {
             close.visibility = View.GONE
             save.visibility = View.GONE
+
+            if(mActiveConfig != null) {
+                mActiveConfig!!.editorOpen = true;
+            }
         } else {
             close.visibility = View.VISIBLE
             save.visibility = View.VISIBLE
+
+            if(mActiveConfig != null) {
+                mActiveConfig!!.editorOpen = false;
+            }
         }
     }
 }
