@@ -21,7 +21,7 @@ extern "C" {
  * Signature: (Landroid/graphics/Bitmap;Ljava/lang/String;F)Landroid/graphics/Bitmap;
  */
 JNIEXPORT jobject JNICALL Java_org_wysaid_nativePort_CGENativeLibrary_cgeFilterImage_1MultipleEffects
-  (JNIEnv *, jclass, jobject, jstring, jfloat);
+  (JNIEnv *, jclass, jobject, jstring, jfloat, jint);
 
 /*
  * Class:     org_wysaid_nativePort_CGENativeLibrary

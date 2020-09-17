@@ -17,7 +17,9 @@
 namespace CGE
 {
 	//This teaches you how to implement function above CGE.
-	bool cgeGenerateVideoWithFilter(const char* outputFilename, const char* inputFilename, const char* filterConfig, float filterIntensity, GLuint texID, CGETextureBlendMode blendMode, float blendIntensity, bool mute, CGETexLoadArg* loadArg);
+	bool cgeGenerateVideoWithFilter(const char* outputFilename, const char* inputFilename, const char* filterConfig,
+	                                float filterIntensity, GLuint texID, CGETextureBlendMode blendMode, float blendIntensity, bool mute,
+                                    CGETexLoadArg* loadArg, CGETexLoadArg* saveProgress, int id);
 }
 
 #ifdef __cplusplus
@@ -25,7 +27,7 @@ extern "C" {
 #endif
 
 JNIEXPORT jboolean JNICALL Java_org_wysaid_nativePort_CGEFFmpegNativeLibrary_nativeGenerateVideoWithFilter
-  (JNIEnv *, jclass, jstring, jstring, jstring, jfloat, jobject, jint, jfloat, jboolean);
+  (JNIEnv *, jclass, jstring, jstring, jstring, jfloat, jobject, jint, jfloat, jboolean, jint);
 
 #ifdef __cplusplus
 }

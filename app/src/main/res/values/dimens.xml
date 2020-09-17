@@ -32,9 +32,9 @@
     <dimen name="empty_size">1sp</dimen>
 
     <!--Progress wheel-->
-    <dimen name="crop_horizontal_progress_width">2dp</dimen>
+    <dimen name="crop_horizontal_progress_width">1dp</dimen>
     <dimen name="crop_horizontal_progress_height">30dp</dimen>
-    <dimen name="crop_horizontal_progress_margin">6dp</dimen>
+    <dimen name="crop_horizontal_progress_margin">10dp</dimen>
 	
 	 <!--uCrop Activity-->
     <dimen name="ucrop_padding_crop_frame">16dp</dimen>

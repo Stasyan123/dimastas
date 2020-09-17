@@ -82,7 +82,7 @@ public class StickerBSFragment extends BottomSheetDialogFragment {
 
     public class StickerAdapter extends RecyclerView.Adapter<StickerAdapter.ViewHolder> {
 
-        int[] stickerList = new int[]{R.drawable.aa, R.drawable.bb};
+        //int[] stickerList = new int[]{R.drawable.aa, R.drawable.bb};
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -92,12 +92,12 @@ public class StickerBSFragment extends BottomSheetDialogFragment {
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.imgSticker.setImageResource(stickerList[position]);
+            //holder.imgSticker.setImageResource(stickerList[position]);
         }
 
         @Override
         public int getItemCount() {
-            return stickerList.length;
+            return 0;
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
@@ -110,11 +110,11 @@ public class StickerBSFragment extends BottomSheetDialogFragment {
                 itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (mStickerListener != null) {
+                        /*if (mStickerListener != null) {
                             mStickerListener.onStickerClick(
                                     BitmapFactory.decodeResource(getResources(),
                                             stickerList[getLayoutPosition()]));
-                        }
+                        }*/
                         dismiss();
                     }
                 });

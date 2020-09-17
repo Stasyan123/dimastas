@@ -33,8 +33,9 @@ struct CGETextureResult
 
 double getCurrentTimeMillis();
 
-GLuint cgeGlobalTextureLoadFunc(const char* sourceName, GLint* w, GLint* h, void* arg);
+GLuint cgeGlobalTextureLoadFunc(const char* sourceName, GLint* w, GLint* h, void* arg, int id);
 
+bool video_progress_JNI(JNIEnv* env, jclass cls);
 CGETextureResult cgeLoadTexFromBitmap_JNI(JNIEnv* env, jclass cls, jobject bitmap);
 CGETextureResult cgeLoadTexFromFile_JNI(JNIEnv* env, jclass cls, jstring imgFile);
 

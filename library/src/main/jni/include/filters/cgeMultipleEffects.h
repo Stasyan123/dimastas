@@ -48,6 +48,7 @@ namespace CGE
 
 		void setBufferLoadFunction(CGEBufferLoadFun fLoad, void* loadParam, CGEBufferUnloadFun fUnload, void* unloadParam);
 		void setTextureLoadFunction(CGETextureLoadFun texLoader, void* arg);
+		void setTextureId(int id);
 
 		// bool initWithEffectID(int index);
 		bool initWithEffectString(const char* pstr);
@@ -92,6 +93,7 @@ namespace CGE
 		CGESizei m_currentSize;
 		GLuint m_texCache;
 		bool m_isWrapper;
+		int m_texId;
 	};
 }
 

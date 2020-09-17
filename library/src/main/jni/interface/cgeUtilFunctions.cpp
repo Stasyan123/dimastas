@@ -22,13 +22,13 @@ extern "C"
 		return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
 	}
 
-	GLuint cgeGlobalTextureLoadFunc(const char* sourceName, GLint* w, GLint* h, void* arg)
+	GLuint cgeGlobalTextureLoadFunc(const char* sourceName, GLint* w, GLint* h, void* arg, int id)
 	{
 		CGETexLoadArg* texLoadArg = (CGETexLoadArg*)arg;
 		JNIEnv *env = texLoadArg->env;
 		jclass cls = texLoadArg->cls;
 
-		jmethodID loadTextureMethod = env->GetStaticMethodID(cls, "loadTextureByName", "(Ljava/lang/String;)Lorg/wysaid/nativePort/CGENativeLibrary$TextureResult;");
+		jmethodID loadTextureMethod = env->GetStaticMethodID(cls, "loadTextureByName", "(Ljava/lang/String;I)Lorg/wysaid/nativePort/CGENativeLibrary$TextureResult;");
 
 		if(loadTextureMethod == nullptr)
 		{
@@ -43,7 +43,7 @@ extern "C"
 		jfieldID texHeightFieldID = env->GetFieldID(texResult,"height","I");
 
 		jstring srcName = env->NewStringUTF(sourceName);
-		jobject result = env->CallStaticObjectMethod(cls, loadTextureMethod, srcName);
+		jobject result = env->CallStaticObjectMethod(cls, loadTextureMethod, srcName, id);
 		env->DeleteLocalRef(srcName);
 
 		if(result == nullptr)
@@ -65,6 +65,20 @@ extern "C"
 		return texID;
 	};
 
+    bool video_progress_JNI(JNIEnv* env, jclass cls)
+    {
+
+
+        jmethodID printFloat = env->GetStaticMethodID(cls, "getProgress", "(I)V");
+        //jmethodID loadTextureMethod = env->GetStaticMethodID(cls, "test", "(Landroid/graphics/Bitmap;)java.lang.Boolean;");
+
+
+        env->CallStaticVoidMethod(cls, printFloat, 50);
+        //bool loadResult = env->CallStaticBooleanMethod(cls, loadTextureMethod, bitmap);
+
+        return true;
+    }
+
 	CGETextureResult cgeLoadTexFromBitmap_JNI(JNIEnv* env, jclass cls, jobject bitmap)
 	{
 		CGETextureResult result = {0};
@@ -84,6 +98,7 @@ extern "C"
 		jfieldID texHeightFieldID = env->GetFieldID(texResult,"height","I");
 
 		jobject loadResult = env->CallStaticObjectMethod(cls, loadTextureMethod, bitmap);
+
 
 		if(loadResult == nullptr)
 		{

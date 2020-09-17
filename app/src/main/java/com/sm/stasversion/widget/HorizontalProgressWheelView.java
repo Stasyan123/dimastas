@@ -93,7 +93,7 @@ public class HorizontalProgressWheelView extends View {
                     float startLastX = -deltaX + lOffset + mCanvasClipBounds.left + (linesCount - 1) * (mProgressLineWidth + mProgressLineMargin) + _totalScrollDistance;
 
 
-                    if(mCanvasClipBounds.centerX() + mProgressLineWidth / 2 < startX || mCanvasClipBounds.centerX() + mProgressLineWidth / 2 > startLastX) {
+                    if(mCanvasClipBounds.centerX() + mProgressLineWidth / 2 < startX || mCanvasClipBounds.centerX() + mProgressLineWidth / 2 > startLastX + mProgressLineMargin) {
                         break;
                     }
 
@@ -115,8 +115,10 @@ public class HorizontalProgressWheelView extends View {
         super.onDraw(canvas);
         canvas.getClipBounds(mCanvasClipBounds);
 
-        lOffset = mProgressLineWidth / 2;
         linesCount = mCanvasClipBounds.width() / (mProgressLineWidth + mProgressLineMargin);
+
+        int width = (mProgressLineWidth + mProgressLineMargin) * linesCount - mProgressLineMargin;
+        int offset = (mCanvasClipBounds.width() - width) / 2;
 
         if(firstDraw) {
             invalidateValue();
@@ -134,18 +136,27 @@ public class HorizontalProgressWheelView extends View {
             }
         }
 
+        float startX = 0f, startY = 0f, stopX = 0f, stopY = 0f;
+
         for (int i = 0; i < linesCount; i++) {
             //mProgressLinePaint.setAlpha(255);
 
+            if(i * 2 + 1 == linesCount) {
+                startX = -deltaX + offset + mCanvasClipBounds.left + i * (mProgressLineWidth + mProgressLineMargin) + mTotalScrollDistance;
+                startY = mCanvasClipBounds.centerY() - mProgressLineHeight / 4.0f;
+                stopX = -deltaX + offset + mCanvasClipBounds.left + i * (mProgressLineWidth + mProgressLineMargin) + mTotalScrollDistance;
+                stopY = mCanvasClipBounds.centerY() + mProgressLineHeight / 4.0f;
+            }
+
             canvas.drawLine(
-                    -deltaX+ lOffset + mCanvasClipBounds.left + i * (mProgressLineWidth + mProgressLineMargin) + mTotalScrollDistance ,
+                    -deltaX + offset + mCanvasClipBounds.left + i * (mProgressLineWidth + mProgressLineMargin) + mTotalScrollDistance ,
                     mCanvasClipBounds.centerY() - mProgressLineHeight / 4.0f,
-                    -deltaX + lOffset + mCanvasClipBounds.left + i * (mProgressLineWidth + mProgressLineMargin) + mTotalScrollDistance,
+                    -deltaX + offset + mCanvasClipBounds.left + i * (mProgressLineWidth + mProgressLineMargin) + mTotalScrollDistance,
                     mCanvasClipBounds.centerY() + mProgressLineHeight / 4.0f, mProgressLinePaint);
         }
 
-        canvas.drawLine(mCanvasClipBounds.centerX() + mProgressLineWidth / 2, mCanvasClipBounds.centerY() - mProgressLineHeight / 2.0f,
-                mCanvasClipBounds.centerX() + mProgressLineWidth / 2, mCanvasClipBounds.centerY() + mProgressLineHeight / 4.0f, mProgressMiddleLinePaint);
+        canvas.drawLine((width + mProgressLineMargin) / 2, mCanvasClipBounds.centerY() - mProgressLineHeight / 2.0f,
+                (width + mProgressLineMargin) / 2, mCanvasClipBounds.centerY() + mProgressLineHeight / 4.0f, mProgressMiddleLinePaint);
 
     }
 
@@ -186,7 +197,7 @@ public class HorizontalProgressWheelView extends View {
         mProgressMiddleLinePaint = new Paint(mProgressLinePaint);
         mProgressMiddleLinePaint.setColor(mMiddleLineColor);
         mProgressMiddleLinePaint.setStrokeCap(Paint.Cap.ROUND);
-        mProgressMiddleLinePaint.setStrokeWidth(getContext().getResources().getDimensionPixelSize(R.dimen.crop_horizontal_progress_width));
+        mProgressMiddleLinePaint.setStrokeWidth(mProgressLineWidth);
     }
 
     public interface ScrollingListener {

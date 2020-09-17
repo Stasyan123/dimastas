@@ -72,20 +72,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:layout_marginBottom="235dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_bar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
-        <View
-            android:layout_height="178dp"
-            android:layout_width="147dp"
-            android:layout_marginStart="110dp"
-            android:background="@drawable/ic_arrow"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/new_title"
-            />
 
         <View
             android:id="@+id/new_title"
@@ -98,6 +88,47 @@
             />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/dark"
+        android:visibility="gone"
+        android:alpha="0.6"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/savedProgress">
+
+    </View>
+
+    <TextView
+        android:id="@+id/savedButton"
+        android:layout_width="115dp"
+        android:layout_height="40dp"
+        android:visibility="gone"
+        android:background="@color/filter2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/savedProgress"
+        android:text="@string/saved"
+        android:textStyle="bold"
+        android:fontFamily="@font/masiva"
+        android:textColor="@color/dark"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_marginBottom="30dp">
+
+    </TextView>
+
+    <ProgressBar
+        android:id="@+id/savedProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:progressDrawable="@drawable/download_progress_style"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:max="100"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_bar"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom_bar"

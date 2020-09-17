@@ -89,28 +89,28 @@
 
     <style name="action_button_cancel">
         <item name="android:layout_height">
-            11.4dp
+            18dp
         </item>
         <item name="android:layout_width">
-            10.45dp
+            18dp
         </item>
     </style>
 
     <style name="action_button_accept">
         <item name="android:layout_height">
-            11.4dp
+            18dp
         </item>
         <item name="android:layout_width">
-            15.2dp
+            25dp
         </item>
     </style>
 
     <style name="action_area_cancel">
         <item name="android:layout_height">
-            11.4dp
+            wrap_content
         </item>
         <item name="android:layout_width">
-            20dp
+            wrap_content
         </item>
     </style>
 
@@ -134,10 +134,10 @@
 
     <style name="action_area_accept">
         <item name="android:layout_height">
-            11.4dp
+            wrap_content
         </item>
         <item name="android:layout_width">
-            15dp
+            wrap_content
         </item>
     </style>
     <style name="rv_margin">
@@ -197,12 +197,21 @@
         </item>
     </style>
 
-    <style name="menu_icon">
+    <style name="card_view_style">
         <item name="android:layout_width">
-            23.7dp
+            24dp
         </item>
         <item name="android:layout_height">
-            23.7dp
+            24dp
+        </item>
+    </style>
+
+    <style name="layout_view_style">
+        <item name="android:layout_width">
+            26dp
+        </item>
+        <item name="android:layout_height">
+            26dp
         </item>
     </style>
 

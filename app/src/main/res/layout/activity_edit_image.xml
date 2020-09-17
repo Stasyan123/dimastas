@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="17dp"
         android:layout_marginEnd="17dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="12dp"
         app:layout_constraintTop_toTopOf="parent"
         layout="@layout/top_bar">
 
@@ -32,6 +32,8 @@
             android:layout_width="match_parent"
             android:layout_height="470dp"
             android:layout_marginTop="65dp"
+            android:layout_marginBottom="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/toolsLayout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 

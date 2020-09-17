@@ -11,7 +11,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 
 class SubscribeActivity : AppCompatActivity() {
 
-    private var type: String? = null
+    private var type: String = "p_month"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +59,7 @@ class SubscribeActivity : AppCompatActivity() {
             p_month_active.visibility = VISIBLE
 
 
-            type = "month"
+            type = "p_month"
         }
 
         pv_month.setOnClickListener {
@@ -79,7 +79,7 @@ class SubscribeActivity : AppCompatActivity() {
             p_year.visibility = GONE
             p_year_active.visibility = VISIBLE
 
-            type = "year"
+            type = "p_year"
         }
 
         pv_year.setOnClickListener {

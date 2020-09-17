@@ -51,7 +51,7 @@ namespace CGE
 
 	//加载纹理回调， 注， 为了保持接口简洁性， 回调返回的纹理单元将由调用者负责释放
 	//返回的纹理不应该为 glDeleteTextures 无法处理的特殊纹理类型.
-	typedef GLuint (*CGETextureLoadFun)(const char* sourceName, GLint* w, GLint* h, void* arg);
+	typedef GLuint (*CGETextureLoadFun)(const char* sourceName, GLint* w, GLint* h, void* arg, int id);
 
 	//You can set a common function for loading textures
 	void cgeSetCommonLoadFunction(CGEBufferLoadFun fun, void* arg);

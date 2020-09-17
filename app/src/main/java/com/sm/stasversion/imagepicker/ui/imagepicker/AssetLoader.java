@@ -80,7 +80,7 @@ public class AssetLoader {
                                 List<AdjustConfig> _configs = serializedConfigs.decryptConfigsStatic(asset.getCorrection());
                                 String rules = serializedConfigs.calculateRules(_configs);
 
-                                imageView.setImageBitmap(CGENativeLibrary.filterImage_MultipleEffects(bmp, rules, _configs.get(0).intensity));
+                                imageView.setImageBitmap(CGENativeLibrary.filterImage_MultipleEffects(bmp, rules, _configs.get(0).intensity, -1));
                             }
                         }
 
@@ -110,9 +110,6 @@ public class AssetLoader {
     }*/
 
     public void loadAsset(Asset asset, ImageView imageView) {
-        Integer i = imageView.getWidth();
-        Integer i1 = imageView.getHeight();
-
         Glide.with(imageView.getContext())
                 .load(asset instanceof Image ? asset.getPath() : ((Video)asset).getThumbnailUri())
                 .override(imageView.getWidth(), imageView.getHeight())

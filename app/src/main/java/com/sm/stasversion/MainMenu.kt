@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import com.sm.stasversion.classes.AppDatabase
 import com.sm.stasversion.imagepicker.helper.PermissionHelper
 import com.sm.stasversion.imagepicker.listener.OnAssetClickListener
 import com.sm.stasversion.imagepicker.listener.OnFolderClickListener
@@ -25,10 +24,12 @@ import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.media.ExifInterface
 import android.net.Uri
+import android.os.Handler
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import android.widget.ProgressBar
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -36,13 +37,13 @@ import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
 import com.google.gson.Gson
-import com.sm.stasversion.classes.AdjustConfig
-import com.sm.stasversion.classes.DBConfig
-import com.sm.stasversion.classes.serializedConfigs
+import com.sm.stasversion.classes.*
 import com.sm.stasversion.crop.BitmapUtils
 import com.sm.stasversion.imagepicker.listener.OnAssetSelectionListener
 import com.sm.stasversion.imagepicker.ui.imagepicker.*
 import com.sm.stasversion.imagepicker.util.isVideoFile
+import com.sm.stasversion.interfaces.CGEImageResponseHandler
+import kotlinx.android.synthetic.main.activity_edit_image.*
 import org.wysaid.common.Common
 import org.wysaid.myUtils.FileUtil
 import org.wysaid.myUtils.ImageUtil
@@ -55,7 +56,9 @@ import java.io.IOException
 import java.io.InputStream
 import java.util.*
 import java.util.Collections.list
+import java.util.Collections.replaceAll
 import kotlin.concurrent.schedule
+import java.util.regex.Pattern
 
 
 class MainMenu : AppCompatActivity(), ImagePickerView {
@@ -77,12 +80,17 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
     private var message: TextView? = null;
 
     private var presenter: ImagePickerPresenter? = null
+    public var progressBar: ProgressBar? = null
+
+    public var items: MutableList<ProgressItem>? = null
 
     protected var mThread: Thread? = null
     protected var mShouldStopThread = false
 
     protected var textureConfig: AdjustConfig? = null
-    protected var test = ""
+    protected var framesCount = 0
+    protected var selectedSize = 0
+    protected var savedCount = 0
 
     private val imageClickListener =
         OnAssetClickListener { view, position, isSelected ->
@@ -123,14 +131,33 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
     private val folderClickListener =
         OnFolderClickListener { folder -> setAssetAdapter(folder.images, folder.folderName) }
 
+    val mSaveVideoCallback: CGEFFmpegNativeLibrary.SaveVideoCallback =
+        object : CGEFFmpegNativeLibrary.SaveVideoCallback {
+            override fun progress(pr: Int, id: Int) {
+                changeProgress(id.toLong(), pr, false)
+
+                /*val progress = (Math.min(
+                    1.0f,
+                    pr.toFloat() / framesCount.toFloat()
+                ) * 100.0)
+
+                progressBar!!.setProgress(progress.toInt())*/
+            }
+        }
+
+    val mSaveImageCallback: CGENativeLibrary.SaveImageCallback =
+        object : CGENativeLibrary.SaveImageCallback {
+            override fun progress(pr: Int) {
+
+            }
+        }
+
     var mLoadImageCallback: CGENativeLibrary.LoadImageCallback =
         object : CGENativeLibrary.LoadImageCallback {
 
             //Notice: the 'name' passed in is just what you write in the rule, e.g: 1.jpg
-            override fun loadImage(name: String, arg: Any?): Bitmap? {
+            override fun loadImage(name: String, arg: Any?, id: Int): Bitmap? {
 
-                Log.d(LOG_TAG, " Loading " + test)
-                Log.d(Common.LOG_TAG, " Loading " + test)
                 Log.i(Common.LOG_TAG, "Loading file: $name")
                 val am = assets
                 val `is`: InputStream
@@ -141,8 +168,18 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
                     return null
                 }
 
-                if(textureConfig != null && name.equals(textureConfig!!.name)) {
-                    return BitmapFactory.decodeStream(`is`).changeBmp(textureConfig!!.horizontal[1], textureConfig!!.vertical[1], textureConfig!!.rotate[1])
+                var textConfig: AdjustConfig? = null
+
+                if(id != -1) {
+                    val asset = recyclerViewManager!!.getAssetById(id)
+
+                    val _configs = serializedConfigs.decryptConfigsStatic(asset.correction)
+
+                    textConfig = _configs.get(10)
+                }
+
+                if(textConfig != null && name.equals(textConfig.name)) {
+                    return BitmapFactory.decodeStream(`is`).changeBmp(textConfig.horizontal[1], textConfig.vertical[1], textConfig.rotate[1])
                 } else {
                     return BitmapFactory.decodeStream(`is`)
                 }
@@ -161,6 +198,8 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         setContentView(R.layout.activity_main_menu)
 
         CGENativeLibrary.setLoadImageCallback(mLoadImageCallback, 1)
+        CGENativeLibrary.setImageCallback(mSaveImageCallback)
+        CGEFFmpegNativeLibrary.setSaveVideoCallback(mSaveVideoCallback)
 
         initDB()
         setupConfig()
@@ -242,6 +281,8 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
     }
 
     private fun setupViews() {
+        progressBar = findViewById(R.id.savedProgress)
+
         recyclerView = findViewById(R.id.recyclerView)
         recyclerViewMenu = findViewById(R.id.recyclerViewMenu)
         emptyLayout = findViewById(R.id.layout_empty)
@@ -253,24 +294,14 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
 
         message = findViewById(R.id.bottom_message)
 
+        val title = findViewById<View>(R.id.new_title)
+        title.setOnClickListener{
+            startGallery()
+        }
+
         val add = findViewById<ImageView>(R.id.topAdd)
         add.setOnClickListener{
-            AssetPicker.with(this)
-                .setFolderMode(true)
-                .setIncludeVideos(true)
-                .setVideoOrImagePickerTitle("Capture image or video")
-                .setCameraOnly(false)
-                .setFolderTitle(resources.getString(R.string.all))
-                .setMultipleMode(false)
-                .setSelectedImages(assetsList)
-                .setMaxSize(10)
-                .setBackgroundColor("#000000")
-                .setToolbarColor("#ffffff")
-                .setToolbarTextColor("#000000")
-                .setAlwaysShowDoneButton(false)
-                .setRequestCode(100)
-                .setKeepScreenOn(true)
-                .start()
+            startGallery()
         }
 
         val menu = findViewById<ImageView>(R.id.topMenu)
@@ -322,17 +353,24 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
             val selected = recyclerViewManager!!.getSelectedAssets()
 
             if (selected.size >= 1) {
+                switchOverlay(true)
+                initProgressList(selected)
+
                 selected.forEach() { el ->
                     threadSync()
 
                     mThread = Thread(Runnable {
-                        test = "Start id - " + el.id
                         Log.d(LOG_TAG, "Start id - " + el.id)
 
                         if (File(el.path).isVideoFile) {
-                            //saveVideo(el)
-                            editVideo(el, true)
+                            if(!isNullOrEmpty(el.correction) || !isNullOrEmpty(el.crop)) {
+                                getFramesCount(el)
+                            } else {
+                                checkCount()
+                                progressBar!!.max -= 100
+                            }
                         } else {
+                            setMax(el.id.toInt(), 5)
                             saveImage(el)
                         }
                     })
@@ -343,28 +381,6 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         }
 
         delete!!.setOnClickListener{
-            val selected = recyclerViewManager!!.getSelectedAssets()
-
-            /*if (selected.size >= 1) {
-                selected.forEach() { el ->
-                    threadSync()
-
-                    mThread = Thread(Runnable {
-                        test = "Start id - " + el.id
-                        Log.d(LOG_TAG, "Start id - " + el.id)
-
-                        if (File(el.path).isVideoFile) {
-                            //saveVideo(el)
-                            editVideo(el, false)
-                        } else {
-                            saveImage(el)
-                        }
-                    })
-
-                    mThread!!.start()
-                }
-            }*/
-
             if(delete!!.getTag() == 1) {
                 val selected = recyclerViewManager!!.getSelectedAssets()
 
@@ -386,80 +402,282 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         }
     }
 
+    private fun startGallery() {
+        AssetPicker.with(this)
+            .setFolderMode(true)
+            .setIncludeVideos(true)
+            .setVideoOrImagePickerTitle("Capture image or video")
+            .setCameraOnly(false)
+            .setFolderTitle(resources.getString(R.string.all))
+            .setMultipleMode(false)
+            .setSelectedImages(assetsList)
+            .setMaxSize(10)
+            .setBackgroundColor("#000000")
+            .setToolbarColor("#ffffff")
+            .setToolbarTextColor("#000000")
+            .setAlwaysShowDoneButton(false)
+            .setRequestCode(100)
+            .setKeepScreenOn(true)
+            .start()
+    }
+
+    private fun switchOverlay(show: Boolean) {
+        val overlay = findViewById<View>(R.id.overlay)
+
+        if(show) {
+            overlay.visibility = View.VISIBLE
+        } else {
+            overlay.visibility = View.GONE
+        }
+    }
+
+    private fun showImagesSaved() {
+        progressBar!!.setProgress(0)
+        progressBar!!.visibility = View.GONE
+
+        val overlay = findViewById<View>(R.id.overlay)
+        val saved = findViewById<TextView>(R.id.savedButton)
+        saved.visibility = View.VISIBLE
+
+        Handler().postDelayed({
+            saved.visibility = View.GONE
+            overlay.visibility = View.GONE
+        }, 400)
+    }
+
+    private fun initProgressList(assets: MutableList<Asset>) {
+        progressBar!!.progress = 0
+        progressBar!!.visibility = View.VISIBLE
+
+        selectedSize = assets.size
+        savedCount = 0
+
+        items = mutableListOf()
+
+        assets.forEach() { el ->
+            items!!.add(ProgressItem(el.id.toInt(), 0, 0 ,0))
+        }
+
+        progressBar!!.max = 100 * selectedSize
+
+        save!!.isClickable = false
+        delete!!.isClickable = false
+        copy!!.isClickable = false
+        paste!!.isClickable = false
+    }
+
+    private fun setMax(id: Int, max: Int) {
+        items!!.forEach() { el ->
+            if(el.id == id) {
+                el.max = max
+            }
+        }
+    }
+
+    private fun setCurrent(id: Int) {
+        items!!.forEach() { el ->
+            if(el.id == id) {
+                el.correctionCurrent = el.current
+            }
+        }
+    }
+
+    private fun getProgressItem(id: Int): ProgressItem? {
+        items!!.forEach() { el ->
+            if(el.id == id) {
+                return el
+            }
+        }
+
+        return null
+    }
+
+    private fun changeProgress(id: Long, progress: Int, isMax: Boolean) {
+        var allProgress = 0
+
+        items!!.forEach() { el ->
+            if(el.id == id.toInt()) {
+                if(isMax) {
+                    el.current = el.max
+                } else {
+                    el.current = if(el.correctionCurrent != 0) progress + el.correctionCurrent else progress
+                }
+            }
+
+            allProgress += (Math.min(
+                1.0f,
+                el.current.toFloat() / el.max.toFloat()
+            ) * 100.0).toInt()
+        }
+
+        Log.d(LOG_TAG, "id - " + id)
+        Log.d(LOG_TAG, "progress - " + progress)
+
+        progressBar!!.setProgress(allProgress)
+    }
+
     private fun saveImage(el: Asset) {
-        val futureBitmap = Glide.with(applicationContext)
-            .asBitmap()
-            .load(el.path)
-            .submit()
 
-        var bmp = futureBitmap.get()
+        val callback = object: CGEImageResponseHandler {
+            override fun onSuccess(s: String) {
+                Log.d(LOG_TAG, "on Success Image Filter")
+                sendBroadcast(
+                    Intent(
+                        Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                        Uri.parse("file://$s")
+                    )
+                )
 
-        if(!el.crop.isEmpty()) {
-            val cropInfo = Gson().fromJson(el.crop, CropInfo::class.java)
-            bmp = serializedConfigs.cropImage(bmp, cropInfo)
+                Log.d(LOG_TAG, "Finish id - " + el.id)
+
+                checkCount()
+            }
+
+            override fun onProgress(id: Long, progress: Int) {
+                changeProgress(id, progress, false)
+            }
+
+            override fun onFailure(message: String?) {
+
+            }
         }
 
-        if(!el.correction.isEmpty()) {
-            val _configs = serializedConfigs.decryptConfigsStatic(el.correction)
-            val rules = serializedConfigs.calculateRules(_configs)
+        val cge_image = CGEImageAcyncTask(applicationContext, el.path, el, callback, el.id.toInt())
 
-            bmp = CGENativeLibrary.filterImage_MultipleEffects(bmp, rules, _configs.get(0).intensity)
+        try {
+            cge_image.execute()
+        } catch (e: java.lang.Exception) {
+            Log.d(LOG_TAG, "onError")
+        } finally {
 
-            textureConfig = _configs.get(10)
         }
+    }
 
-        val s = ImageUtil.saveBitmap(bmp);
+    private fun checkCount() {
+        savedCount++
+        if(savedCount == selectedSize) {
+            runOnUiThread{
+                showImagesSaved()
+            }
 
-        showMsg("The filter is applied! See it: /sdcard/mood/rec_*.jpg")
-        sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://$s")))
-
-        textureConfig = null
+            copy!!.isClickable = true
+            paste!!.isClickable = true
+            delete!!.isClickable = true
+            save!!.isClickable = true
+        }
     }
 
     private fun saveVideo(el: Asset) {
         val _configs = serializedConfigs.decryptConfigsStatic(el.correction)
         val rules = serializedConfigs.calculateRules(_configs)
 
-        textureConfig = _configs.get(10)
-
         val outputFilename = FileUtil.getPath() + ".mp4"
 
-        CGEFFmpegNativeLibrary.generateVideoWithFilter(
-            outputFilename,
-            el.path,
-            rules,
-            _configs.get(0).intensity,
-            null,
-            CGENativeLibrary.TextureBlendMode.CGE_BLEND_ADDREV,
-            1.0f,
-            false
-        )
-        Log.d(LOG_TAG, "Done! The file is generated at: \$outputFilename")
+        val callback = object: ExecuteBinaryResponseHandler() {
+            override fun onStart() {
+                super.onStart()
+                Log.d(LOG_TAG, "onStart")
+            }
 
-        textureConfig = null
+            override fun onProgress(message: String) {
+                super.onProgress(message)
+            }
 
-        sendBroadcast(
-            Intent(
-                Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-                Uri.parse("file://$outputFilename")
-            )
-        )
+            override fun onFailure(message: String?) {
+                super.onFailure(message)
+                Log.d(LOG_TAG, "onFailure")
+            }
 
-            /*if(el.crop.isEmpty()) {
-                sendBroadcast(
-                    Intent(
-                        Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-                        Uri.parse("file://$outputFilename")
+            override fun onSuccess(message: String) {
+                super.onSuccess(message)
+                Log.d(LOG_TAG, "on Success VIdeo Filter")
+                //File(name).delete()
+            }
+
+            override fun onFinish() {
+                super.onFinish()
+
+                if(isNullOrEmpty(el.crop)) {
+                    sendBroadcast(
+                        Intent(
+                            Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                            Uri.parse("file://$outputFilename")
+                        )
                     )
-                )
-                showMsg("The filter is applied! See it: /sdcard/mood/rec_*.jpg")
-            } else {
-                editVideo(outputFilename, el)
-            }*/
 
+                    Log.d(LOG_TAG, "Finish id - " + el.id)
+
+                    checkCount()
+                } else {
+                    setCurrent(el.id.toInt())
+                    editVideo(el, outputFilename)
+                }
+            }
+        }
+
+        val cge_ffmpeg = CGEFFmpegAcyncTask(outputFilename, el.path, rules, _configs.get(0).intensity, callback, el.id.toInt())
+
+        try {
+            cge_ffmpeg.execute()
+        } catch (e: java.lang.Exception) {
+            Log.d(LOG_TAG, "onError")
+        }
     }
 
-    private fun editVideo(el: Asset, check: Boolean) {
+    private fun getFramesCount(el: Asset) {
+        val outputFilename = FileUtil.getPath() + ".mp4"
+        val ffmpeg = FFmpeg.getInstance(this)
+        var fCount = 0
+
+        try {
+            ffmpeg.execute(arrayOf("-i", el.path, "-map", "0:v:0", "-c", "copy", outputFilename), object: ExecuteBinaryResponseHandler() {
+                override fun onStart() {
+                    super.onStart()
+                    Log.d(LOG_TAG, "onStart")
+                }
+
+                override fun onProgress(message: String) {
+                    super.onProgress(message)
+
+                    val frames = matchFrames(message)
+                    if(!isNullOrEmpty(frames)) {
+                        fCount = frames.toInt()
+                        setMax(el.id.toInt(), fCount)
+                        Log.i(Common.LOG_TAG, "Frames $framesCount")
+                    }
+                }
+
+                override fun onFailure(message: String?) {
+                    super.onFailure(message)
+                    Log.d(LOG_TAG, "onFailure")
+                }
+
+                override fun onSuccess(message: String?) {
+                    super.onSuccess(message)
+                    Log.d(LOG_TAG, "Frames Count Success")
+                }
+
+                override fun onFinish() {
+                    super.onFinish()
+
+                    if(!isNullOrEmpty(el.correction) && !isNullOrEmpty(el.crop)) {
+                        setMax(el.id.toInt(), fCount * 2)
+                        saveVideo(el)
+                    } else {
+                        if(!isNullOrEmpty(el.correction)) {
+                            saveVideo(el)
+                        } else if(!isNullOrEmpty(el.crop)) {
+                            editVideo(el, "")
+                        }
+                    }
+                }
+            })
+        } catch (e: FFmpegCommandAlreadyRunningException) {
+            Log.d(LOG_TAG, "onFinish")
+        }
+    }
+
+    private fun editVideo(el: Asset, inputName: String) {
         var scaleRule = ""
         var rotateRule = ""
         var straighteningRule = ""
@@ -522,9 +740,11 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
             mainRule += scaleRule + "," + straighteningRule
         }
         if(!isNullOrEmpty(cropRule)) {
-            mainRule += if(isNullOrEmpty(mainRule)) "" else "," + cropRule
+            mainRule += if(isNullOrEmpty(mainRule)) "" else ","
+            mainRule += cropRule
         }
         if(!isNullOrEmpty(rotateRule)) {
+            mainRule += if(isNullOrEmpty(mainRule)) "" else ","
             mainRule += rotateRule
         }
         if(cropInfo.flipVert) {
@@ -534,17 +754,28 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
             flipRule += if(isNullOrEmpty(mainRule)) "" else ",hflip"
         }
 
+        if(cropInfo.flipHor || cropInfo.flipVert) {
+            mainRule += if(isNullOrEmpty(mainRule)) "" else ","
+            mainRule += flipRule
+        }
+
+        val startName = if(isNullOrEmpty(inputName)) el.path else inputName
+
         if(!isNullOrEmpty(mainRule)) {
             try {
-                ffmpeg.execute(arrayOf("-i", el.path, "-filter:v", mainRule, "-c:a", "copy", outputFilename), object: ExecuteBinaryResponseHandler() {
+                ffmpeg.execute(arrayOf("-i", startName, "-filter:v", mainRule, "-c:a", "copy", outputFilename), object: ExecuteBinaryResponseHandler() {
                     override fun onStart() {
                         super.onStart()
                         Log.d(LOG_TAG, "onStart")
                     }
 
-                    override fun onProgress(message: String?) {
+                    override fun onProgress(message: String) {
                         super.onProgress(message)
-                        Log.d(LOG_TAG, message)
+
+                        val frames = matchFrames(message)
+                        if(!isNullOrEmpty(frames)) {
+                            changeProgress(el.id, frames.toInt(), false)
+                        }
                     }
 
                     override fun onFailure(message: String?) {
@@ -555,7 +786,16 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
                     override fun onSuccess(message: String?) {
                         super.onSuccess(message)
                         Log.d(LOG_TAG, "onOkey")
-                        //File(name).delete()
+                    }
+
+                    override fun onFinish() {
+                        super.onFinish()
+
+                        changeProgress(el.id, 0, true)
+
+                        if(!isNullOrEmpty(inputName)) {
+                            File(inputName).delete()
+                        }
 
                         sendBroadcast(
                             Intent(
@@ -563,23 +803,24 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
                                 Uri.parse("file://$outputFilename")
                             )
                         )
-                    }
 
-                    override fun onFinish() {
-                        super.onFinish()
-                        Log.d(LOG_TAG, "onFinish")
+                        checkCount()
                     }
                 })
             } catch (e: FFmpegCommandAlreadyRunningException) {
                 Log.d(LOG_TAG, "onFinish")
             }
         } else {
+            runOnUiThread { progressBar!!.setProgress(100) }
+
             sendBroadcast(
                 Intent(
                     Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
                     Uri.parse("file://$outputFilename")
                 )
             )
+
+            checkCount()
         }
     }
 
@@ -598,6 +839,27 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         }
 
         mShouldStopThread = false
+    }
+
+    private fun matchFrames(message: String): String {
+        val strPat = "frame=.+fps"
+        var match = ""
+
+        val patternStr = Pattern.compile(strPat)
+        val patternNumber = Pattern.compile("\\d+")
+
+        val matcher = patternStr.matcher(message)
+
+        if(matcher.find()) {
+            val findedStr = message.substring(matcher.start(),matcher.end())
+            val findedMatcher = patternNumber.matcher(findedStr)
+
+            if(findedMatcher.find()) {
+                match = findedStr.substring(findedMatcher.start(),findedMatcher.end())
+            }
+        }
+
+        return match
     }
 
     private fun getCameraPhotoOrientation(context: Context, imageUri: String): Float{

@@ -486,6 +486,13 @@ namespace CGE
 		return m_resultDrawer;
 	}
 
+    void CGEImageHandler::setTextureLoadParams(jclass cls, jmethodID saveCallback, JNIEnv* env)
+    {
+        m_env = env;
+        m_cls = cls;
+        m_methodId = saveCallback;
+    }
+
 	void CGEImageHandler::setResultDrawer(TextureDrawer* drawer)
 	{
 		if(m_resultDrawer != nullptr)

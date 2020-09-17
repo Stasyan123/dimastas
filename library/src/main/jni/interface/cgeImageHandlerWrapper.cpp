@@ -72,7 +72,7 @@ JNIEXPORT void JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetFilte
 }
 
 JNIEXPORT jboolean JNICALL Java_org_wysaid_nativePort_CGEImageHandler_nativeSetFilterWithConfig
-  (JNIEnv *env, jobject, jlong addr, jstring config, jboolean shouldCleanOlder, jboolean shouldProcess)
+  (JNIEnv *env, jobject jthis, jlong addr, jstring config, jboolean shouldCleanOlder, jboolean shouldProcess)
 {	
 	CGEImageHandlerAndroid* handler = (CGEImageHandlerAndroid*)addr;
 

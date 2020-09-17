@@ -16,6 +16,10 @@ import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.sm.stasversion.imagepicker.model.Image
+import com.sm.stasversion.imagepicker.model.Video
 
 
 class MenuActivity : AppCompatActivity() {
@@ -23,6 +27,8 @@ class MenuActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
+
+        openIcons()
 
         val topClose = findViewById<ImageView>(R.id.topClose)
         topClose.setOnClickListener {
@@ -70,6 +76,26 @@ class MenuActivity : AppCompatActivity() {
         boar.setOnClickListener {
             openInstagram("dmitrygaziev")
         }
+    }
+
+    fun openIcons() {
+        val stas = findViewById<ImageView>(R.id.stas)
+        Glide.with(this)
+            .load(getResources().getIdentifier("stas", "drawable", this.getPackageName()))
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(stas)
+
+        val mood = findViewById<ImageView>(R.id.mood)
+        Glide.with(this)
+            .load(getResources().getIdentifier("mood", "drawable", this.getPackageName()))
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(mood)
+
+        val dima_icon = findViewById<ImageView>(R.id.dima)
+        Glide.with(this)
+            .load(getResources().getIdentifier("dima", "drawable", this.getPackageName()))
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(dima_icon)
     }
 
     fun openInstagram(user: String) {

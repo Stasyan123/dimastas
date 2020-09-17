@@ -35,6 +35,18 @@
 
     </View>
 
+    <ImageView
+        android:id="@+id/paid_icon"
+        android:layout_marginTop="2.5dp"
+        android:layout_marginEnd="2.5dp"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:layout_alignEnd="@id/imgToolIcon"
+        android:visibility="gone"
+        android:scaleType="centerInside"
+        android:background="@drawable/ic_paid"
+        />
+
     <TextView
         android:id="@+id/txtTool"
         android:layout_width="@dimen/editor_width"

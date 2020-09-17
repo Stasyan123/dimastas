@@ -251,6 +251,18 @@ public class AssetPickerAdapter extends BaseRecyclerViewAdapter<AssetPickerAdapt
         return selectedAssets;
     }
 
+    public Asset getAssetById(int id) {
+        Asset ass = null;
+
+        for (int i = 0; i < selectedAssets.size(); i++) {
+            if(id == selectedAssets.get(i).getId()) {
+                ass = selectedAssets.get(i);
+            }
+        }
+
+        return ass;
+    }
+
     static class ImageViewHolder extends RecyclerView.ViewHolder {
 
         private FrameLayout container;

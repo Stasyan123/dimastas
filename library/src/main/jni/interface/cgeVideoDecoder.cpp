@@ -214,6 +214,18 @@ namespace CGE
 
 	}
 
+    int CGEVideoDecodeHandler::testStart() {
+        return m_context->pVideoStream->start_time;
+    }
+
+    int CGEVideoDecodeHandler::testFrames() {
+        return m_context->pVideoStream->nb_frames;
+    }
+
+     double CGEVideoDecodeHandler::testDoubles() {
+        return 1000.0 * (m_context->pVideoStream->duration) * av_q2d(m_context->pVideoStream->time_base);
+    }
+
 	CGEFrameTypeNext CGEVideoDecodeHandler::queryNextFrame()
 	{
 		

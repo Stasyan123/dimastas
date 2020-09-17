@@ -18,6 +18,7 @@
     <string name="molli">Molli</string>
     <string name="edit">Edit</string>
     <string name="studio">Studio</string>
+    <string name="saved">Saved</string>
 
     <string name="feedback">Feedback</string>
     <string name="rate">Rate us</string>
@@ -25,8 +26,8 @@
     <string name="contact_in">Contact us in:</string>
     <string name="dev">Developer instagram</string>
     <string name="app_inst">Mood app instagram</string>
-    <string name="my">Malienko `stifler` Stanislav</string>
-    <string name="boar">Dmitry `boar` Gaziev</string>
+    <string name="my">Malienko Stanislav</string>
+    <string name="boar">Dmitry Gaziev</string>
     <string name="other">Other</string>
     <string name="terms">Terms of Use</string>
     <string name="policy">Privacy policy</string>

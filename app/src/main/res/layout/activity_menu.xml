@@ -9,14 +9,14 @@
 
     <ImageView
         android:id="@+id/topClose"
-        android:layout_width="17.5dp"
-        android:layout_height="17.5dp"
+        android:layout_width="19dp"
+        android:layout_height="19dp"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:scaleType="fitCenter"
         android:layout_marginTop="30dp"
         android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_cross_top">
+        android:src="@drawable/ic_feedback_cross">
 
     </ImageView>
 
@@ -178,16 +178,31 @@
                     android:background="@color/lGray"
                     app:layout_constraintTop_toBottomOf="@+id/border4">
 
-                    <View
+                    <RelativeLayout
                         android:id="@+id/inst_icon"
-                        style="@style/menu_icon"
-                        android:layout_marginStart="@dimen/menu_icon_margin"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        android:background="@drawable/icon_xs">
-
-                    </View>
+                        android:background="@drawable/circular_bordershape"
+                        android:layout_marginStart="@dimen/menu_icon_margin"
+                        style="@style/layout_view_style"
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"
+                        >
+                        <androidx.cardview.widget.CardView
+                            app:cardCornerRadius="12dp"
+                            style="@style/card_view_style"
+                            android:layout_centerHorizontal="true"
+                            android:layout_centerVertical="true"
+                            >
+                            <ImageView
+                                android:id="@+id/mood"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                />
+                        </androidx.cardview.widget.CardView>
+                    </RelativeLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -200,6 +215,7 @@
                         android:textSize="18sp"
                         android:text="@string/app_inst"
                         android:layout_marginStart="@dimen/menu_icon_margin"
+                        android:layout_marginBottom="2dp"
                         >
                     </TextView>
 
@@ -231,16 +247,31 @@
                     android:background="@color/lGray"
                     app:layout_constraintTop_toBottomOf="@+id/border5">
 
-                    <View
+                    <RelativeLayout
                         android:id="@+id/inst_icon2"
-                        style="@style/menu_icon"
-                        android:layout_marginStart="@dimen/menu_icon_margin"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        android:background="@drawable/ic_icon_inst">
-
-                    </View>
+                        android:background="@drawable/circular_bordershape"
+                        android:layout_marginStart="@dimen/menu_icon_margin"
+                        style="@style/layout_view_style"
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"
+                        >
+                        <androidx.cardview.widget.CardView
+                            app:cardCornerRadius="12dp"
+                            style="@style/card_view_style"
+                            android:layout_centerHorizontal="true"
+                            android:layout_centerVertical="true"
+                            >
+                            <ImageView
+                                android:id="@+id/stas"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                />
+                        </androidx.cardview.widget.CardView>
+                    </RelativeLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -249,6 +280,7 @@
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toEndOf="@+id/inst_icon2"
                         android:layout_marginStart="@dimen/menu_icon_margin"
+                        android:layout_marginBottom="2dp"
                         android:gravity="center"
                         android:textAppearance="@style/intensity"
                         android:textSize="18sp"
@@ -284,16 +316,31 @@
                     android:background="@color/lGray"
                     app:layout_constraintTop_toBottomOf="@+id/border7">
 
-                    <View
+                    <RelativeLayout
                         android:id="@+id/inst_icon3"
-                        style="@style/menu_icon"
-                        android:layout_marginStart="@dimen/menu_icon_margin"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        android:background="@drawable/ic_icon_inst">
-
-                    </View>
+                        android:background="@drawable/circular_bordershape"
+                        android:layout_marginStart="@dimen/menu_icon_margin"
+                        style="@style/layout_view_style"
+                        android:layout_centerVertical="true"
+                        android:layout_centerHorizontal="true"
+                        >
+                        <androidx.cardview.widget.CardView
+                            app:cardCornerRadius="12dp"
+                            style="@style/card_view_style"
+                            android:layout_centerHorizontal="true"
+                            android:layout_centerVertical="true"
+                            >
+                            <ImageView
+                                android:id="@+id/dima"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                />
+                        </androidx.cardview.widget.CardView>
+                    </RelativeLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -302,6 +349,7 @@
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toEndOf="@+id/inst_icon3"
                         android:layout_marginStart="@dimen/menu_icon_margin"
+                        android:layout_marginBottom="2dp"
                         android:gravity="center"
                         android:textAppearance="@style/intensity"
                         android:textSize="18sp"

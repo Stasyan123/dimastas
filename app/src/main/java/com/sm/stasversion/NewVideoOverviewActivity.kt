@@ -132,7 +132,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         object : CGENativeLibrary.LoadImageCallback {
 
             //Notice: the 'name' passed in is just what you write in the rule, e.g: 1.jpg
-            override fun loadImage(name: String, arg: Any?): Bitmap? {
+            override fun loadImage(name: String, arg: Any?, id: Int): Bitmap? {
 
                 Log.i(Common.LOG_TAG, "Loading file: $name")
                 val am = assets
@@ -1046,13 +1046,13 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
         val flipHor = findViewById<View>(R.id.horizontal)
         flipHor.setOnClickListener{
-            mCropOverlayView!!.mFlipVertically = !mCropOverlayView!!.mFlipVertically
+            mCropOverlayView!!.mFlipHorizontally = !mCropOverlayView!!.mFlipHorizontally
             mCropOverlayView!!.applyCustom()
         }
 
         val flipVert = findViewById<View>(R.id.vertical)
         flipVert.setOnClickListener{
-            mCropOverlayView!!.mFlipHorizontally = !mCropOverlayView!!.mFlipHorizontally
+            mCropOverlayView!!.mFlipVertically = !mCropOverlayView!!.mFlipVertically
             mCropOverlayView!!.applyCustom()
         }
 
@@ -1487,8 +1487,8 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         val group = findViewById<ConstraintLayout>(R.id.groupLayout)
         val tools = findViewById<ConstraintLayout>(R.id.crop_area)
 
-        val oneRect = calculeRectOnScreen(group);
-        val secondRect = calculeRectOnScreen(tools);
+        val oneRect = calculeRectOnScreen(group)
+        val secondRect = calculeRectOnScreen(tools)
 
         val distance = Math.abs(oneRect.top - secondRect.top) - 12 * getScale()
 
@@ -1628,6 +1628,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         setPercent()
         initCropBar(true)
         initOverlay()
+        toggleTopBar(true)
     }
 
     private fun initCropBar(show: Boolean) {

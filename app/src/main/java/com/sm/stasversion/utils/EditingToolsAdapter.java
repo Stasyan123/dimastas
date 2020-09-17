@@ -112,7 +112,7 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
             fType = type;
             mRule = rule;
             byLicense = _byLicense;
-            mThumb = CGENativeLibrary.filterImage_MultipleEffects(image, rule + " 1.0", 1.0f);
+            mThumb = CGENativeLibrary.filterImage_MultipleEffects(image, rule + " 1.0", 1.0f, -1);
         }
     }
 
@@ -127,6 +127,12 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ToolModel item = mToolList.get(position);
+
+        if(item.byLicense) {
+            holder.paid_icon.setVisibility(View.VISIBLE);
+        } else {
+            holder.paid_icon.setVisibility(View.GONE);
+        }
 
         if(item.mToolName.equals("Default")) {
             holder.txtTool.setVisibility(View.GONE);
@@ -174,6 +180,7 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
         View viewEmpty;
         View viewBorder;
         ImageView intensityIcon;
+        ImageView paid_icon;
 
         ViewHolder(View itemView) {
             super(itemView);
@@ -182,6 +189,7 @@ public class EditingToolsAdapter extends RecyclerView.Adapter<EditingToolsAdapte
             viewEmpty = itemView.findViewById(R.id.viewEmpty);
             viewBorder = itemView.findViewById(R.id.viewBorder);
             intensityIcon = itemView.findViewById(R.id.intensity_icon);
+            paid_icon = itemView.findViewById(R.id.paid_icon);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

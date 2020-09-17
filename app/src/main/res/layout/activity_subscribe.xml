@@ -31,19 +31,19 @@
             app:layout_constraintStart_toStartOf="parent"
             android:gravity="center"
             android:textAppearance="@style/intensity"
-            android:textSize="12sp"
+            android:textSize="14sp"
             android:text="@string/restore"
             >
         </TextView>
 
         <ImageView
             android:id="@+id/topClose"
-            android:layout_width="9dp"
-            android:layout_height="9dp"
+            android:layout_width="17.5dp"
+            android:layout_height="17.5dp"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_cross_top">
+            android:src="@drawable/ic_subs_cross">
 
         </ImageView>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -76,7 +76,7 @@
         android:id="@+id/p_month_active"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
+        android:visibility="visible"
         android:orientation="horizontal">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -98,7 +98,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:textAppearance="@style/intensity"
                 android:textStyle="bold"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textColor="@color/dark"
                 android:text="@string/jphotos"
                 >
@@ -152,7 +152,7 @@
        android:id="@+id/p_month"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:visibility="visible"
+       android:visibility="gone"
        android:orientation="horizontal">
 
        <androidx.constraintlayout.widget.ConstraintLayout
@@ -174,7 +174,7 @@
                app:layout_constraintEnd_toEndOf="parent"
                android:textAppearance="@style/intensity"
                android:textStyle="bold"
-               android:textSize="16sp"
+               android:textSize="18sp"
                android:text="@string/jphotos"
                >
            </TextView>
@@ -250,7 +250,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:textAppearance="@style/intensity"
                 android:textStyle="bold"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textColor="@color/white"
                 android:text="@string/photos_videos"
                 >
@@ -327,7 +327,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:textAppearance="@style/intensity"
                 android:textStyle="bold"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textColor="@color/dark"
                 android:text="@string/photos_videos"
                 >
@@ -415,7 +415,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:textAppearance="@style/intensity"
                 android:textStyle="bold"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:text="@string/jphotos"
                 >
             </TextView>
@@ -505,7 +505,7 @@
                 android:textAppearance="@style/intensity"
                 android:textStyle="bold"
                 android:textColor="@color/dark"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:text="@string/jphotos"
                 >
             </TextView>
@@ -594,7 +594,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/intensity"
                 android:textStyle="bold"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textColor="@color/white"
                 android:text="@string/photos_videos"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -688,7 +688,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:textAppearance="@style/intensity"
                 android:textStyle="bold"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textColor="@color/dark"
                 android:text="@string/photos_videos"
                 >

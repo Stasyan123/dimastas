@@ -130,6 +130,11 @@ public class RecyclerViewManager {
         return assetAdapter.getSelectedAssets();
     }
 
+    public Asset getAssetById(int id) {
+        checkAdapterIsInitialized();
+        return assetAdapter.getAssetById(id);
+    }
+
     public void invalidate() {
         assetAdapter.notifyDataSetChanged();
     }

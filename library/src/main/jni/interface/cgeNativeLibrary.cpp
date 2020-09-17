@@ -29,16 +29,23 @@ extern "C" {
  * Signature: (Landroid/graphics/Bitmap;Ljava/lang/String;)Landroid/graphics/Bitmap;
  */
 JNIEXPORT jobject JNICALL Java_org_wysaid_nativePort_CGENativeLibrary_cgeFilterImage_1MultipleEffects
-  (JNIEnv *env, jclass cls, jobject bmp, jstring config, jfloat intensity)
+  (JNIEnv *env, jclass cls, jobject bmp, jstring config, jfloat intensity, jint id)
 {
     CGETexLoadArg texLoadArg;
     texLoadArg.env = env;
     texLoadArg.cls = cls;
 
+    CGETexLoadArg imageSaveProgress;
+    imageSaveProgress.env = env;
+    imageSaveProgress.cls = cls;
+
     AndroidBitmapInfo info;
     int w, h, ret;
     char* row;
-    
+
+    //jmethodID saveCallback = env->GetStaticMethodID(cls, "getIndex", "(I)V");
+    //env->CallStaticVoidMethod(cls, saveCallback, 17);
+
     CGE_LOG_CODE(clock_t tm = clock();)
 
     if ((ret = AndroidBitmap_getInfo(env, bmp, &info)) < 0)
@@ -84,6 +91,7 @@ JNIEXPORT jobject JNICALL Java_org_wysaid_nativePort_CGENativeLibrary_cgeFilterI
         CGEMutipleEffectFilter* filter = new CGEMutipleEffectFilter;
 
         filter->setTextureLoadFunction(cgeGlobalTextureLoadFunc, &texLoadArg);
+        filter->setTextureId(id);
 
         const char* strConfig = env->GetStringUTFChars(config, 0);
         filter->initWithEffectString(strConfig);

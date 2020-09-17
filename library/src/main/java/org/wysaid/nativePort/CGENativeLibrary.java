@@ -64,13 +64,22 @@ public class CGENativeLibrary {
         CGE_BLEND_TYPE_MAX_NUM //Its value defines the max num of blend.
     };
 
+    public interface SaveImageCallback {
+        void progress(Integer index);
+    }
+
     public interface LoadImageCallback {
-        Bitmap loadImage(String name, Object arg);
+        Bitmap loadImage(String name, Object arg, int id);
         void loadImageOK(Bitmap bmp, Object arg);
     }
 
     static LoadImageCallback loadImageCallback;
+    static SaveImageCallback saveImageCallback;
     static Object callbackArg;
+
+    public static void setImageCallback(SaveImageCallback callback) {
+        saveImageCallback = callback;
+    }
 
     public static void setLoadImageCallback(LoadImageCallback callback, Object arg) {
         loadImageCallback = callback;
@@ -83,13 +92,20 @@ public class CGENativeLibrary {
     }
 
     //will be called from jni.
-    public static TextureResult loadTextureByName(String sourceName) {
+    public static void getIndex(int index) {
+        if(saveImageCallback != null) {
+            saveImageCallback.progress(index);
+        }
+    }
+
+    //will be called from jni.
+    public static TextureResult loadTextureByName(String sourceName, int id) {
         if(loadImageCallback == null) {
             Log.i(Common.LOG_TAG, "The loading callback is not set!");
             return null;
         }
 
-        Bitmap bmp = loadImageCallback.loadImage(sourceName, callbackArg);
+        Bitmap bmp = loadImageCallback.loadImage(sourceName, callbackArg, id);
 
         if(bmp == null) {
             return null;
@@ -103,7 +119,6 @@ public class CGENativeLibrary {
 
     //May be called from jni.
     public static TextureResult loadTextureByBitmap(Bitmap bmp) {
-
         if(bmp == null) {
             return null;
         }
@@ -123,11 +138,11 @@ public class CGENativeLibrary {
         return result;
     }
 
-    public static Bitmap filterImage_MultipleEffects(Bitmap bmp, String config, float intensity) {
+    public static Bitmap filterImage_MultipleEffects(Bitmap bmp, String config, float intensity, int id) {
         if(config == null || config.length() == 0) {
             return bmp;
         }
-        return cgeFilterImage_MultipleEffects(bmp, config, intensity);
+        return cgeFilterImage_MultipleEffects(bmp, config, intensity, id);
     }
 
     public static void filterImage_MultipleEffectsWriteBack(Bitmap bmp, String config, float intensity) {
@@ -151,7 +166,7 @@ public class CGENativeLibrary {
 
     // 多重特效滤镜， 提供配置文件内容直接进行， 返回相同大小的bitmap。
     // intensity 表示滤镜强度 [0, 1]
-    public static native Bitmap cgeFilterImage_MultipleEffects(Bitmap bmp, String config, float intensity);
+    public static native Bitmap cgeFilterImage_MultipleEffects(Bitmap bmp, String config, float intensity, int id);
 
     // 同上， 结果直接写回传入bitmap， 无返回值
     public static native void cgeFilterImage_MultipleEffectsWriteBack(Bitmap bmp, String config, float intensity);

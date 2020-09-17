@@ -128,9 +128,15 @@ namespace CGE
 		bool copyTexture(GLuint dst, GLuint src, int x, int y, int w, int h);
 		bool copyTexture(GLuint dst, GLuint src, int xOffset, int yOffset, int x, int y, int w, int h);
 
+		void setTextureLoadParams(jclass cls, jmethodID saveCallback, JNIEnv* env);
+
 		void drawResult();
 		TextureDrawer* getResultDrawer();
 		void setResultDrawer(TextureDrawer* drawer);
+
+        JNIEnv* m_env;
+        jclass m_cls;
+        jmethodID m_methodId;
 
         virtual void useImageFBO();
 
@@ -140,6 +146,7 @@ namespace CGE
 		std::vector<CGEImageFilterInterfaceAbstract*> m_vecFilters;
 
 		TextureDrawer *m_drawer, *m_resultDrawer;
+
 
 #ifdef _CGE_USE_ES_API_3_0_
 		GLuint m_pixelPackBuffer;

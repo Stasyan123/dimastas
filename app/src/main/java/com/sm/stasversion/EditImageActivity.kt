@@ -47,6 +47,7 @@ import kotlin.collections.ArrayList
 import com.sm.stasversion.videoUtils.FilterType
 import com.sm.stasversion.widget.HorizontalProgressWheelView
 import kotlinx.android.synthetic.main.activity_edit_image.*
+import kotlinx.android.synthetic.main.activity_main.*
 import org.wysaid.common.Common
 import org.wysaid.myUtils.FileUtil
 import org.wysaid.nativePort.CGEFFmpegNativeLibrary
@@ -59,6 +60,8 @@ import java.io.InputStream
 
 class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToolsAdapter.OnItemSelected, EditingEffectsAdapter.OnItemSelected,
     EditingTextureAdapter.OnItemSelected, MainFragment.OnBitmapReady, SeekBar.OnSeekBarChangeListener {
+
+    val LOG_TAG = "mood"
 
     private var db: AppDatabase? = null
     private var imgId: Int? = null
@@ -104,6 +107,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     var image: Bitmap? = null
     var transImage: Bitmap? = null
+    var cropImage: Bitmap? = null
     var position: Int = 0
     var mOnPhotoEditorListener: OnPhotoEditorListener? = null
 
@@ -112,6 +116,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     var initCrop: Boolean = true
     var licenseBlock: Boolean = false
+    var test: Boolean = true
 
     var imgHandler: CGEImageHandler = CGEImageHandler()
 
@@ -124,7 +129,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         object : CGENativeLibrary.LoadImageCallback {
 
             //Notice: the 'name' passed in is just what you write in the rule, e.g: 1.jpg
-            override fun loadImage(name: String, arg: Any?): Bitmap? {
+            override fun loadImage(name: String, arg: Any?, id: Int): Bitmap? {
 
                 Log.i(Common.LOG_TAG, "Loading file: $name")
                 val am = assets
@@ -151,7 +156,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     override fun onResume() {
         super.onResume()
-        showSingleImage(uri)
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -195,6 +200,32 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         initSavebutton()
         initClosebutton()
         initCrop()
+        initHslHeight()
+
+        val area = findViewById<ConstraintLayout>(R.id.root)
+        area.viewTreeObserver.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if(test) {
+                    test = false
+                    showSingleImage(uri)
+                }
+
+                /*if(transImage != null) {
+                    var w = 0f
+                    var h = 0f
+
+                    val mainHeight = getMainHeight()
+
+                    if (transImage!!.height > mainHeight.toInt()) {
+                        calculatedH = mainHeight
+                        calculatedW = transImage!!.width * (mainHeight / transImage!!.height)
+                    } else {
+                        calculatedW = transImage!!.width.toFloat()
+                        calculatedH = transImage!!.height.toFloat()
+                    }
+                }*/
+            }
+        })
     }
 
     private fun initDB() {
@@ -220,7 +251,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
     }
 
     private fun setPaddings() {
-        val padding = (8.5 * getScale()).toInt()
+        val padding = (20.5 * getScale()).toInt()
 
         mSeekHue!!.setPadding(padding, 0,  padding, 0)
         mSeekSat!!.setPadding(padding, 0, padding, 0)
@@ -228,7 +259,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         mSeekBar!!.setPadding(padding, 0, padding, 0)
         mSeekTemp!!.setPadding(padding, 0, padding, 0)
         mSeekTint!!.setPadding(padding, 0, padding, 0)
-        mSeekTexture!!.setPadding(padding, 0, padding + 7, 0)
+        mSeekTexture!!.setPadding(padding + 32, 0, padding + 32, 0)
     }
 
     private fun initCrop() {
@@ -322,13 +353,42 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         }
 
         rotate.setOnClickListener{
-            rotateEvent(true)
+            val t = getMainHeight1()
+
+
+
+            initEmptyOverlay()
+
+            //rotateEvent(true)
         }
 
         val hor = findViewById<View>(R.id.horizontal);
         hor.setOnClickListener{
-            //rotateImage()
-            mCurrentFragment!!.toolsSelect(hor)
+            val area = findViewById<ConstraintLayout>(R.id.crop_tools)
+            val tools = findViewById<ConstraintLayout>(R.id.constr_container)
+
+            val oneRect = calculeRectOnScreen(area)
+            val secondRect = calculeRectOnScreen(tools)
+
+            val distance = Math.abs(oneRect.top - secondRect.top) - 20 * getScale()
+
+            val w = transImage!!.width * (distance / transImage!!.height)
+
+            val frame = findViewById<FrameLayout>(R.id.container)
+
+            val l_image = mCurrentFragment!!.mCropImageView.layoutParams
+            l_image.width = w.toInt()
+            l_image.height = distance.toInt()
+            mCurrentFragment!!.mCropImageView.setLayoutParams(l_image)
+
+            val l = frame.getLayoutParams()
+            l.width = w.toInt()
+            l.height = distance.toInt()
+            frame.setLayoutParams(l)
+
+
+
+            //mCurrentFragment!!.toolsSelect(hor)
         }
 
         val vert = findViewById<View>(R.id.vertical);
@@ -482,6 +542,9 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 val gsonCrop = if(mCurrentFragment!!.mCropImageView.getCropInfo().isCropped) Gson().toJson(mCurrentFragment!!.mCropImageView.getCropInfo()) else ""
 
                 db!!.configDao().updateConfig(imgId, gsonConfig, gsonCrop)
+
+                val intent = Intent(this@EditImageActivity, MainMenu::class.java)
+                startActivity(intent)
                 finish()
             }
         }
@@ -625,18 +688,24 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         before_afterEvent()
 
         try {
+            image = res.copy(res.getConfig(), true)
+            transImage = res.copy(res.getConfig(), true)
+
             val img = initCropConfig(res)
-            cropSurface(img, true)
+            cropImage = img.copy(img.getConfig(), true)
+
+            cropSurface(img, image)
 
             glImageView!!.setSurfaceCreatedCallback( {
+                val t = getMainHeight()
+
+                Log.d("Lion", "Height - " + t)
+
                 glImageView!!.setImageBitmap(img)
                 setFilters()
             })
 
             glImageView!!.setDisplayMode(ImageGLSurfaceView.DisplayMode.DISPLAY_ASPECT_FIT)
-
-            image = res
-            transImage = res
 
             startCropping(res, true)
 
@@ -969,7 +1038,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
     override fun onEffectSelected(eType: EffectType, position: Int) {
         if(eType == EffectType.Crop) {
-            startCropping(CGENativeLibrary.filterImage_MultipleEffects(transImage, calculateRules(), intensity), false)
+            startCropping(CGENativeLibrary.filterImage_MultipleEffects(transImage, calculateRules(), intensity, -1), false)
             return
         }
 
@@ -1056,8 +1125,6 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             EffectType.HSL -> {
                 findViewById<ConstraintLayout>(R.id.intensityLayout_effect).visibility = View.VISIBLE
                 findViewById<LinearLayout>(R.id.hsl_container).visibility = View.VISIBLE
-
-                scaleArea(true)
             }
             else -> {
                 findViewById<ConstraintLayout>(R.id.intensityLayout).visibility = View.VISIBLE
@@ -1138,6 +1205,30 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         }
     }
 
+    private fun initHslHeight() {
+        val hsl = findViewById<LinearLayout>(R.id.hsl_container)
+
+        hsl.viewTreeObserver.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if(mActiveConfig != null && mActiveConfig!!.type == EffectType.HSL && mActiveConfig!!.startEditing) {
+                    val area = findViewById<ConstraintLayout>(R.id.groupLayout)
+
+                    val oneRect = calculeRectOnScreen(area)
+                    val secondRect = calculeRectOnScreen(hsl)
+
+                    val distance = Math.abs(oneRect.top - secondRect.top) - 20 * getScale()
+
+                    val params = area.layoutParams
+                    params.height = distance.toInt()
+
+                    area.layoutParams = params
+                }
+            }
+        })
+
+
+    }
+
     private fun startCropping(arr: Bitmap, initOnly: Boolean) {
         if(!initOnly) {
             val cropArea = findViewById<ConstraintLayout>(R.id.crop_area)
@@ -1148,18 +1239,44 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             val join = findViewById<ConstraintLayout>(R.id.join_mood_crop)
             join.visibility = if(licenseBlock) View.VISIBLE else View.GONE
             findViewById<ImageView>(R.id.waterMark_crop).visibility = if(licenseBlock) View.VISIBLE else View.GONE
+
+            toggleTopBar(false)
         }
 
         //val bitmap = getInitialImage(arr)
 
-        val img = findViewById<ImageView>(R.id.ImageView_image_test)
+        /*val img = findViewById<ImageView>(R.id.ImageView_image_test)
         if(img.width > calculatedW) {
             val frame = findViewById<FrameLayout>(R.id.container)
 
             val l = frame.getLayoutParams()
             l.width = (calculatedW + 20).toInt()
             frame.setLayoutParams(l)
-        }
+        }*/
+
+        /*if(!initOnly) {
+            val area = findViewById<ConstraintLayout>(R.id.crop_tools)
+            val tools = findViewById<ConstraintLayout>(R.id.constr_container)
+
+            val oneRect = calculeRectOnScreen(area)
+            val secondRect = calculeRectOnScreen(tools)
+
+            val distance = Math.abs(oneRect.top - secondRect.top) - 20 * getScale()
+
+            if(mCurrentFragment!!.mCropImageView.height > distance) {
+                val frame = findViewById<FrameLayout>(R.id.container)
+
+                val l = frame.getLayoutParams()
+                l.width = (l.width * (distance / mCurrentFragment!!.mCropImageView.height)).toInt()
+                l.height = distance.toInt()
+                frame.setLayoutParams(l)
+
+                val l_image = mCurrentFragment!!.mCropImageView.layoutParams
+                l_image.width = l.width
+                l_image.height = l.height
+                mCurrentFragment!!.mCropImageView.setLayoutParams(l_image)
+            }
+        }*/
 
         try{
             if(mCurrentFragment!!.isBmInit()) {
@@ -1174,13 +1291,76 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
             Log.d(tag, e.message.toString())
         }
 
-
-        if(initCrop && crop != null && !crop!!.isEmpty() && !initOnly) {
+        /*if(initCrop && !initOnly) {
             initCrop = false
 
-            initOverlay()
-            rotateImage()
+            if(crop != null && !crop!!.isEmpty()) {
+                initCrop = false
+
+                initOverlay()
+                rotateImage()
+            } else {
+                //initEmptyOverlay()
+            }
+        }*/
+
+        if(!initOnly) {
+            initEmptyOverlay()
+        } else {
+            val area = findViewById<ConstraintLayout>(R.id.crop_tools)
+            val tools = findViewById<ConstraintLayout>(R.id.constr_container)
+
+            val oneRect = calculeRectOnScreen(area)
+            val secondRect = calculeRectOnScreen(tools)
+
+            val distance = Math.abs(oneRect.top - secondRect.top) - 20 * getScale()
+
+            val w = transImage!!.width * (distance / transImage!!.height)
+
+            val frame = findViewById<FrameLayout>(R.id.container)
+
+            Log.d("vas distance ", distance.toString())
+            Log.d("vas w ", w.toString())
+
+            val l_image = mCurrentFragment!!.mCropImageView.layoutParams
+            l_image.width = w.toInt()
+            l_image.height = distance.toInt()
+            mCurrentFragment!!.mCropImageView.setLayoutParams(l_image)
+
+            val l = frame.getLayoutParams()
+            l.width = w.toInt()
+            l.height = distance.toInt()
+            frame.setLayoutParams(l)
         }
+    }
+
+    private fun cropHeight3() {
+        val area = findViewById<ConstraintLayout>(R.id.crop_tools)
+        val tools = findViewById<ConstraintLayout>(R.id.constr_container)
+
+        val oneRect = calculeRectOnScreen(area)
+        val secondRect = calculeRectOnScreen(tools)
+
+        val distance = Math.abs(oneRect.top - secondRect.top) - 20 * getScale()
+
+        val img = findViewById<ImageView>(R.id.ImageView_image_test)
+        val frame = findViewById<FrameLayout>(R.id.container)
+        val l = frame.getLayoutParams()
+
+        val t = calculatedW
+        val t1 = calculatedH
+        val t2 = l.width
+        val t3 = l.height
+        val tt = 1
+    }
+
+    fun initEmptyOverlay() {
+        mCurrentFragment!!.mCropImageView.mCropOverlayView.setFixedAspectRatio(false)
+
+        mCurrentFragment!!.mCropImageView.mCropOverlayView.cropWindowRect = RectF(0f, 0f,
+            mCurrentFragment!!.mCropImageView.width.toFloat(), mCurrentFragment!!.mCropImageView.height.toFloat())
+
+        mCurrentFragment!!.mCropImageView.mCropOverlayView.invalidate()
     }
 
     fun initOverlay() {
@@ -1209,7 +1389,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
                 left + width, top + height
             )
 
-            mCurrentFragment!!.mCropImageView.mCropOverlayView.invalidate();
+            mCurrentFragment!!.mCropImageView.mCropOverlayView.invalidate()
         }
     }
 
@@ -1252,7 +1432,7 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
 
         mainArea!!.visibility = View.VISIBLE
 
-        cropSurface(bm, false)
+        cropSurface(bm, null)
         image = bm
     }
 
@@ -1280,32 +1460,60 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         return this.getResources().getDisplayMetrics().density
     }
 
-    private fun cropSurface(bOutput: Bitmap, changeDimens: Boolean) {
+    private fun getCropHeight():Float {
+        val area = findViewById<ConstraintLayout>(R.id.crop_tools)
+        val tools = findViewById<ConstraintLayout>(R.id.constr_container)
+
+        val oneRect = calculeRectOnScreen(area)
+        val secondRect = calculeRectOnScreen(tools)
+
+        return Math.abs(oneRect.top - secondRect.top) - 20 * getScale()
+    }
+
+    private fun getMainHeight():Float {
+        val area = findViewById<ConstraintLayout>(R.id.groupLayout)
+        val tools = findViewById<ConstraintLayout>(R.id.toolsLayout)
+
+        val oneRect = calculeRectOnScreen(area)
+        val secondRect = calculeRectOnScreen(tools)
+
+        return Math.abs(oneRect.top - secondRect.top) - 20 * getScale()
+    }
+
+    private fun cropSurface(bOutput: Bitmap, originalImage: Bitmap?) {
         val scale = getScale()
-        val pixels = (30.0f * scale + 0.5f)
 
-        val w = getWidth()
-        val h = canvasHeight * scale
+        var w = 0f
+        var h = 0f
 
-        val factor_w = h / bOutput.height.toFloat()
-        val width = (bOutput.width * factor_w) - 20
+        val mainHeight = getMainHeight()
+        Log.d("Lion", "Height now - " + mainHeight)
+        if(bOutput.height > mainHeight.toInt() && mainHeight.toInt() > 0) {
+            h = mainHeight
+            w = bOutput.width * (mainHeight / bOutput.height)
+        } else {
+            w = bOutput.width.toFloat()
+            h = bOutput.height.toFloat()
+        }
 
-        val factor_h = (w - pixels) / bOutput.width.toFloat()
-        val height = (bOutput.height * factor_h) - 5
-
-        if(changeDimens) {
-            calculatedW = width
-            calculatedH = height
+        if(originalImage != null) {
+            if(originalImage.height > mainHeight.toInt()) {
+                calculatedH = mainHeight
+                calculatedW = originalImage.width * (mainHeight / originalImage.height)
+            } else {
+                calculatedW = originalImage.width.toFloat()
+                calculatedH = originalImage.height.toFloat()
+            }
         }
 
         val layoutParams = glImageView!!.layoutParams
-        layoutParams.height = height.toInt()
-        layoutParams.width = width.toInt()
+        layoutParams.height = h.toInt()
+        layoutParams.width = w.toInt()
         glImageView!!.layoutParams = layoutParams
 
         val layoutParamsW = waterMark!!.layoutParams
-        layoutParamsW.height = height.toInt()
-        layoutParamsW.width = width.toInt()
+        layoutParamsW.height = h.toInt()
+        layoutParamsW.width = w.toInt()
         waterMark!!.layoutParams = layoutParamsW
     }
 
@@ -1718,6 +1926,10 @@ class EditImageActivity : AppCompatActivity(), OnPhotoEditorListener, EditingToo
         seek_h.setProgress(mActiveConfig!!.calculateProgress(config[0]))
         seek_s.setProgress(mActiveConfig!!.calculateProgress(config[1]))
         seek_l.setProgress(mActiveConfig!!.calculateProgress(config[2]))
+    }
+
+    public fun getAnswer(msg: Int) {
+        Log.e(Common.LOG_TAG, "Calllllback = " + msg)
     }
 
     private fun setFilters() {

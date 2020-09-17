@@ -126,7 +126,8 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:scaleType="centerCrop"
-                android:src="@drawable/cross"
+                style="@style/action_button_cancel"
+                android:background="@drawable/ic_cross_bottom"
                 app:layout_constraintLeft_toLeftOf="parent">
 
             </ImageView>
@@ -152,7 +153,8 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:scaleType="centerCrop"
-                android:src="@drawable/check"
+                style="@style/action_button_accept"
+                android:background="@drawable/ic_done_bottom"
                 app:layout_constraintLeft_toLeftOf="parent">
 
             </ImageView>
@@ -200,7 +202,8 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:scaleType="centerCrop"
-                android:src="@drawable/cross"
+                style="@style/action_button_cancel"
+                android:background="@drawable/ic_cross_bottom"
                 app:layout_constraintLeft_toLeftOf="parent">
 
             </ImageView>
@@ -226,7 +229,8 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:scaleType="centerCrop"
-                android:src="@drawable/check"
+                style="@style/action_button_accept"
+                android:background="@drawable/ic_done_bottom"
                 app:layout_constraintLeft_toLeftOf="parent">
 
             </ImageView>

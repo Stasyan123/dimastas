@@ -232,6 +232,9 @@ namespace CGE
 
 		void start();
 		void end();
+		int testStart();
+		int testFrames();
+		double testDoubles();
 
 		CGEFrameTypeNext queryNextFrame();
 

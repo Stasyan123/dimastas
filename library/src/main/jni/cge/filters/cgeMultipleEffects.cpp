@@ -118,6 +118,12 @@ namespace CGE
 	{
 		m_texLoadFunc = texLoader;
 		m_texLoadParam = arg;
+		m_texId = -1;
+	}
+
+    void CGEMutipleEffectFilter::setTextureId(int id)
+	{
+		m_texId = id;
 	}
 
 	GLuint CGEMutipleEffectFilter::loadResources(const char* textureName, int* width, int* height)
@@ -128,7 +134,7 @@ namespace CGE
 
 		if(m_texLoadFunc != nullptr)
 		{
-			GLuint tex = m_texLoadFunc(textureName, &w, &h, m_texLoadParam);
+			GLuint tex = m_texLoadFunc(textureName, &w, &h, m_texLoadParam, m_texId);
 			if(tex != 0)
 			{
 				if(width != nullptr)

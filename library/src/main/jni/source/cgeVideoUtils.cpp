@@ -21,7 +21,9 @@
 
 extern "C"
 {
-    JNIEXPORT jboolean JNICALL Java_org_wysaid_nativePort_CGEFFmpegNativeLibrary_nativeGenerateVideoWithFilter(JNIEnv *env, jclass cls, jstring outputFilename, jstring inputFilename, jstring filterConfig, jfloat filterIntensity, jobject blendImage, jint blendMode, jfloat blendIntensity, jboolean mute)
+    JNIEXPORT jboolean JNICALL Java_org_wysaid_nativePort_CGEFFmpegNativeLibrary_nativeGenerateVideoWithFilter(JNIEnv *env, jclass cls, jstring outputFilename,
+        jstring inputFilename, jstring filterConfig, jfloat filterIntensity, jobject blendImage,
+        jint blendMode, jfloat blendIntensity, jboolean mute, jint id)
     {
         CGE_LOG_INFO("##### nativeGenerateVideoWithFilter!!!");
         
@@ -39,12 +41,12 @@ extern "C"
         glContext->makecurrent();
         
         CGETextureResult texResult = {0};
-        
+
         jclass nativeLibraryClass = env->FindClass("org/wysaid/nativePort/CGENativeLibrary");
-        
+
         if(blendImage != nullptr)
             texResult = cgeLoadTexFromBitmap_JNI(env, nativeLibraryClass, blendImage);
-        
+
         const char* outFilenameStr = env->GetStringUTFChars(outputFilename, 0);
         const char* inFilenameStr = env->GetStringUTFChars(inputFilename, 0);
         const char* configStr = filterConfig == nullptr ? nullptr : env->GetStringUTFChars(filterConfig, 0);
@@ -52,8 +54,15 @@ extern "C"
         CGETexLoadArg texLoadArg;
         texLoadArg.env = env;
         texLoadArg.cls = env->FindClass("org/wysaid/nativePort/CGENativeLibrary");
-        
-        bool retStatus = CGE::cgeGenerateVideoWithFilter(outFilenameStr, inFilenameStr, configStr, filterIntensity, texResult.texID, (CGETextureBlendMode)blendMode, blendIntensity, mute, &texLoadArg);
+
+        CGETexLoadArg videoSaveProgress;
+        videoSaveProgress.env = env;
+        videoSaveProgress.cls = env->FindClass("org/wysaid/nativePort/CGEFFmpegNativeLibrary");
+
+        jclass ffmpegClass = env->FindClass("org/wysaid/nativePort/CGEFFmpegNativeLibrary");
+
+        bool retStatus = CGE::cgeGenerateVideoWithFilter(outFilenameStr, inFilenameStr, configStr, filterIntensity, texResult.texID,
+                                            (CGETextureBlendMode)blendMode, blendIntensity, mute, &texLoadArg, &videoSaveProgress, id);
         
         env->ReleaseStringUTFChars(outputFilename, outFilenameStr);
         env->ReleaseStringUTFChars(inputFilename, inFilenameStr);
@@ -112,11 +121,13 @@ namespace CGE
     };
     
     // A simple-slow offscreen video rendering function.
-    bool cgeGenerateVideoWithFilter(const char* outputFilename, const char* inputFilename, const char* filterConfig, float filterIntensity, GLuint texID, CGETextureBlendMode blendMode, float blendIntensity, bool mute, CGETexLoadArg* loadArg)
+    bool cgeGenerateVideoWithFilter(const char* outputFilename, const char* inputFilename, const char* filterConfig, float filterIntensity,
+        GLuint texID, CGETextureBlendMode blendMode, float blendIntensity,
+        bool mute, CGETexLoadArg* loadArg, CGETexLoadArg* saveProgress, int id)
     {
         static const int ENCODE_FPS = 30;
         int bitrate = 0;
-        
+
         CGEVideoDecodeHandler* decodeHandler = new CGEVideoDecodeHandler();
         
         if(!decodeHandler->open(inputFilename))
@@ -125,7 +136,9 @@ namespace CGE
             delete decodeHandler;
             return false;
         }
-        
+
+        jmethodID progressMethod = saveProgress->env->GetStaticMethodID(saveProgress->cls, "getProgress", "(II)V");
+
         //		decodeHandler->setSamplingStyle(CGEVideoDecodeHandler::ssFastBilinear); //already default
         
         int videoWidth = decodeHandler->getWidth();
@@ -213,6 +226,7 @@ namespace CGE
             {
                 CGEMutipleEffectFilter* filter = new CGEMutipleEffectFilter;
                 filter->setTextureLoadFunction(cgeGlobalTextureLoadFunc, loadArg);
+                filter->setTextureId(id);
                 filter->initWithEffectString(filterConfig);
                 filter->setIntensity(filterIntensity);
                 handler.addImageFilter(filter);
@@ -227,6 +241,9 @@ namespace CGE
             cacheBuffer = new unsigned char[cacheBufferSize];
         }
         
+        float test = 0.0;
+        int currentFrame = 0;
+        int currentAudioFrame = 0;
         int videoPTS = -1;
         CGEVideoEncoderMP4::ImageData imageData = {0};
         imageData.width = videoWidth;
@@ -251,17 +268,24 @@ namespace CGE
         
         while(1)
         {
-            CGEFrameTypeNext nextFrameType = videoPlayer.queryNextFrame();
             
+            CGEFrameTypeNext nextFrameType = videoPlayer.queryNextFrame();
+
             if(nextFrameType == FrameType_VideoFrame)
             {
                 if(!videoPlayer.updateVideoFrame())
                     continue;
-                
+                CGE_LOG_INFO("Frame count %i", decodeHandler->testFrames());
+
+				currentFrame++;
+                saveProgress->env->CallStaticVoidMethod(saveProgress->cls, progressMethod, currentFrame, id);
+
+                CGE_LOG_INFO("current frame %i", currentFrame);
+				
                 int newPTS = round(decodeHandler->getCurrentTimestamp() / 1000.0 * ENCODE_FPS);
                 
                 CGE_LOG_INFO("last pts: %d, new pts; %d\n", videoPTS, newPTS);
-                
+
                 if(videoPTS < 0)
                 {
                     videoPTS = 0;
@@ -327,6 +351,10 @@ namespace CGE
             {
                 if(!mute)
                 {
+					currentAudioFrame++;
+            CGE_LOG_INFO("currentAudioFrame frame %i", currentAudioFrame);
+				
+					
 #if 1  //Set this to 0 when you need to convert more audio formats and this function can not give a right result.
                     AVFrame* pAudioFrame = decodeHandler->getCurrentAudioAVFrame();
                     if(pAudioFrame == nullptr)

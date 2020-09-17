@@ -1,6 +1,9 @@
 package org.wysaid.nativePort;
 
 import android.graphics.Bitmap;
+import android.util.Log;
+
+import static org.wysaid.view.ImageGLSurfaceView.LOG_TAG;
 
 /**
  * Created by wysaid on 15/12/25.
@@ -135,6 +138,10 @@ public class CGEImageHandler {
 
     public void setFilterWithAddres(long filter) {
         nativeSetFilterWithAddress(mNativeAddress, filter);
+    }
+
+    public void printFloat(float i) {
+        Log.i(LOG_TAG, "printFloat " + i);
     }
 
     /////////////////      protected         ///////////////////////
