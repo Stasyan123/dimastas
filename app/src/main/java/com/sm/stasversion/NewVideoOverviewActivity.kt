@@ -474,7 +474,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
                 textIntensity!!.text = ((intensity * 100.0f).toInt()).toString()
                 mSeekBar!!.setProgress((intensity * 100.0f).toInt())
 
-                findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = GONE
+                findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = INVISIBLE
                 findViewById<ConstraintLayout>(R.id.intensityLayout).visibility = VISIBLE
                 findViewById<ConstraintLayout>(R.id.intensity_buttons).visibility = VISIBLE
 
@@ -510,22 +510,26 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         }
     }
 
+    private fun nullifyTexture() {
+        mActiveConfig!!.textureConfig(0f, 1f, 1f, false, false)
+        mActiveConfig!!.active = false
+        mActiveConfig!!.mRule = ""
+
+        isEdited[2] = false
+    }
+
     override fun onTextureSelected(name: String, position: Int) {
         mActiveConfig = mAdjustConfigs!!.get(position)
 
         if(mActiveConfig != null && !name.equals(mActiveConfig!!.name)) {
             mActiveConfig!!.setIntensity(1f, false, null)
-            mActiveConfig!!.textureConfig(0f, 1f, 1f, false)
+            mActiveConfig!!.textureConfig(0f, 1f, 1f, false, false)
         }
 
         mActiveConfig!!.startEditing = false
 
         if(name.equals("def", true)) {
-            mActiveConfig!!.textureConfig(0f, 1f, 1f, false)
-            mActiveConfig!!.active = false
-            mActiveConfig!!.mRule = ""
-
-            isEdited[2] = false
+            nullifyTexture()
         } else {
             mActiveConfig!!.active = true
             mActiveConfig!!.name = name
@@ -546,7 +550,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     }
 
     private fun showTexture() {
-        findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = View.GONE
+        findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = View.INVISIBLE
         findViewById<ConstraintLayout>(R.id.texture_container).visibility = View.VISIBLE
     }
 
@@ -788,15 +792,21 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         val apply = findViewById<View>(R.id.accept_texture_button)
 
         cancel.setOnClickListener {
-            mActiveConfig!!.textureConfig(mActiveConfig!!.rotate[0], mActiveConfig!!.horizontal[0], mActiveConfig!!.vertical[0], mActiveConfig!!.diff[0])
-            mActiveConfig!!.setIntensity(mActiveConfig!!.slierIntensity, false, null)
+            if(!mActiveConfig!!.startUsing) {
+                nullifyTexture()
+            } else {
+                mActiveConfig!!.textureConfig(mActiveConfig!!.rotate[0], mActiveConfig!!.horizontal[0], mActiveConfig!!.vertical[0], mActiveConfig!!.diff[0], true)
+                mActiveConfig!!.setIntensity(mActiveConfig!!.slierIntensity, false, null)
+            }
+
+
 
             setFilters()
             hideIntensity(true)
             toggleTopBar(false)
         }
         apply.setOnClickListener {
-            mActiveConfig!!.textureConfig(mActiveConfig!!.rotate[1], mActiveConfig!!.horizontal[1], mActiveConfig!!.vertical[1], mActiveConfig!!.diff[1])
+            mActiveConfig!!.textureConfig(mActiveConfig!!.rotate[1], mActiveConfig!!.horizontal[1], mActiveConfig!!.vertical[1], mActiveConfig!!.diff[1], true)
             mActiveConfig!!.setIntensity(mSeekTexture!!.progress / 100f, false, null)
 
             hideIntensity(true)
@@ -1494,9 +1504,9 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
         canvasHeight = distance
 
-        val lp = group.layoutParams
+        /*val lp = group.layoutParams
         lp.height = distance.toInt()
-        group.layoutParams = lp
+        group.layoutParams = lp*/
 
         mPlayerView!!.aetWrapper(oneRect.right - oneRect.left, distance)
 
@@ -1636,7 +1646,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
         val crop = findViewById<ConstraintLayout>(R.id.crop_area)
 
         if(show) {
-            tools.visibility = GONE
+            tools.visibility = INVISIBLE
             crop.visibility = VISIBLE
         } else {
             tools.visibility = VISIBLE
@@ -1677,6 +1687,8 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
 
             if(crop != null && !crop!!.isEmpty() && mPlayerView!!.cropInfo.overlay != null) {
                 mCropOverlayView!!.cropWindowRect = mPlayerView!!.cropInfo.overlay
+            } else {
+                mCropOverlayView!!.cropWindowRect = RectF(0f, 0f, parentLp.width.toFloat(), parentLp.height.toFloat())
             }
         }
         //mCropOverlayView!!.setInitialCropWindowRect(null)
@@ -1748,7 +1760,7 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     }
 
     private fun showEffects(type: EffectType) {
-        findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = View.GONE
+        findViewById<ConstraintLayout>(R.id.toolsLayout).visibility = View.INVISIBLE
         findViewById<ConstraintLayout>(R.id.intensity_buttons).visibility = View.VISIBLE
 
         when (type) {
@@ -1801,16 +1813,26 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
     }
 
     private fun scaleArea(min: Boolean) {
-        val parent = findViewById<ConstraintLayout>(R.id.groupLayout)
-        val params = parent.layoutParams
+        var id = 0
+        var margin = 0
+        val area = findViewById<ConstraintLayout>(R.id.main_area)
+
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(area)
+
+        constraintSet.clear(findViewById<ConstraintLayout>(R.id.groupLayout).id, ConstraintSet.BOTTOM)
 
         if(min) {
-            params.height = (canvasHeight / 1.5).toInt()
+            id = findViewById<ConstraintLayout>(R.id.intensityLayout_effect).id
+            margin = 15 * getScale().toInt()
         } else {
-            params.height = (canvasHeight).toInt()
+            id = findViewById<ConstraintLayout>(R.id.toolsLayout).id
+            margin = 20 * getScale().toInt()
         }
 
-        parent.layoutParams = params
+        constraintSet.connect(findViewById<ConstraintLayout>(R.id.groupLayout).id, ConstraintSet.BOTTOM, id, ConstraintSet.TOP, margin)
+
+        constraintSet.applyTo(area)
     }
 
     private fun initHslSeek(temp: Boolean) {
@@ -1851,28 +1873,26 @@ class NewVideoOverviewActivity : AppCompatActivity(), EditingToolsAdapter.OnItem
             var rect: RectF? = null
             val main = findViewById<ConstraintLayout>(R.id.main_area)
 
-            val wid = mPlayerView!!.width
-
             joinMood!!.visibility = VISIBLE
             waterMark!!.visibility = VISIBLE
 
-            val constraintSet = ConstraintSet()
+            /*val constraintSet = ConstraintSet()
             constraintSet.clone(main)
 
             if(effect) {
                 val intensityLayout = findViewById<ConstraintLayout>(R.id.intensityLayout_effect)
 
                 constraintSet.clear(joinMood!!.id, ConstraintSet.TOP)
-                constraintSet.connect(joinMood!!.id, ConstraintSet.BOTTOM, intensityLayout.id, ConstraintSet.TOP, 7 * getScale().toInt())
+                constraintSet.connect(joinMood!!.id, ConstraintSet.BOTTOM, intensityLayout.id, ConstraintSet.TOP, 14 * getScale().toInt())
             } else {
                 val block = findViewById<ConstraintLayout>(R.id.crop_area)
                 rect = calculeRectOnScreen(block)
 
-                constraintSet.connect(joinMood!!.id, ConstraintSet.TOP, main!!.id, ConstraintSet.TOP, rect.top.toInt() - joinMood!!.height - 32 * getScale().toInt())
+                constraintSet.connect(joinMood!!.id, ConstraintSet.TOP, main!!.id, ConstraintSet.TOP, rect.top.toInt() - joinMood!!.height - 38 * getScale().toInt())
                 constraintSet.clear(joinMood!!.id, ConstraintSet.BOTTOM)
             }
 
-            constraintSet.applyTo(main);
+            constraintSet.applyTo(main)*/
         } else {
             joinMood!!.visibility = View.GONE
             waterMark!!.visibility = View.GONE

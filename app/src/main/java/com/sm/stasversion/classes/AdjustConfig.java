@@ -40,6 +40,7 @@ public class AdjustConfig {
     public Float[] horizontal = {1f, 1f};
     public Float[] vertical = {1f, 1f};
     public Boolean[] diff = {false, false};
+    public Boolean startUsing = false;
     public String name = "";
 
     public boolean[] isEdited;
@@ -213,15 +214,16 @@ public class AdjustConfig {
         mRule += " " + name;
     }
 
-    public void textureConfig(Float r, Float h, Float v, Boolean dif) {
+    public void textureConfig(Float r, Float h, Float v, Boolean _diff, Boolean _startUsing) {
         rotate[0] = r;
         rotate[1] = r;
         vertical[0] = v;
         vertical[1] = v;
         horizontal[0] = h;
         horizontal[1] = h;
-        diff[0] = dif;
-        diff[1] = dif;
+        diff[0] = _diff;
+        diff[1] = _diff;
+        startUsing = _startUsing;
     }
 
     public String getRuleTemporary() {

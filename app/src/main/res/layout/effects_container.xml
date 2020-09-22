@@ -24,7 +24,7 @@
         android:textAppearance="@style/intensity"
         app:layout_constraintBottom_toBottomOf="parent"
         android:textSize="12sp"
-        android:text="100"
+        android:text="50"
         android:layout_gravity="center">
     </TextView>
 

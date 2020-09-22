@@ -36,20 +36,6 @@
         android:text="@string/all"
         android:textColor="@color/dark" />
 
-
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/image_toolbar_camera"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignWithParentIfMissing="true"
-        android:layout_centerVertical="true"
-        android:layout_toLeftOf="@+id/text_toolbar_done"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:padding="16dp"
-        android:visibility="gone"
-        android:src="@drawable/imagepicker_ic_camera" />
-
-
     <TextView
         android:id="@+id/text_toolbar_done"
         style="@style/imagepicker_ToolbarMenuText"

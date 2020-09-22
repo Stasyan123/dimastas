@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
+    android:background="@color/dark"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark"
     tools:context=".EditImageActivity">
 
     <include
@@ -30,9 +30,9 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/groupLayout"
             android:layout_width="match_parent"
-            android:layout_height="470dp"
+            android:layout_height="0dp"
             android:layout_marginTop="65dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="20dp"
             app:layout_constraintBottom_toTopOf="@+id/toolsLayout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -42,13 +42,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="17dp"
-                android:layout_marginStart="17dp"
-                >
+                android:layout_marginStart="17dp">
 
                 <org.wysaid.view.ImageGLSurfaceView
                     android:id="@+id/gpuimageview"
                     android:layout_width="match_parent"
-                    android:layout_height="0px"
+                    android:layout_height="match_parent"
                     android:layout_centerHorizontal="true"
                     android:layout_centerVertical="true"
                     app:layout_constraintStart_toStartOf="parent"
@@ -442,29 +441,29 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="11.5dp">
 
-                <View
+                <ImageView
                     android:id="@+id/filter"
                     style="@style/bottom_bar"
                     android:layout_marginStart="0dp"
-                    android:background="@drawable/ic_filters_check"
+                    android:src="@drawable/ic_filters_check"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/effect"
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toStartOf="parent" />
 
-                <View
+                <ImageView
                     android:id="@+id/effect"
                     style="@style/bottom_bar"
-                    android:background="@drawable/ic_effects"
+                    android:src="@drawable/ic_effects"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/textures"
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toEndOf="@+id/filter" />
 
-                <View
+                <ImageView
                     android:id="@+id/textures"
                     style="@style/bottom_bar"
-                    android:background="@drawable/ic_textures"
+                    android:src="@drawable/ic_textures"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_chainStyle="packed"
@@ -490,9 +489,9 @@
                 android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
-                <View
+                <ImageView
                     style="@style/action_button_cancel"
-                    android:background="@drawable/ic_cross_bottom"
+                    android:src="@drawable/ic_cross_bottom"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />
@@ -519,9 +518,9 @@
                 android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
-                <View
+                <ImageView
                     style="@style/action_button_accept"
-                    android:background="@drawable/ic_done_bottom"
+                    android:src="@drawable/ic_done_bottom"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
@@ -602,9 +601,9 @@
                 style="@style/action_area_cancel"
                 android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent">
-                <View
+                <ImageView
                     style="@style/action_button_cancel"
-                    android:background="@drawable/ic_cross_bottom"
+                    android:src="@drawable/ic_cross_bottom"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />
@@ -631,9 +630,9 @@
                 android:layout_alignParentEnd="true"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
-                <View
+                <ImageView
                     style="@style/action_button_accept"
-                    android:background="@drawable/ic_done_bottom"
+                    android:src="@drawable/ic_done_bottom"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
@@ -649,7 +648,7 @@
             android:layout_marginStart="17dp"
             android:layout_marginEnd="17dp"
             android:visibility="invisible"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/groupLayout"
             layout="@layout/license">
         </include>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -720,30 +719,30 @@
             android:layout_marginTop="19dp"
             android:layout_marginBottom="12dp">
 
-            <View
+            <ImageView
                 android:id="@+id/rotate"
                 style="@style/action_button_crop"
-                android:background="@drawable/ic_rotate"
+                android:src="@drawable/ic_rotate"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/horizontal"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
                 app:layout_constraintStart_toStartOf="parent" />
 
-            <View
+            <ImageView
                 android:id="@+id/horizontal"
                 style="@style/action_button_crop"
                 android:layout_marginStart="12dp"
-                android:background="@drawable/ic_horizontal"
+                android:src="@drawable/ic_horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/vertical"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
                 app:layout_constraintStart_toEndOf="@+id/rotate" />
 
-            <View
+            <ImageView
                 android:id="@+id/vertical"
                 style="@style/action_button_crop"
                 android:layout_marginStart="12dp"
-                android:background="@drawable/ic_vertical"
+                android:src="@drawable/ic_vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/rect"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
@@ -812,9 +811,9 @@
                 android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
-                <View
+                <ImageView
                     style="@style/action_button_cancel"
-                    android:background="@drawable/ic_cross_bottom"
+                    android:src="@drawable/ic_cross_bottom"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />
@@ -840,9 +839,9 @@
                 android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
-                <View
+                <ImageView
                     style="@style/action_button_accept"
-                    android:background="@drawable/ic_done_bottom"
+                    android:src="@drawable/ic_done_bottom"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />

@@ -202,7 +202,6 @@ public class ImagePickerActivity extends AppCompatActivity implements ImagePicke
     private void setupToolbar() {
         toolbar.config(config);
         toolbar.setOnBackClickListener(backClickListener);
-        toolbar.setOnCameraClickListener(cameraClickListener);
         toolbar.setOnDoneClickListener(doneClickListener);
     }
 

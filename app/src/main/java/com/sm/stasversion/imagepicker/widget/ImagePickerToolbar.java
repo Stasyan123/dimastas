@@ -43,7 +43,6 @@ public class ImagePickerToolbar extends RelativeLayout {
         titleText = findViewById(R.id.text_toolbar_title);
         doneText = findViewById(R.id.text_toolbar_done);
         backImage = findViewById(R.id.image_toolbar_back);
-        cameraImage = findViewById(R.id.image_toolbar_camera);
     }
 
     public void config(Config config) {
@@ -56,9 +55,6 @@ public class ImagePickerToolbar extends RelativeLayout {
         doneText.setTextColor(config.getToolbarTextColor());
 
         backImage.setColorFilter(config.getToolbarIconColor());
-
-        cameraImage.setColorFilter(config.getToolbarIconColor());
-        cameraImage.setVisibility(config.isShowCamera() ? VISIBLE : GONE);
 
         doneText.setVisibility(GONE);
     }
@@ -73,10 +69,6 @@ public class ImagePickerToolbar extends RelativeLayout {
 
     public void setOnBackClickListener(OnClickListener clickListener) {
         backImage.setOnClickListener(clickListener);
-    }
-
-    public void setOnCameraClickListener(OnClickListener clickListener) {
-        cameraImage.setOnClickListener(clickListener);
     }
 
     public void setOnDoneClickListener(OnClickListener clickListener) {

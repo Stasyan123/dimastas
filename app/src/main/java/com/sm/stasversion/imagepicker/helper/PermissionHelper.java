@@ -33,7 +33,6 @@ public class PermissionHelper {
         } else {
             listener.onPermissionGranted();
         }
-
     }
 
     public static void openAppSettings(Activity activity) {

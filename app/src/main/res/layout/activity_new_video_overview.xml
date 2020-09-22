@@ -22,12 +22,13 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/groupLayout"
         android:layout_width="match_parent"
-        android:layout_height="470dp"
+        android:layout_height="0dp"
         android:layout_marginEnd="17dp"
         android:layout_marginStart="17dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginBottom="20dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top_bar">
+        app:layout_constraintTop_toBottomOf="@+id/top_bar"
+        app:layout_constraintBottom_toTopOf="@+id/toolsLayout">
 
         <FrameLayout
             android:id="@+id/parentView"
@@ -73,7 +74,7 @@
         android:layout_marginStart="17dp"
         android:layout_marginEnd="17dp"
         android:layout_marginBottom="32.15dp"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/intensity_buttons">
 
@@ -740,7 +741,7 @@
         android:layout_marginStart="17dp"
         android:layout_marginEnd="17dp"
         android:visibility="invisible"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/groupLayout"
         layout="@layout/license">
     </include>
 </androidx.constraintlayout.widget.ConstraintLayout>

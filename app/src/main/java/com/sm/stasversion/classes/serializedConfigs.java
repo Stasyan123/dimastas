@@ -116,13 +116,15 @@ public class serializedConfigs {
                 (int)height
         );
 
+        Bitmap tempBmp =  dstBmp.copy(dstBmp.getConfig(), true);
+
         Matrix m = new Matrix();
 
         m.postScale(crop.flipHor ? -crop.scale : crop.scale, crop.flipVert ? -crop.scale : crop.scale, dstBmp.getWidth() / 2, dstBmp.getHeight() / 2);
         m.postRotate(crop.postRotate, dstBmp.getWidth() / 2, dstBmp.getHeight() / 2);
 
         Canvas canvas = new Canvas(dstBmp);
-        canvas.drawBitmap(resource, m, new Paint());
+        canvas.drawBitmap(tempBmp, m, new Paint());
 
         Matrix matrixNew = new Matrix();
         matrixNew.setRotate(crop.rotation, dstBmp.getWidth() / 2, dstBmp.getHeight() / 2);

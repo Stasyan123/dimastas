@@ -54,6 +54,14 @@ public class ImageGLSurfaceView extends GLSurfaceView implements Renderer {
         return mImageWidth;
     }
 
+    public int getViewportHeight() {
+        return mRenderViewport.height;
+    }
+
+    public int getViewportWidth() {
+        return mRenderViewport.width;
+    }
+
     public int getImageheight() {
         return mImageHeight;
     }

@@ -304,7 +304,7 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
             startGallery()
         }
 
-        val menu = findViewById<ImageView>(R.id.topMenu)
+        val menu = findViewById<View>(R.id.topMenu)
         menu.setOnClickListener{
             val intent = Intent(this@MainMenu, MenuActivity::class.java)
             startActivity(intent)
@@ -558,12 +558,12 @@ class MainMenu : AppCompatActivity(), ImagePickerView {
         if(savedCount == selectedSize) {
             runOnUiThread{
                 showImagesSaved()
-            }
 
-            copy!!.isClickable = true
-            paste!!.isClickable = true
-            delete!!.isClickable = true
-            save!!.isClickable = true
+                copy!!.isClickable = true
+                paste!!.isClickable = true
+                delete!!.isClickable = true
+                save!!.isClickable = true
+            }
         }
     }
 
